@@ -68,7 +68,7 @@ cp -a "$bundle/licenses" "$app/pdfium-licenses/licenses"
 cp "$native/pdfium-provenance.json" "$app/pdfium-licenses/provenance.json"
 cp -a "$format_tools/." "$app/format-tools/"
 cat > "$app/INSTALL-LINUX.md" <<'EOF'
-# CrabPDF 0.3.3 para Linux x86_64
+# CrabPDF __VERSION__ para Linux x86_64
 
 Ejecutar `./crabpdf` en un escritorio X11 o Wayland. Conservar `libpdfium.so` y
 `format-tools/` junto al ejecutable. El tar incluye MuPDF 1.28.5 y libmobi 0.12,
@@ -84,8 +84,9 @@ sudo apt install djvulibre-bin 7zip
 El paquete `.deb` declara estas dependencias y las resuelve al instalarse con `apt`.
 Otros sistemas pueden usar nombres distintos para `ddjvu`, `djvutoxml` y `7z`.
 Los documentos se procesan localmente.
-Esta es una versión de desarrollo 0.3.3, no la paridad 1.0 de SumatraPDF.
+Esta es una versión de desarrollo __VERSION__, no la paridad 1.0 de SumatraPDF.
 EOF
+sed -i "s/__VERSION__/$version/g" "$app/INSTALL-LINUX.md"
 (
     cd "$app"
     find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS

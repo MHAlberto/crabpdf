@@ -33,6 +33,18 @@ impl ReaderApp {
                     .max(1.0) as u32;
                 let height = ui.available_height().round().max(1.0) as u32;
                 let tab = &mut self.tabs[self.active];
+                if ui.input(|input| {
+                    input.smooth_scroll_delta != Vec2::ZERO
+                        || (input.pointer.any_pressed()
+                            && tab.viewport_rect.is_some_and(|rect| {
+                                input
+                                    .pointer
+                                    .interact_pos()
+                                    .is_some_and(|pos| rect.contains(pos))
+                            }))
+                }) {
+                    tab.pending_position = None;
+                }
                 let current = tab.state.document.as_ref().map_or(0, |d| d.page);
                 let spec = LayoutSpec {
                     width,
@@ -85,6 +97,19 @@ impl ReaderApp {
                 }
                 let layout =
                     Arc::clone(&tab.view_layout.as_ref().expect("layout was constructed").1);
+                if let Some(position) = tab.pending_position
+                    && tab
+                        .state
+                        .page_sizes
+                        .get(position.page())
+                        .is_some_and(Option::is_some)
+                    && let Some(anchor) =
+                        position.anchor((width as f32, height as f32), tab.state.page_sizes.len())
+                {
+                    tab.pending_position = None;
+                    tab.zoom_anchor = Some(anchor);
+                    tab.state.scroll_to_page = false;
+                }
                 if tab.state.scroll_to_page {
                     tab.zoom_anchor = None;
                 }
@@ -313,6 +338,7 @@ impl ReaderApp {
                 if let Some(tab) = self.tabs.get_mut(self.active)
                     && tab.id == id
                 {
+                    let previous_scroll = tab.scroll;
                     tab.scroll = output.state.offset + pan;
                     tab.viewport = output.inner_rect.size();
                     tab.viewport_rect = Some(output.inner_rect);
@@ -333,6 +359,9 @@ impl ReaderApp {
                     tab.state.rendering = displayed_keys
                         .iter()
                         .any(|key| self.pending_pages.contains(key));
+                    if (tab.scroll - previous_scroll).length_sq() > 0.25 {
+                        self.schedule_save();
+                    }
                 }
             });
     }
@@ -403,7 +432,7 @@ impl ReaderApp {
                 if let Some(link) = content.links.iter().find(|link| link.bounds.contains(x, y)) {
                     match &link.target {
                         LinkTarget::Page(destination) => {
-                            self.tabs[self.active].state.go_to(*destination, true)
+                            self.tabs[self.active].go_to(*destination, true)
                         }
                         LinkTarget::Uri(uri) => {
                             if uri.starts_with("https://")

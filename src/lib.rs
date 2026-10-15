@@ -13,6 +13,7 @@ pub mod formats;
 pub mod layout;
 pub mod library;
 pub mod platform;
+pub mod reading_position;
 pub mod state;
 pub mod ui;
 pub mod worker;

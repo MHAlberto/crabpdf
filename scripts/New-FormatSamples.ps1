@@ -99,7 +99,14 @@ Copy-Item -LiteralPath (Join-Path $sampleRoot 'comic.cbr') -Destination (Join-Pa
 foreach($pair in @(@('comic.cbz','comic.zip'),@('comic.cb7','comic.7z'),@('comic.cbt','comic.tar'),@('book.fb2z','book.fb2.zip'),@('book.fb2z','book.fbz'),@('book.fb2z','book.zfb2'),@('text.txt','text.log'),@('text.txt','text.nfo'))) {
     Copy-Item -LiteralPath (Join-Path $sampleRoot $pair[0]) -Destination (Join-Path $sampleRoot $pair[1]) -Force
 }
-Copy-Item -LiteralPath (Join-Path $workspace 'native/format-downloads/7zip/7-zip.chm') -Destination (Join-Path $sampleRoot 'help.chm') -Force
+$sevenInstaller=Join-Path $workspace 'native/format-downloads/7z2604.exe'
+if((Get-FileHash -LiteralPath $sevenInstaller -Algorithm SHA256).Hash -ne '39BF65045153FC26C42FA9FE47AFD8CD1B11671C7F11D031E738C9A13960C009') {
+    throw 'Falta el instalador verificado de 7-Zip 26.04; ejecuta Get-FormatTools.ps1.'
+}
+$chmDirectory=Join-Path $sampleRoot 'chm-source'
+& $archiveTool e $sevenInstaller "-o$chmDirectory" '7-zip.chm' -y | Out-Null
+if($LASTEXITCODE -ne 0){throw 'Fallo al extraer la muestra CHM de 7-Zip.'}
+Copy-Item -LiteralPath (Join-Path $chmDirectory '7-zip.chm') -Destination (Join-Path $sampleRoot 'help.chm') -Force
 Copy-Item -LiteralPath (Join-Path $workspace 'native/format-downloads/djvulibre/doc/lizard2007.djvu') -Destination (Join-Path $sampleRoot 'book.djvu') -Force
 Copy-Item -LiteralPath (Join-Path $sampleRoot 'book.djvu') -Destination (Join-Path $sampleRoot 'book.djv') -Force
 Write-SampleText 'image.svg' '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320"><rect width="240" height="320" fill="#90c0ff"/><rect x="20" y="20" width="80" height="20" fill="black"/></svg>'

@@ -56,6 +56,10 @@ pub struct StoredDocument {
     pub continuous: bool,
     pub rotation: u8,
     pub colors: PageColors,
+    #[serde(default)]
+    pub manga: bool,
+    #[serde(default)]
+    pub position: Option<crate::reading_position::ReadingPosition>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -300,6 +304,8 @@ mod tests {
                 continuous: true,
                 rotation: 3,
                 colors: PageColors::Grayscale,
+                manga: true,
+                position: None,
             }],
             session: vec![StoredDocument {
                 path: PathBuf::from("otro.pdf"),
@@ -309,6 +315,8 @@ mod tests {
                 continuous: false,
                 rotation: 0,
                 colors: PageColors::Original,
+                manga: false,
+                position: None,
             }],
             favorites: vec![Favorite {
                 path: PathBuf::from("otro.pdf"),
@@ -336,6 +344,8 @@ mod tests {
             continuous: true,
             rotation: 0,
             colors: PageColors::Original,
+            manga: false,
+            position: None,
         };
         preferences.remember(saved.clone());
         preferences.record_open(&saved.path);
@@ -386,6 +396,8 @@ mod tests {
             continuous: true,
             rotation: 0,
             colors: PageColors::Original,
+            manga: false,
+            position: None,
         };
         first.session.push(saved("first.pdf"));
         second.session.push(saved("second.pdf"));

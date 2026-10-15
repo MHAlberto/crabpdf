@@ -487,7 +487,7 @@ impl ReaderApp {
                                                     .sense(egui::Sense::click()),
                                             );
                                             if response.clicked() {
-                                                self.tabs[self.active].state.go_to(page, true);
+                                                self.tabs[self.active].go_to(page, true);
                                             }
                                         } else {
                                             ui.add_sized(
@@ -502,7 +502,7 @@ impl ReaderApp {
                                             )
                                             .clicked()
                                         {
-                                            self.tabs[self.active].state.go_to(page, true);
+                                            self.tabs[self.active].go_to(page, true);
                                         }
                                     });
                                 }
@@ -533,7 +533,7 @@ impl ReaderApp {
                                         .clicked()
                                         && let Some(page) = item.page
                                     {
-                                        self.tabs[self.active].state.go_to(page, true);
+                                        self.tabs[self.active].go_to(page, true);
                                     }
                                     ui.push_id(index, |_| {});
                                 });
@@ -560,10 +560,12 @@ impl ReaderApp {
                                         continuous: false,
                                         rotation: 0,
                                         colors: PageColors::Original,
+                                        manga: false,
+                                        position: None,
                                     };
                                     self.open_document(favorite.path, Some(saved));
                                     if let Some(tab) = self.tabs.get_mut(self.active) {
-                                        tab.state.go_to(favorite.page, true);
+                                        tab.go_to(favorite.page, true);
                                     }
                                 }
                             }
@@ -677,7 +679,7 @@ impl ReaderApp {
                 });
             if submit {
                 if let Some(tab) = self.tabs.get_mut(self.active) {
-                    tab.state.go_to(self.go_to_value.saturating_sub(1), true);
+                    tab.go_to(self.go_to_value.saturating_sub(1), true);
                 }
                 self.go_to_open = false;
                 self.schedule_save();

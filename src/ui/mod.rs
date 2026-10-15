@@ -59,6 +59,7 @@ struct Tab {
     viewport: Vec2,
     viewport_rect: Option<egui::Rect>,
     zoom_anchor: Option<crate::layout::ReadingAnchor>,
+    pending_position: Option<crate::reading_position::ReadingPosition>,
     scroll_bottom: bool,
     reveal: Option<(usize, crate::document::Bounds)>,
     password_needed: bool,
@@ -69,6 +70,10 @@ struct Tab {
     view_layout: Option<(crate::layout::LayoutSpec, Arc<crate::layout::PageLayout>)>,
 }
 impl Tab {
+    fn go_to(&mut self, page: usize, remember: bool) {
+        self.pending_position = None;
+        self.state.go_to(page, remember);
+    }
     fn supports_password(&self) -> bool {
         matches!(
             crate::formats::Format::detect(&self.path),
@@ -92,6 +97,7 @@ impl Tab {
             viewport: Vec2::ZERO,
             viewport_rect: None,
             zoom_anchor: None,
+            pending_position: None,
             scroll_bottom: false,
             reveal: None,
             password_needed: false,
@@ -112,6 +118,21 @@ impl Tab {
             continuous: self.state.continuous,
             rotation: self.state.rotation,
             colors: self.state.colors,
+            manga: self.state.manga,
+            position: self.pending_position.or_else(|| {
+                let (_, layout) = self.view_layout.as_ref()?;
+                crate::reading_position::ReadingPosition::capture(
+                    layout,
+                    (self.scroll.x, self.scroll.y),
+                    (self.viewport.x, self.viewport.y),
+                )
+                .filter(|position| {
+                    self.state
+                        .page_sizes
+                        .get(position.page())
+                        .is_some_and(Option::is_some)
+                })
+            }),
         })
     }
     fn anchor(&self, pointer: Option<egui::Pos2>) -> Option<crate::layout::ReadingAnchor> {
@@ -147,6 +168,7 @@ impl Tab {
         })
     }
     fn zoom_at(&mut self, zoom: Zoom, pointer: Option<egui::Pos2>) {
+        self.pending_position = None;
         if self.state.zoom == zoom {
             return;
         }
@@ -480,7 +502,7 @@ impl ReaderApp {
     }
     pub fn current_page_viewport(&self) -> Option<crate::document::Bounds> {
         let tab = self.tabs.get(self.active)?;
-        if tab.state.scroll_to_page || tab.reveal.is_some() {
+        if tab.state.scroll_to_page || tab.reveal.is_some() || tab.pending_position.is_some() {
             return None;
         }
         let (spec, layout) = tab.view_layout.as_ref()?;
@@ -514,7 +536,7 @@ impl ReaderApp {
         if !duplicate && let Some(index) = self.tabs.iter().position(|tab| tab.path == path) {
             self.active = index;
             if let Some(saved) = restore {
-                self.tabs[index].state.go_to(saved.page, true);
+                self.tabs[index].go_to(saved.page, true);
             }
             return;
         }
@@ -578,6 +600,7 @@ impl ReaderApp {
     }
     pub fn navigate(&mut self, forward: bool) {
         if let Some(tab) = self.tabs.get_mut(self.active) {
+            tab.pending_position = None;
             tab.state.navigate(forward);
             tab.selection = None;
         }
@@ -760,9 +783,28 @@ impl ReaderApp {
                                 tab.state.continuous = saved.continuous;
                                 tab.state.rotation = saved.rotation % 4;
                                 tab.state.colors = saved.colors;
-                                tab.state.go_to(saved.page, false);
+                                tab.state.manga = saved.manga;
+                                let count =
+                                    tab.state.document.as_ref().map_or(0, |d| d.info.page_count);
+                                tab.pending_position = saved
+                                    .position
+                                    .filter(|p| p.anchor((1.0, 1.0), count).is_some());
+                                tab.state.go_to(
+                                    tab.pending_position.map_or(saved.page, |p| p.page()),
+                                    false,
+                                );
                             }
                             if let Some(view) = tab.startup.take() {
+                                if view.page.is_some()
+                                    || view.zoom.is_some()
+                                    || view.layout.is_some()
+                                    || view.continuous.is_some()
+                                    || view.manga.is_some()
+                                    || view.rotation.is_some()
+                                    || view.search.is_some()
+                                {
+                                    tab.pending_position = None;
+                                }
                                 if let Some(zoom) = view.zoom {
                                     tab.state.set_zoom(zoom);
                                 }
@@ -939,7 +981,7 @@ impl ReaderApp {
                         tab.search.total = total;
                         if first {
                             tab.search.index = 0;
-                            tab.state.go_to(tab.search.hits[0].page, true);
+                            tab.go_to(tab.search.hits[0].page, true);
                             tab.reveal = tab.search.hits[0]
                                 .bounds
                                 .first()
@@ -1062,8 +1104,7 @@ impl ReaderApp {
             } else {
                 (tab.search.index + count - 1) % count
             };
-            tab.state
-                .go_to(tab.search.hits[tab.search.index].page, true);
+            tab.go_to(tab.search.hits[tab.search.index].page, true);
             let hit = &tab.search.hits[tab.search.index];
             tab.reveal = hit.bounds.first().copied().map(|bounds| (hit.page, bounds));
         }
@@ -1149,6 +1190,45 @@ impl ReaderApp {
     pub fn execute(&mut self, action: Action, ctx: &egui::Context) {
         if !self.enabled(action) {
             return;
+        }
+        if matches!(
+            action,
+            Action::Previous
+                | Action::Next
+                | Action::First
+                | Action::Last
+                | Action::GoTo
+                | Action::Back
+                | Action::Forward
+                | Action::FindNext
+                | Action::FindPrevious
+                | Action::ScrollUp
+                | Action::ScrollDown
+                | Action::ScrollLeft
+                | Action::ScrollRight
+                | Action::ScrollUpPage
+                | Action::ScrollDownPage
+                | Action::ScrollLeftPage
+                | Action::ScrollRightPage
+                | Action::ScrollUpHalf
+                | Action::ScrollDownHalf
+                | Action::ZoomIn
+                | Action::ZoomOut
+                | Action::ActualSize
+                | Action::FitWidth
+                | Action::FitHeight
+                | Action::FitPage
+                | Action::RotateLeft
+                | Action::RotateRight
+                | Action::Single
+                | Action::Facing
+                | Action::Book
+                | Action::Continuous
+                | Action::VerticalReading
+                | Action::Manga
+        ) && let Some(tab) = self.tabs.get_mut(self.active)
+        {
+            tab.pending_position = None;
         }
         match action {
             Action::Highlight | Action::Underline => {

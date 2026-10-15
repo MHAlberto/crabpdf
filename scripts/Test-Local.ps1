@@ -50,6 +50,10 @@ try {
             $code=$LASTEXITCODE
             $records.Add(@{check="$arch-search-viewport";exit_code=$code})
             if ($code -ne 0) {throw "Fallo al revelar una búsqueda en una página larga ($arch)."}
+            & (Join-Path $workspace "target/$target/release/examples/reading_session_smoke.exe") (Join-Path $reportRoot "$arch-reading-session")
+            $code=$LASTEXITCODE
+            $records.Add(@{check="$arch-reading-session";exit_code=$code;captures=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot "$arch-reading-session") -Filter '*.png').Count})
+            if ($code -ne 0) {throw "Fallo de restauración de lectura entre procesos ($arch)."}
             & (Join-Path $workspace "target/$target/release/examples/refinement_smoke.exe") (Join-Path $reportRoot "$arch-refinement")
             $code=$LASTEXITCODE
             $records.Add(@{check="$arch-refinement";exit_code=$code;captures=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot "$arch-refinement") -Filter '*.png').Count})

@@ -1,0 +1,64 @@
+name: CrabPDF CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            architecture: x64
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            platform: win
+            architecture: x86
+            target: i686-pc-windows-msvc
+          - os: ubuntu-24.04
+            platform: linux
+            architecture: x64
+            target: x86_64-unknown-linux-gnu
+          - os: macos-15
+            platform: mac
+            architecture: arm64
+            target: aarch64-apple-darwin
+          - os: macos-15-intel
+            platform: mac
+            architecture: x64
+            target: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux build libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libegl1-mesa-dev libwayland-dev libxkbcommon-dev libdbus-1-dev
+      - name: Install Rust from rust-toolchain.toml
+        shell: bash
+        run: rustup show && rustup target add '${{ matrix.target }}'
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --all-targets --target '${{ matrix.target }}' -- -D warnings
+      - run: cargo test --locked --target '${{ matrix.target }}'
+      - name: Install verified PDFium binary
+        shell: pwsh
+        run: ./scripts/Get-Pdfium.ps1 -Platform '${{ matrix.platform }}' -Architecture '${{ matrix.architecture }}'
+      - name: Functional engine tests (no window)
+        run: cargo test --locked --target '${{ matrix.target }}' --test native_pdf -- --ignored --test-threads=1
+      - name: Prepare Windows format decoders and samples
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/Get-FormatTools.ps1; ./scripts/New-FormatSamples.ps1
+      - name: Format and annotation engine tests
+        if: runner.os == 'Windows'
+        env:
+          CRABPDF_DATA_DIR: ${{ github.workspace }}/artifacts/ci-reader-data
+        run: cargo test --locked --target '${{ matrix.target }}' --test formats_and_marks -- --ignored --test-threads=1
+      - run: cargo build --locked --release --target '${{ matrix.target }}'

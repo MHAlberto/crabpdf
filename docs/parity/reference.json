@@ -1,0 +1,57 @@
+{
+  "repository": "https://github.com/sumatrapdfreader/sumatrapdf",
+  "ref": "3316ad49c5c24f6f78a3849a28eea04517baa833",
+  "upstream_commit_date": "2026-10-13T14:05:07Z",
+  "inspected_on": "2026-10-13",
+  "scope": "Paridad completa de funciones y comportamientos visibles; v1. Plugins Rust/WASM; v2.",
+  "inventory_complete": false,
+  "enum_entries": 332,
+  "entries_are_not_feature_count": true,
+  "sources": [
+    {
+      "path": "src/shared/Commands.h",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/Commands.h"
+    },
+    {
+      "path": "src/shared/MenuDefs.cpp",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/MenuDefs.cpp"
+    },
+    {
+      "path": "src/shared/Accelerators.cpp",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/Accelerators.cpp"
+    },
+    {
+      "path": "src/shared/DisplayModel.h",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/DisplayModel.h"
+    },
+    {
+      "path": "src/shared/DocController.h",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/DocController.h"
+    },
+    {
+      "path": "src/shared/RenderCache.h",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/RenderCache.h"
+    },
+    {
+      "path": "src/shared/EngineCreate.cpp",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/EngineCreate.cpp"
+    },
+    {
+      "path": "src/shared/EngineMupdf.cpp",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/EngineMupdf.cpp"
+    },
+    {
+      "path": "src/ng/README.md",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/ng/README.md"
+    },
+    {
+      "path": "src/mupdf/README.md",
+      "url": "https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/mupdf/README.md"
+    }
+  ],
+  "limitations": [
+    "La extracción cubre identificadores con valor numérico explícito en Commands.h, no todos los alias simbólicos ni argumentos.",
+    "Faltan subcasos de diálogos, menús, gestos, preferencias, formatos, accesibilidad e integraciones por plataforma.",
+    "Parcial indica un comportamiento básico existente; ningún comando se declara en paridad completa."
+  ]
+}

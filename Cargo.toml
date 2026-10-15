@@ -1,0 +1,33 @@
+[package]
+name = "crabpdf"
+version = "0.3.3"
+edition = "2024"
+rust-version = "1.95"
+description = "Un lector PDF de escritorio local, ligero y multiplataforma"
+license = "MIT"
+
+[build-dependencies]
+embed-resource = "=3.0.11"
+resvg = { version = "=0.48.1", default-features = false }
+
+[dependencies]
+eframe = { version = "=0.36.2", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+pdfium-render = { version = "=0.9.4", default-features = false, features = ["pdfium_7881", "thread_safe"] }
+rfd = "=0.17.2"
+serde = { version = "1.0", features = ["derive"] }
+toml = "1.1.8"
+image = { version = "0.25", default-features = false, features = ["png", "bmp", "ico", "tga"] }
+roxmltree = "=0.21.1"
+serde_json = "1.0"
+crc32fast = "=1.5.2"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"

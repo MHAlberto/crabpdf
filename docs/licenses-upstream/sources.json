@@ -1,0 +1,44 @@
+[
+  {
+    "folder": "egui-0.36.2",
+    "file": "LICENSE-MIT",
+    "url": "https://github.com/emilk/egui/blob/49682f8baa058bf49e011035cfbd6e825f88a5ef/LICENSE-MIT",
+    "git_blob": "673ea5f0505d6fa65c6a2b6a753c93b8e19d11b9",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  },
+  {
+    "folder": "clipboard-win-5.4.1",
+    "file": "LICENSE",
+    "url": "https://github.com/DoumanAsh/clipboard-win/blob/3b27cf2bfd1adcfa6e0264eb51c1025ddaf0f342/LICENSE",
+    "git_blob": "36b7cd93cdfbac762f5be4c6ce276df2ea6305c2",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  },
+  {
+    "folder": "accesskit-0.24.1",
+    "file": "LICENSE-MIT",
+    "url": "https://github.com/AccessKit/accesskit/blob/a55d3e1a18bb9ef0e4bccc9083fb13c3e0ad8969/LICENSE-MIT",
+    "git_blob": "31aa79387f27e730e33d871925e152e35e428031",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  },
+  {
+    "folder": "profiling-1.0.18",
+    "file": "LICENSE-MIT",
+    "url": "https://github.com/aclysma/profiling/blob/8271551172eb6fa4cba47369aedd93790c623df9/LICENSE-MIT",
+    "git_blob": "6a84e059ad8b43e03c2b06bc2af4dc1d8442808d",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  },
+  {
+    "folder": "gl_generator-0.14.0",
+    "file": "LICENSE",
+    "url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/LICENSE",
+    "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  },
+  {
+    "folder": "khronos_api-3.1.0",
+    "file": "LICENSE",
+    "url": "https://github.com/rust-windowing/gl-rs/blob/f150967b1c44ae888e6676f93f639ebc82771bdc/LICENSE",
+    "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "reason": "License omitted from the published crate archive; obtained at its .cargo_vcs_info.json revision."
+  }
+]

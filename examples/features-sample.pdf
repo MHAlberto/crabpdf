@@ -1,0 +1,92 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /Outlines 8 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Resources << /Font << /F1 7 0 R >> >> /Contents 5 0 R /Annots [11 0 R 12 0 R] >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 800 500] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+5 0 obj
+<< /Length 1030 >>
+stream
+q
+0.965 0.97 0.98 rg 0 0 600 800 re f
+1 1 1 rg 32 32 536 736 re f
+0.21 0.36 0.61 rg 62 703 34 4 re f
+BT /F1 11 Tf 0.42 0.46 0.52 rg 62 727 Td (RUST READER / READING NOTES) Tj ET
+BT /F1 32 Tf 0.12 0.15 0.20 rg 62 644 Td (A little room to read.) Tj ET
+BT /F1 13 Tf 0.42 0.46 0.52 rg 62 611 Td (An original PDF for testing the reader.) Tj ET
+0.86 0.88 0.91 RG 0.7 w 62 577 m 538 577 l S
+BT /F1 16 Tf 0.12 0.15 0.20 rg 62 535 Td (Make space for the page) Tj ET
+BT /F1 12 Tf 0.30 0.34 0.40 rg 62 502 Td (Good reading begins with fewer distractions.) Tj 0 -23 Td (This page includes real text, vector paths and color.) Tj 0 -23 Td (Use the toolbar to adjust the width or change the zoom.) Tj ET
+0.93 0.95 0.98 rg 62 299 476 117 re f
+BT /F1 14 Tf 0.21 0.36 0.61 rg 82 381 Td (One page at a time.) Tj ET
+BT /F1 12 Tf 0.30 0.34 0.40 rg 82 351 Td (Go forward to see a landscape page.) Tj 0 -21 Td (Its blue panel also verifies pixel color conversion.) Tj ET
+BT /F1 10 Tf 0.42 0.46 0.52 rg 62 66 Td (RUST READER 0.1) Tj 418 0 Td (01) Tj ET
+Q
+endstream
+endobj
+6 0 obj
+<< /Length 807 >>
+stream
+q
+1 1 1 rg 0 0 800 500 re f
+BT /F1 11 Tf 0.42 0.46 0.52 rg 60 443 Td (RUST READER / A DIFFERENT PERSPECTIVE) Tj ET
+BT /F1 28 Tf 0.12 0.15 0.20 rg 60 385 Td (A wider view.) Tj ET
+BT /F1 13 Tf 0.42 0.46 0.52 rg 60 349 Td (The reader adjusts each page to its own proportions.) Tj ET
+0.20 0.40 0.80 rg 60 120 310 175 re f
+BT /F1 22 Tf 1 1 1 rg 83 249 Td (Space to focus.) Tj ET
+BT /F1 12 Tf 1 1 1 rg 83 208 Td (A real vector panel.) Tj 0 -23 Td (Blue stays blue at every zoom.) Tj ET
+BT /F1 14 Tf 0.12 0.15 0.20 rg 408 265 Td (Read at your pace) Tj ET
+BT /F1 12 Tf 0.30 0.34 0.40 rg 408 231 Td (Try zooming in and out.) Tj 0 -24 Td (Switch the interface to dark mode.) Tj 0 -24 Td (The document keeps its original colors.) Tj ET
+BT /F1 10 Tf 0.42 0.46 0.52 rg 60 50 Td (RUST READER 0.1) Tj 662 0 Td (02) Tj ET
+Q
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Outlines /First 9 0 R /Last 10 0 R /Count 2 >>
+endobj
+9 0 obj
+<< /Title (Reading notes) /Parent 8 0 R /Next 10 0 R /Dest [3 0 R /Fit] >>
+endobj
+10 0 obj
+<< /Title (A wider view) /Parent 8 0 R /Prev 9 0 R /Dest [4 0 R /Fit] >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Link /Rect [62 609 430 627] /Border [0 0 0] /A << /S /URI /URI (https://example.org/reader) >> >>
+endobj
+12 0 obj
+<< /Type /Annot /Subtype /Link /Rect [82 347 430 365] /Border [0 0 0] /Dest [4 0 R /Fit] >>
+endobj
+13 0 obj
+<< /Title (Rust Reader interactive fixture) /Author (Rust Reader project) >>
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000009 00000 n 
+0000000074 00000 n 
+0000000137 00000 n 
+0000000287 00000 n 
+0000000413 00000 n 
+0000001495 00000 n 
+0000002353 00000 n 
+0000002423 00000 n 
+0000002495 00000 n 
+0000002585 00000 n 
+0000002674 00000 n 
+0000002814 00000 n 
+0000002922 00000 n 
+trailer
+<< /Size 14 /Root 1 0 R /Info 13 0 R >>
+startxref
+3015
+%%EOF

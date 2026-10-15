@@ -1,0 +1,4 @@
+# Portable Windows builds must not depend on an installed VC++ redistributable.
+# PDFium's verified binaries also use a static runtime.
+[target.'cfg(windows)']
+rustflags = ["-C", "target-feature=+crt-static"]

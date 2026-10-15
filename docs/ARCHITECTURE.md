@@ -2,7 +2,7 @@
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
-Esta página describe la implementación en desarrollo 0.3.3. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md) y [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
+Esta página describe la implementación en desarrollo 0.3.4. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
 
 ```mermaid
 flowchart LR
@@ -41,6 +41,7 @@ flowchart LR
 | `ui/theme.rs`, `ui/icons.rs` | Estilos e iconos vectoriales propios. |
 | `state.rs` | Estado de documento, historial, modos, zoom y rotación. |
 | `layout.rs` | Geometría, spreads y planificación de tiles. |
+| `reading_position.rs` | Ancla versionada relativa a página y viewport, sin tipos de UI/SDK. |
 | `document.rs` | Datos y claves sin dependencias de egui/PDFium. |
 | `engine.rs` | Carga, contraseña, metadatos, índice, texto, enlaces, búsqueda y rasterización PDF. |
 | `worker.rs` | Documentos nativos, cachés, colas y búsquedas progresivas. |
@@ -88,7 +89,7 @@ Quedan pendientes selección entre páginas/por teclado, búsqueda avanzada y pa
 
 ## Persistencia y errores
 
-Cada pestaña conserva sus propios modos, búsqueda, selección y scroll en memoria. Se guardan recientes, sesiones y favoritos; restaurar sesión es opcional. El TOML guarda página/modo/zoom/giro/colores, pero todavía no el ancla exacta de scroll ni manga. El planificador mantiene una sola búsqueda activa, aunque cada pestaña tenga su estado visual. Nunca se guarda una contraseña. Su petición se elimina del worker al completar la carga, sin garantía de borrado criptográfico de memoria.
+Cada pestaña conserva sus propios modos, búsqueda, selección y scroll en memoria. Se guardan recientes, sesiones y favoritos; restaurar sesión es opcional. El TOML guarda página/modo/zoom/giro/colores/manga y un ancla versionada: punto relativo a la página y posición relativa en el viewport, codificados en enteros normalizados. Se captura junto al centro visible (o en el borde de la página si el centro cae en un hueco). La restauración espera la geometría real de la página y se cancela ante navegación explícita, zoom, interacción con el documento o parámetros de vista CLI. Los cambios de scroll programan el guardado diferido, sin escribir desde el frame. Los perfiles anteriores usan la página como alternativa; esquemas de ancla desconocidos o coordenadas fuera de rango tampoco se aplican. No se persiste aún el historial completo ni se valida el ancla contra cambios de contenido del archivo. El planificador mantiene una sola búsqueda activa, aunque cada pestaña tenga su estado visual. Nunca se guarda una contraseña. Su petición se elimina del worker al completar la carga, sin garantía de borrado criptográfico de memoria.
 
 Preferencias y copias PDF se escriben en un temporal en el mismo directorio, se sincronizan y se renombran al destino. El documento de origen abierto se rechaza como destino de copia. Un fallo de escritura conserva el destino anterior. Las preferencias se fusionan bajo un bloqueo entre procesos y un hilo de disco evita esperar la escritura en la UI; faltan casos de sesiones concurrentes sobre el mismo archivo, errores de disco y cierre abrupto. Los errores de biblioteca, archivo, seguridad, render o configuración se muestran explícitamente.
 

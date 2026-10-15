@@ -5,6 +5,7 @@ param(
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $target = if ($Architecture -eq 'x86') { 'i686-pc-windows-msvc' } else { 'x86_64-pc-windows-msvc' }
 $nativeDir = if ($Architecture -eq 'x86') { Join-Path $workspace 'native/win-x86' } else { Join-Path $workspace 'native' }

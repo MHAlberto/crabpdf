@@ -4,7 +4,7 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 
 ## Objetivo y alcance acordado
 
-- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo es **0.3.3**, no 1.0.
+- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo es **0.3.4**, no 1.0.
 - **V1:** todas las funciones y detalles visibles de la revisión de SumatraPDF fijada en `docs/parity/reference.json`, con equivalentes comprobados por plataforma. Un botón, una extensión reconocida o una compilación correcta no demuestran paridad.
 - **V2:** extensiones opcionales escritas en Rust y WebAssembly. No implementar todavía un runtime, tienda o ABI pública de plugins; tampoco trasladar requisitos de V1 a V2 para cerrar artificialmente la versión.
 - Sistemas objetivo: Windows 10 x64 y x86, Windows 11 x64 y ejecución de la app x86 bajo WOW64, Linux de distribuciones populares y macOS Intel/Apple Silicon. Windows 11 no tiene una edición de SO x86. Ver `docs/V1_PLAN.md` para la matriz y sus límites de evidencia.
@@ -17,7 +17,7 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 ## Dónde encontrar la verdad del proyecto
 
 1. `README.md`: uso y capacidades actuales.
-2. `docs/IMPLEMENTATION_PROGRESS_0_3_3.md`: avance actual; `docs/IMPLEMENTATION_PROGRESS_0_3_2.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_1.md` y `docs/IMPLEMENTATION_PROGRESS.md`: entregas históricas; `docs/AUDIT_V1.md`: auditoría de 0.2.
+2. `docs/IMPLEMENTATION_PROGRESS_0_3_4.md`: avance actual; `docs/IMPLEMENTATION_PROGRESS_0_3_3.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_2.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_1.md` y `docs/IMPLEMENTATION_PROGRESS.md`: entregas históricas; `docs/AUDIT_V1.md`: auditoría de 0.2.
 3. `docs/V1_PLAN.md` y `docs/V1_BACKLOG.csv`: rutas, dependencias, archivos propuestos y criterios de salida.
 4. `docs/ROADMAP.md`: alcance V1/V2; `docs/parity/reference.json`, `commands.csv` y `cases.md`: referencia y trazabilidad funcional.
 5. `docs/ARCHITECTURE.md`, `FORMATS_AND_ANNOTATIONS.md`, `VALIDATION.md`: contratos y límites actuales.
@@ -30,6 +30,7 @@ El backlog es trabajo pendiente, no código existente. No usar el número de ide
 | --- | --- |
 | `src/main.rs`, `src/cli.rs` | Arranque, opciones y errores de CLI. |
 | `src/document.rs`, `src/state.rs`, `src/layout.rs` | Datos independientes del SDK, navegación y geometría. |
+| `src/reading_position.rs` | Ancla versionada de lectura relativa a página y viewport; sin UI ni SDK. |
 | `src/engine.rs` | Adaptador PDFium; documento, texto, raster, marcas y exportación. |
 | `src/worker.rs`, `src/cache.rs` | Dueño de PDFium, colas, búsqueda y cachés con presupuesto. |
 | `src/formats.rs`, `src/djvu_text.rs`, `src/import_info.js` | Preparación local de formatos y recuperación de texto/metadatos. |
@@ -82,7 +83,7 @@ cargo test --locked --offline --test annotation_sync -- --ignored --test-threads
 cargo test --locked --offline --test import_recovery -- --ignored --test-threads=1
 ```
 
-- Para cambios de UI/render/entrada, ejecutar el recorrido pertinente (`visual_smoke`, `search_smoke`, `refinement_smoke` o `formats_smoke`) e inspeccionar las capturas. Una captura no prueba todos los gestos.
+- Para cambios de UI/render/entrada, ejecutar el recorrido pertinente (`visual_smoke`, `search_smoke`, `refinement_smoke`, `formats_smoke` o `reading_session_smoke`) e inspeccionar las capturas. El último abre tres procesos independientes para guardar, restaurar con otro tamaño/escala y comprobar prioridad CLI. Una captura no prueba todos los gestos.
 - Para cambios en persistencia/concurrencia, agregar una regresión que produzca el fallo real: dos instancias, cancelación, disco lleno simulado o caché dañada, según el cambio. Evitar pruebas que repitan la implementación.
 - Para cambios que se van a distribuir en Windows, usar `scripts/Test-Local.ps1` (x64 y x86); requiere escritorio interactivo y bibliotecas nativas. Después `scripts/Pack-Portable.ps1 -Architecture x64`/`x86` y `scripts/Verify-Portable.ps1` según sus parámetros documentados.
 - Para Linux x64, compilar con Rust 1.96.0 y bibliotecas X11/Wayland en un entorno con glibc 2.36, compilar MuPDF/libmobi con `scripts/Build-LinuxFormatTools.sh`, exportar los textos de Cargo con `python3 scripts/Export-RustLicenses.py` y ejecutar `bash scripts/Pack-Linux.sh`. Comprobar la instalación del `.deb` y su `SHA256SUMS` en Ubuntu 24.04 limpio; ejecutar `formats_and_marks` y el recorrido `visual_smoke` con Xvfb. El tar requiere DjVuLibre y 7-Zip del sistema. Un CLI que imprime `--help` no acredita la interfaz.

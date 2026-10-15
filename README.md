@@ -4,11 +4,11 @@ Lector local de documentos desarrollado en Rust con egui/eframe y PDFium. Tiene 
 
 El icono nativo procede de `crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
 
-La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.3.3 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
+La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.3.4 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
 Descargas de Windows y Ubuntu/Linux: [publicaciones de CrabPDF en GitHub](https://github.com/MHAlberto/crabpdf/releases).
 
-Para continuar el desarrollo: [pantalla completa y teclado en 0.3.3](docs/IMPLEMENTATION_PROGRESS_0_3_3.md), [avance de 0.3.2](docs/IMPLEMENTATION_PROGRESS_0_3_2.md), [recuperación de caché en 0.3.1](docs/IMPLEMENTATION_PROGRESS_0_3_1.md), [entrega 0.3.0](docs/IMPLEMENTATION_PROGRESS.md), [auditoría de la base 0.2](docs/AUDIT_V1.md), [rutas y criterios para 1.0](docs/V1_PLAN.md), [backlog con dependencias](docs/V1_BACKLOG.csv) y [guía de agentes](AGENTS.md).
+Para continuar el desarrollo: [punto de lectura y manga en 0.3.4](docs/IMPLEMENTATION_PROGRESS_0_3_4.md), [pantalla completa y teclado en 0.3.3](docs/IMPLEMENTATION_PROGRESS_0_3_3.md), [avance de 0.3.2](docs/IMPLEMENTATION_PROGRESS_0_3_2.md), [recuperación de caché en 0.3.1](docs/IMPLEMENTATION_PROGRESS_0_3_1.md), [entrega 0.3.0](docs/IMPLEMENTATION_PROGRESS.md), [auditoría de la base 0.2](docs/AUDIT_V1.md), [rutas y criterios para 1.0](docs/V1_PLAN.md), [backlog con dependencias](docs/V1_BACKLOG.csv) y [guía de agentes](AGENTS.md).
 
 ![Lectura en CrabPDF](docs/screenshots/light.png)
 
@@ -39,7 +39,7 @@ Para continuar el desarrollo: [pantalla completa y teclado en 0.3.3](docs/IMPLEM
 - Menús, contexto, paleta de comandos, pantalla completa, presentación y controles ocultables.
 - Paleta con flechas/Enter/Escape y atajos visibles; F11 oculta las barras y reduce márgenes. Los controles aparecen al acercar el puntero al borde superior; F5 conserva la presentación con fondo negro.
 - Temas claro/oscuro, inversión y grises del documento.
-- Recientes, posición/modo/zoom por documento, favoritos y restauración opcional de sesión en TOML.
+- Recientes, punto de lectura relativo a página, manga/modo/zoom por documento, favoritos y restauración opcional de sesión en TOML.
 - Parámetros CLI para varios documentos, página, zoom, modo, rotación, búsqueda y presentación.
 
 Estas funciones tienen diferencias pendientes frente a SumatraPDF; no se declaran en paridad completa. La selección es de una página. Faltan, entre otros, impresión, edición general de anotaciones/formularios, formatos avanzados, SyncTeX y accesibilidad completa. [Inventario](docs/parity/commands.csv).
@@ -75,9 +75,9 @@ Se han probado Windows 10 x64 y un proceso x86 bajo WOW64 en ese mismo sistema. 
 
 ## Ubuntu y Linux
 
-La edición Linux x86_64 de **0.3.3** se compiló con Rust 1.96 sobre Debian Bookworm y se ejecutó en Ubuntu 24.04 dentro de Docker. Los paquetes locales están en `artifacts/packages/`: `.deb` para Ubuntu 24.04 y `.tar.gz` para Linux x86_64 compatible con glibc 2.36 o posterior. Mint 22 puede usar el `.deb` si dispone de las dependencias declaradas, pero no se ha probado. La ejecución en un escritorio físico, las demás distribuciones y la accesibilidad siguen pendientes.
+La edición Linux x86_64 de **0.3.4** se compiló con Rust 1.96 sobre Debian Bookworm y se ejecutó en Ubuntu 24.04 dentro de Docker. Los paquetes locales están en `artifacts/packages/`: `.deb` para Ubuntu 24.04 y `.tar.gz` para Linux x86_64 compatible con glibc 2.36 o posterior. Mint 22 puede usar el `.deb` si dispone de las dependencias declaradas, pero no se ha probado. La ejecución en un escritorio físico, las demás distribuciones y la accesibilidad siguen pendientes.
 
-En Ubuntu, instalar el `.deb` con `sudo apt install ./crabpdf-0.3.3-ubuntu24.04-amd64.deb`. Incluye `libpdfium.so`, MuPDF, libmobi, icono, licencias y manifiesto; APT instala DjVuLibre, 7-Zip y las bibliotecas gráficas. El tar contiene el mismo lector y sus herramientas propias, y su `INSTALL-LINUX.md` explica los requisitos del sistema. Ambos paquetes son de desarrollo, sin firma.
+En Ubuntu, instalar el `.deb` con `sudo apt install ./crabpdf-0.3.4-ubuntu24.04-amd64.deb`. Incluye `libpdfium.so`, MuPDF, libmobi, icono, licencias y manifiesto; APT instala DjVuLibre, 7-Zip y las bibliotecas gráficas. El tar contiene el mismo lector y sus herramientas propias, y su `INSTALL-LINUX.md` explica los requisitos del sistema. Ambos paquetes son de desarrollo, sin firma.
 
 Para compilar desde la fuente en Ubuntu/Debian se necesitan Rust 1.96.0, PDFium build 7881 y las bibliotecas de compilación:
 
@@ -86,11 +86,11 @@ sudo apt-get install build-essential pkg-config libx11-dev libxi-dev libxrandr-d
 cargo build --locked --release
 ```
 
-`scripts/Build-LinuxFormatTools.sh` compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `scripts/Pack-Linux.sh` comprueba arquitectura y hashes de PDFium y los conversores y construye el tar y el `.deb` a partir de `artifacts/crabpdf-linux-x64`. Necesita `binutils` y los textos Rust generados con `python3 scripts/Export-RustLicenses.py`. [Evidencia de Linux](docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
+`scripts/Build-LinuxFormatTools.sh` compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `scripts/Pack-Linux.sh` comprueba arquitectura y hashes de PDFium y los conversores y construye el tar y el `.deb` a partir de `artifacts/crabpdf-linux-x64`. Necesita `binutils` y los textos Rust generados con `python3 scripts/Export-RustLicenses.py`. [Evidencia de esta revisión](docs/IMPLEMENTATION_PROGRESS_0_3_4.md) y [primera entrega Linux](docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
 
 ## macOS
 
-Todavía no se ha compilado ni ejecutado macOS aquí. Instalar Rust y Command Line Tools (`xcode-select --install`). Descargar `pdfium-mac-arm64.tgz` para Apple Silicon o `pdfium-mac-x64.tgz` para Intel desde [PDFium 7881](https://github.com/bblanchon/pdfium-binaries/releases/tag/chromium%2F7881), conservando el paquete y sus licencias. Colocar `lib/libpdfium.dylib` en `native/`. No se proporciona todavía un `.app` firmado/notarizado.
+La CI de 0.3.4 (commit `a6cdd22`) compiló macOS 15 Intel y ARM, y aprobó las siete pruebas nativas PDF de cada target. [Ejecución comprobada](https://github.com/MHAlberto/crabpdf/actions/runs/38785344688). No se ha ejecutado su interfaz ni los otros formatos. Instalar Rust y Command Line Tools (`xcode-select --install`). Descargar `pdfium-mac-arm64.tgz` para Apple Silicon o `pdfium-mac-x64.tgz` para Intel desde [PDFium 7881](https://github.com/bblanchon/pdfium-binaries/releases/tag/chromium%2F7881), conservando el paquete y sus licencias. Colocar `lib/libpdfium.dylib` en `native/`. No se proporciona todavía un `.app` firmado/notarizado.
 
 La [CI](.github/workflows/ci.yml) incluye Windows x64/x86, Ubuntu x64 y macOS Intel/arm64. Los resultados remotos se verifican por ejecución; el archivo de workflow por sí solo no los acredita.
 
@@ -102,7 +102,7 @@ Las portadas se guardan en `covers/`, junto al archivo de preferencias. La clave
 
 PDFium se busca en `RUST_READER_PDFIUM`, junto al ejecutable, en su subcarpeta `native/`, en `native/` del directorio de trabajo y después mediante el cargador del sistema. No se usa `PDFIUM_DYNAMIC_LIB_PATH`.
 
-Las preferencias incluyen rutas de recientes, sesiones y favoritos, además de opciones de lectura. Las contraseñas no se persisten. Guardado temporal y reemplazo final evitan truncar el archivo anterior si falla la escritura.
+Las preferencias incluyen rutas de recientes, sesiones y favoritos, además de opciones de lectura. Al reabrir se restaura el punto relativo a la página, incluido el modo manga, tras recibir sus dimensiones reales. El guardado del desplazamiento se agrupa con un retardo de 500 ms. Los parámetros de vista explícitos de la CLI prevalecen sobre el ancla guardada. Las preferencias antiguas siguen siendo compatibles. Un cambio del contenido o paginación del archivo puede invalidar ese punto; todavía no hay anclas por texto ni historial completo persistente. Las contraseñas no se persisten. Guardado temporal y reemplazo final evitan truncar el archivo anterior si falla la escritura.
 
 | Sistema | Preferencias |
 | --- | --- |
@@ -153,6 +153,7 @@ cargo test --locked --test native_pdf -- --ignored --test-threads=1
 cargo run --locked --example visual_smoke -- artifacts/ui
 cargo run --locked --example cli_smoke
 cargo run --locked --example search_smoke
+cargo run --locked --example reading_session_smoke -- artifacts/reading-session
 cargo run --locked --example refinement_smoke -- artifacts/refinement/ui
 ```
 
@@ -166,7 +167,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Pack-Portable.ps1 -A
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Pack-Portable.ps1 -Architecture x86
 ```
 
-El informe queda en `artifacts/validation/results.json`; los paquetes contienen manifiesto SHA-256, PDFium y avisos. Son builds de desarrollo, sin instalador ni firma. Los paquetes de otros sistemas siguen pendientes.
+El informe queda en `artifacts/validation/results.json`; los paquetes contienen manifiesto SHA-256, PDFium y avisos. Son builds de desarrollo, sin instalador ni firma. Linux dispone de tar y DEB; macOS sigue pendiente.
 
 `search_smoke` verifica que una coincidencia al final de una página de 400×3000 puntos quede visible al descubrir sus dimensiones bajo demanda. Los ZIPs se comprueban con `scripts/Verify-Portable.ps1`.
 

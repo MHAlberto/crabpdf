@@ -6,6 +6,8 @@ Este informe conserva la evidencia histórica de **0.2.0**. Las pruebas y límit
 
 La revisión [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) amplía `refinement_smoke` a 46 escenas para pantalla completa y foco/navegación por teclado. Su informe separado identifica las pruebas y los paquetes de esta revisión; las 21 escenas descritas más abajo corresponden al recorrido anterior.
 
+La revisión [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) añade cuatro pruebas de posición de lectura y un recorrido de tres procesos nativos con tamaño/escala diferentes y prioridad CLI. Su evidencia queda separada de la matriz histórica siguiente.
+
 ## Resultados comprobados
 
 | Comprobación | x64 | x86 en WOW64 |

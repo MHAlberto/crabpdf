@@ -10,6 +10,8 @@ La revisión **0.3.2** acota y hace cancelable la espera del bloqueo de caché, 
 
 La revisión **0.3.3** corrige pantalla completa, márgenes, salida desde presentación y navegación por flechas según zoom/foco. Avanza parcialmente R13 y R22; sus criterios completos siguen abiertos. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_3.md).
 
+La revisión **0.3.4** avanza R10: guarda el punto relativo a la página y manga, restaura con otro tamaño/escala y respeta la vista explícita CLI. El historial completo y la reconciliación de sesiones concurrentes de R03 siguen pendientes. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_4.md).
+
 En el CSV, **P0** es trabajo previo para proteger datos y establecer evidencia; **P1** es el resto de trabajo necesario para la 1.0. La prioridad ordena la ejecución y no elimina requisitos.
 
 ## Qué significa terminar 1.0
@@ -29,7 +31,7 @@ Hasta cumplir estas condiciones, conservar una versión de desarrollo. No es pos
 - Resolver primero sincronización y contratos de datos. No ampliar un modelo de marcas incompatible para luego cambiar todos sus consumidores.
 - Portar y medir desde temprano. Las rutas de plataformas y rendimiento pueden comenzar con la base actual; sus dependencias en CSV son condiciones para **cerrarlas**, no una prohibición de investigarlas antes.
 - Una entrega pequeña incluye código, regresión pertinente, documentación y evidencia; no un control vacío. Las funciones de herramientas externas se cargan bajo demanda y se activan explícitamente.
-- Trabajar localmente: el usuario todavía no autoriza crear un remoto. No bloquear pruebas por falta de GitHub; usar equipos/VMs o ejecutores locales cuando estén disponibles.
+- El usuario autorizó publicaciones en https://github.com/MHAlberto/crabpdf. Continuar pruebas locales y comprobar cada ejecución remota; un workflow escrito no acredita sus resultados.
 
 ## Hitos y dependencias
 
@@ -83,7 +85,7 @@ Las rutas bajo **actual** existen. Las rutas bajo **propuesta** son archivos/mó
 | R07 | Esquema de marcas: `src/annotations.rs`, `src/document.rs`, `src/engine.rs`. | `src/annotation_anchor.rs`, `tests/annotation_migration.rs`: versión del documento preparado, migración con respaldo, contextos de texto y marcas ambiguas conservadas. |
 | R08 | Contratos tipados: `src/document.rs`, `src/engine.rs`, `src/worker.rs`, `src/ui/mod.rs`. | `src/document_capabilities.rs` si el tamaño lo justifica; pruebas de capacidades/progreso/errores: UI deja de interpretar «Marcas locales»/«Título» como protocolo. |
 | R09 | Coordinación incremental: `src/ui/mod.rs`, `src/ui/panels.rs`, `src/commands.rs`, `src/formats.rs`. | `src/ui/{tab,input,dialogs,controller}.rs`; subdividir proveedores de formatos cuando se modifiquen. Mismos flujos visibles y suite actual correcta tras cada extracción. |
-| R10 | Punto de lectura: `src/state.rs`, `src/layout.rs`, `src/config.rs`, `src/ui/mod.rs`. | `tests/reading_session.rs`: ancla normalizada, manga, paneles/ventana e historial; restaurar una página larga con tamaño/DPI distinto. |
+| R10 | Punto de lectura: `src/state.rs`, `src/layout.rs`, `src/reading_position.rs`, `src/config.rs`, `src/ui/mod.rs`. | 0.3.4 implementa ancla normalizada y manga; `tests/reading_session.rs` y `examples/reading_session_smoke.rs` comprueban página larga con tamaño/escala distintos y prioridad CLI. Falta historial completo y equivalentes por plataforma. |
 | R11 | Planificación/escala: `src/worker.rs`, `src/layout.rs`, `src/ui/viewer.rs`. | `tests/search_scheduling.rs`, `tests/large_layout.rs`: dos búsquedas con progreso definido, cancelación por generación, precisión y coste medidos en libros extensos. |
 | R12 | Texto/enlaces: `src/engine.rs`, `src/document.rs`, `src/ui/viewer.rs`. | `src/selection.rs`, `tests/text_navigation.rs`: selección entre páginas/teclado, clusters/RTL, copiar texto/imagen/enlace y navegación accesible. |
 | R13 | Lectura/paneles: `src/layout.rs`, `src/state.rs`, `src/commands.rs`, `src/ui/{viewer,panels}.rs`. | `tests/view_behaviors.rs`, ampliar `examples/refinement_smoke.rs`: zoom fraccional/contenido/selección, scroll automático, guías, TOC jerárquico, favoritos y presentación según inventario. |
@@ -116,10 +118,10 @@ Las versiones de distribución listadas como objetivo deben fijarse en R00/R24 j
 | Windows 10 x64 | `x86_64-pc-windows-msvc`, SO build 19045 probado. | Compilación, pruebas nativas y recorridos gráficos. | Servicios nativos, impresión, accesibilidad, corpus y paquete final; documentar mínimo técnico concreto. |
 | Windows 10 x86 | `i686-pc-windows-msvc` en SO de 32 bits. | Solo proceso WOW64 en Windows 10 x64. | VM/equipo x86 real, presión de memoria/direcciones y todas las herramientas. |
 | Windows 11 x64 + app x86 | Ambos targets Windows; x86 bajo WOW64. | Ninguna ejecución Windows 11 documentada. | Probar ambos binarios y servicios del sistema. No prometer un Windows 11 de 32 bits. |
-| Ubuntu/Debian/Linux Mint x64 | `x86_64-unknown-linux-gnu`. | YAML para Ubuntu 24.04, no ejecutado. | Elegir versiones objetivo/LTS y ABI; GNOME/Cinnamon, X11/Wayland donde existan, portales, fuentes, impresión y paquetes. |
+| Ubuntu/Debian/Linux Mint x64 | `x86_64-unknown-linux-gnu`. | Desde 0.3.3: binario glibc 2.36 y paquetes tar/DEB; Ubuntu 24.04 en Docker con Xvfb. Debian/Mint sin ejecutar. | Elegir versiones objetivo/LTS y ABI; GNOME/Cinnamon, X11/Wayland donde existan, portales, fuentes, impresión y paquetes. |
 | Fedora/openSUSE/Arch x64 | Mismo target; bibliotecas y escritorios propios. | Sin validación. | Versiones/snapshot fechados, GNOME/KDE, X11/Wayland, Mesa y restricciones de empaquetado. No inferir soporte de Ubuntu. |
-| macOS Intel | `x86_64-apple-darwin`. | Configuración de CI, no ejecutada. | Versión mínima/SDK, `.app`, Retina/monitores, permisos, impresión, VoiceOver y herramientas x64. |
-| macOS Apple Silicon | `aarch64-apple-darwin`. | Configuración de CI, no ejecutada. | Herramientas arm64 nativas, mismos casos; no tratar Rosetta como prueba de binario arm64. |
+| macOS Intel | `x86_64-apple-darwin`. | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF; sin interfaz ni otros formatos. | Versión mínima/SDK, `.app`, Retina/monitores, permisos, impresión, VoiceOver y herramientas x64. |
+| macOS Apple Silicon | `aarch64-apple-darwin`. | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF; sin interfaz ni otros formatos. | Herramientas arm64 nativas, mismos casos; no tratar Rosetta como prueba de binario arm64. |
 
 Linux ARM/32 bits no se añaden como requisito: la petición de 32/64 bits se refiere explícitamente a Windows. Si se amplía ese alcance, incorporar targets y evidencia. Windows 10 sigue siendo objetivo técnico del usuario; esto no representa una afirmación sobre soporte comercial del sistema operativo.
 

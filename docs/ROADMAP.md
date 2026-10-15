@@ -2,7 +2,7 @@
 
 Alcance actualizado por el usuario el **13 de octubre de 2026**.
 
-La [auditoría de la base 0.2](AUDIT_V1.md) identifica riesgos y brechas; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md) y [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md), el [plan ejecutable](V1_PLAN.md) y el [backlog R00–R30](V1_BACKLOG.csv) distinguen cambios realizados de rutas pendientes. Este documento conserva el alcance del producto.
+La [auditoría de la base 0.2](AUDIT_V1.md) identifica riesgos y brechas; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md), el [plan ejecutable](V1_PLAN.md) y el [backlog R00–R30](V1_BACKLOG.csv) distinguen cambios realizados de rutas pendientes. Este documento conserva el alcance del producto.
 
 ## Versión 1: paridad completa con SumatraPDF
 
@@ -44,7 +44,7 @@ Los casos que requieran un equivalente específico del sistema permanecen abiert
 
 | Grupo | Base actual | Trabajo pendiente para v1 |
 | --- | --- | --- |
-| Lectura | Una página, enfrentadas, libro, continuo, manga, saltos e historial | Detalles de navegación y persistencia de scroll; pruebas exhaustivas. |
+| Lectura | Una página, enfrentadas, libro, continuo, manga, saltos, historial en memoria y punto de lectura persistente | Historial completo persistente, coherencia entre ventanas y pruebas exhaustivas. |
 | Zoom y geometría | 8–6400 %, personalizado, página/ancho/alto, rotación, pan y tiles | Presets fraccionarios, contenido/visible/selección, cursor, gestos y recorte de lectura. |
 | Paneles | Miniaturas reales, índice, favoritos y búsqueda | Jerarquía/collapse del índice, edición y orden de favoritos, paneles adicionales. |
 | Texto y enlaces | Selección de una página, copiar, buscar, resultados visibles y enlaces | Selección entre páginas/por teclado, copiar imagen/enlace, gestos completos y búsqueda avanzada. |
@@ -58,7 +58,7 @@ Los casos que requieran un equivalente específico del sistema permanecen abiert
 | Integraciones | CLI con múltiples rutas, página, zoom, modos, búsqueda y presentación | Parámetros restantes, SyncTeX, asociaciones e integración de vista previa/búsqueda. |
 | Funciones recientes | Sin implementar | Lectura en voz alta, scripts PDF, acciones y paneles opcionales de herramientas externas presentes en la revisión. |
 | Rendimiento | Caché LRU por bytes, tiles visibles, overview, precarga de vecinos, búsqueda incremental y preparación de portadas fuera del worker PDF | Prueba de latencia con importador lento, cancelación de todas las fases, corpus grande, mediciones comparativas y memoria extrema. |
-| Distribución | Builds Windows x64/x86 y scripts de paquetes portables con avisos | Instaladores, otros sistemas, firmas, auditoría de distribución, actualización e instalación/desinstalación. |
+| Distribución | Builds Windows x64/x86 y Linux x64 con ZIP, tar y DEB con avisos | Instaladores Windows, otras distros/macOS, firmas, auditoría de distribución, actualización e instalación/desinstalación. |
 
 La tabla organiza el trabajo y no sustituye el inventario exhaustivo. Se deben expandir especialmente submenús, preferencias, comandos parametrizados y comportamientos sin un comando propio.
 
@@ -72,8 +72,8 @@ Las exclusiones originales de anotaciones, EPUB, edición e IA correspondían a 
 | Windows 10 x86 | Build `i686-pc-windows-msvc`, PDFium x86 y pruebas en SO de 32 bits | Build y recorrido x86 bajo WOW64 en Windows 10 x64; falta SO x86. |
 | Windows 11 x64 | Ejecutable y pruebas funcionales propias | Sin prueba funcional. |
 | Aplicación x86 en Windows 11 x64 | Compatibilidad bajo WOW64 y bibliotecas x86 | Probada sólo bajo Windows 10 x64; falta Windows 11. Windows 11 no tiene una edición del sistema de 32 bits. |
-| macOS Intel y Apple Silicon | Builds x86_64/arm64, `.app`, paquete y pruebas | CI escrita; sin resultados ni prueba funcional local. |
-| Linux x64 | Ubuntu, Debian, Linux Mint, Fedora, Arch y openSUSE; versiones concretas en la matriz de pruebas | Sólo existe preparación de CI para Ubuntu; ninguna distro se ha validado aquí. |
+| macOS Intel y Apple Silicon | Builds x86_64/arm64, `.app`, paquete y pruebas | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF por arquitectura; sin UI, otros formatos ni paquete `.app`. |
+| Linux x64 | Ubuntu, Debian, Linux Mint, Fedora, Arch y openSUSE; versiones concretas en la matriz de pruebas | Desde 0.3.3: Ubuntu 24.04 en Docker con Xvfb; tar glibc 2.36 y DEB. Sin escritorio físico ni otras distros. |
 
 En Linux hay que probar X11 y Wayland, GNOME y KDE, portales, fuentes, impresión y compatibilidad de las bibliotecas empaquetadas. Las versiones mínimas de distro y macOS se fijarán al obtener evidencia de compilación y ejecución. Los paquetes pueden usar AppImage/Flatpak y, según la entrega, DEB/RPM; no se declara compatibilidad universal con Linux por producir un binario.
 
@@ -108,13 +108,13 @@ Las funciones de paridad requeridas para v1 siguen formando parte del producto a
 4. **Trabajo transversal desde el inicio:** corpus, sistemas reales, empaquetado, robustez y rendimiento (R24–R27). Builds/DLL x86 ya existen; faltan otros entornos de ejecución.
 5. **Cierre de v1:** verificar cada comportamiento y completar la matriz y entrega (R28–R29).
 
-La validación local se automatiza con `scripts/Test-Local.ps1`, sin un repositorio remoto. El usuario decidió posponer GitHub hasta una versión estable. La CI preparada no constituye evidencia de ejecución.
+La validación local se automatiza con `scripts/Test-Local.ps1` y entornos Linux separados. El usuario autorizó publicar avances en https://github.com/MHAlberto/crabpdf. La CI preparada no constituye evidencia de ejecución.
 
 ## Criterio de cierre de v1
 
 V1 requiere inventario exhaustivo, paridad funcional y visual verificada, diferencias de plataforma resueltas, pruebas de todos los formatos, evidencia de rendimiento y entrega instalable/portable validada. No basta que compile la UI. La revisión de dependencias y avisos debe corresponder a los paquetes concretos entregados.
 
-La implementación actual está marcada como **0.3.3 en desarrollo**. Las rutas H1, R13 y R22 avanzaron parcialmente; esta entrega no certifica cumplimiento de v1. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_3.md).
+La implementación actual está marcada como **0.3.4 en desarrollo**. Las rutas H1, R10, R13, R22 y R24 avanzaron parcialmente; esta entrega no certifica cumplimiento de v1. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_4.md).
 
 ## Versión 2: extensiones opcionales en Rust y WebAssembly
 

@@ -57,6 +57,8 @@ El icono SVG se comprobó con alpha 0 en el fondo y alpha 255 en el dibujo, y se
 
 `scripts/Verify-Portable.ps1` lee los ZIPs sin extraerlos y compara longitud/SHA-256 de cada archivo con su manifiesto, además del hash del ejecutable recién compilado.
 
+La CI remota del 15 de octubre detectó fallos de preparación: `windows-latest` usaba Visual Studio 18 y no tenía la ruta CRT v143 esperada, y el runner macOS arm64 agotó el límite de la API GitHub sin autenticación. La matriz Windows se fijó a `windows-2022`, y la consulta de metadatos PDFium acepta `GITHUB_TOKEN` en CI sin enviarlo a la descarga del asset. Estos cambios de infraestructura no sustituyen la validación funcional local ni acreditan por sí solos una nueva ejecución remota aprobada.
+
 `scripts/Build-LinuxFormatTools.sh` compila MuPDF 1.28.5 y libmobi 0.12 para Linux x64 desde archivos fuente con SHA-256 fijado. `scripts/Export-RustLicenses.py` recopila los textos de dependencias Linux. `scripts/Pack-Linux.sh` comprueba arquitectura ELF, procedencia y SHA-256 de PDFium y conversores, e incluye `SHA256SUMS` en un tar portable y un `.deb` de desarrollo para Ubuntu 24.04. El `.deb` declara las bibliotecas gráficas, OpenSSL 3, DjVuLibre y 7-Zip como dependencias APT. El tar requiere instalar las dependencias del sistema descritas en `INSTALL-LINUX.md`. La prueba real en Ubuntu 24.04 dentro de Docker con Xvfb se registra en [el informe Linux 0.3.3](IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
 
 Se revisaron imports PE: los ejecutables usan CRT integrado y PDFium sólo necesita sus DLL de sistema. Esto elimina la dependencia observada de VCRUNTIME140.dll; no prueba compatibilidad con todos los controladores gráficos.

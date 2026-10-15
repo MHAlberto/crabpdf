@@ -9,7 +9,9 @@ $ErrorActionPreference = 'Stop'
 $build = '7881'
 $assetName = "pdfium-$Platform-$Architecture.tgz"
 $headers = @{ 'User-Agent' = 'Rust-Reader-setup'; 'Accept' = 'application/vnd.github+json' }
-$release = Invoke-RestMethod -Uri "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/tags/chromium%2F$build" -Headers $headers
+$apiHeaders = $headers.Clone()
+if ($env:GITHUB_TOKEN) { $apiHeaders.Authorization = "Bearer $env:GITHUB_TOKEN" }
+$release = Invoke-RestMethod -Uri "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/tags/chromium%2F$build" -Headers $apiHeaders
 $asset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
 if (-not $asset) { throw "No se encontro $assetName en PDFium $build." }
 if ($asset.digest -notmatch '^sha256:([a-fA-F0-9]{64})$') { throw 'GitHub no proporciono el SHA-256 del archivo; no se descargara sin verificacion.' }

@@ -17,8 +17,12 @@ try {
     if ((git status --porcelain) -or (git remote get-url origin) -ne "https://github.com/$repo.git") {
         throw 'El árbol debe estar limpio y origin debe apuntar al repositorio esperado.'
     }
-    $head = (git rev-parse HEAD).Trim()
-    if ((git rev-list -n 1 $tag).Trim() -ne $head) { throw "La etiqueta $tag no apunta a HEAD." }
+    $releaseCommit = (git rev-list -n 1 $tag).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "No existe la etiqueta $tag." }
+    # A later correction to this upload helper may publish the existing tag, but
+    # the application and build/packaging inputs must still match that tag.
+    $sourceChanges = @(git diff --name-only $releaseCommit HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs crabpdf-logo.svg src scripts/Build-LinuxFormatTools.sh scripts/Pack-Linux.sh scripts/Export-RustLicenses.py scripts/Pack-Portable.ps1 scripts/Export-Licenses.ps1)
+    if ($LASTEXITCODE -ne 0 -or $sourceChanges.Count -gt 0) { throw "Las fuentes o entradas de empaquetado difieren de $tag." }
     if ((git ls-remote --tags origin "refs/tags/$tag") -notmatch 'refs/tags/') {
         throw "La etiqueta $tag aún no está en GitHub."
     }
@@ -60,9 +64,9 @@ try {
     } else {
         $body = @{
             tag_name = $tag
-            target_commitish = $head
+            target_commitish = $releaseCommit
             name = "CrabPDF $Version (desarrollo)"
-            body = Get-Content -Raw -Encoding UTF8 -LiteralPath $notesPath
+            body = [IO.File]::ReadAllText($notesPath, [Text.Encoding]::UTF8)
             draft = $true
             prerelease = $true
             generate_release_notes = $false

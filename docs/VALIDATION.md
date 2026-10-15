@@ -57,14 +57,16 @@ El icono SVG se comprobó con alpha 0 en el fondo y alpha 255 en el dibujo, y se
 
 `scripts/Verify-Portable.ps1` lee los ZIPs sin extraerlos y compara longitud/SHA-256 de cada archivo con su manifiesto, además del hash del ejecutable recién compilado.
 
+`scripts/Build-LinuxFormatTools.sh` compila MuPDF 1.28.5 y libmobi 0.12 para Linux x64 desde archivos fuente con SHA-256 fijado. `scripts/Export-RustLicenses.py` recopila los textos de dependencias Linux. `scripts/Pack-Linux.sh` comprueba arquitectura ELF, procedencia y SHA-256 de PDFium y conversores, e incluye `SHA256SUMS` en un tar portable y un `.deb` de desarrollo para Ubuntu 24.04. El `.deb` declara las bibliotecas gráficas, OpenSSL 3, DjVuLibre y 7-Zip como dependencias APT. El tar requiere instalar las dependencias del sistema descritas en `INSTALL-LINUX.md`. La prueba real en Ubuntu 24.04 dentro de Docker con Xvfb se registra en [el informe Linux 0.3.3](IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
+
 Se revisaron imports PE: los ejecutables usan CRT integrado y PDFium sólo necesita sus DLL de sistema. Esto elimina la dependencia observada de VCRUNTIME140.dll; no prueba compatibilidad con todos los controladores gráficos.
 
-No hay instalador, firma ni notarización. Las bibliotecas permanecen junto al ejecutable. `target/release/crabpdf.exe` contiene la build x64 actual; el antiguo `target/release/rust-reader.exe` se actualiza como compatibilidad para accesos directos anteriores.
+Windows no tiene instalador ni firma; Linux tiene un `.deb` sin firma. No hay paquete macOS firmado/notarizado. Las bibliotecas permanecen junto al ejecutable. `target/release/crabpdf.exe` contiene la build Windows x64 actual; el antiguo `target/release/rust-reader.exe` se actualiza como compatibilidad para accesos directos anteriores.
 
 ## Límites de esta evidencia
 
 - Windows x86 se ejecutó bajo WOW64 en Windows 10 x64; **no** se probó un SO de 32 bits.
-- Windows 11, macOS Intel/Apple Silicon y las distros Linux no se han ejecutado aquí. La CI preparada no ha corrido y no se creó un repositorio remoto.
+- Windows 11, macOS Intel/Apple Silicon y otras distros Linux no se han ejecutado aquí. Ubuntu 24.04 se ejecutó en Docker con Xvfb; esto no sustituye una prueba en un escritorio físico ni una prueba de Wayland. La CI remota necesita verificación propia.
 - El selector nativo, portapapeles, drag/drop del SO, impresión, servicios de carpeta/ventanas y todo el foco/teclado requieren comprobación manual adicional.
 - Los fixtures pequeños no cubren documentos escaneados/grandes, todas las fuentes, RTL/CJK, cifrado AES moderno ni PDFs malformados extremos.
 - No se han medido arranque, CPU/memoria en reposo, latencia y tamaño instalado contra SumatraPDF con un corpus equivalente.

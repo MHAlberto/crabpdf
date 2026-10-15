@@ -6,6 +6,8 @@ El icono nativo procede de `crabpdf-logo.svg`, con fondo transparente. `build.rs
 
 La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.3.3 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
+Descargas de Windows y Ubuntu/Linux: [publicaciones de CrabPDF en GitHub](https://github.com/MHAlberto/crabpdf/releases).
+
 Para continuar el desarrollo: [pantalla completa y teclado en 0.3.3](docs/IMPLEMENTATION_PROGRESS_0_3_3.md), [avance de 0.3.2](docs/IMPLEMENTATION_PROGRESS_0_3_2.md), [recuperación de caché en 0.3.1](docs/IMPLEMENTATION_PROGRESS_0_3_1.md), [entrega 0.3.0](docs/IMPLEMENTATION_PROGRESS.md), [auditoría de la base 0.2](docs/AUDIT_V1.md), [rutas y criterios para 1.0](docs/V1_PLAN.md), [backlog con dependencias](docs/V1_BACKLOG.csv) y [guía de agentes](AGENTS.md).
 
 ![Lectura en CrabPDF](docs/screenshots/light.png)
@@ -44,7 +46,7 @@ Estas funciones tienen diferencias pendientes frente a SumatraPDF; no se declara
 
 Para marcar palabras, selecciona con doble clic o arrastrando y abre **Marcas**. Ctrl/⌘ + Mayús + L resalta, Ctrl/⌘ + Mayús + U subraya y Ctrl/⌘ + Z deshace la última marca. Las marcas reaparecen al abrir el mismo archivo en CrabPDF; **Guardar una copia** las incluye en un PDF para compartir. Si un libro antiguo carece de firma de paginación o se convirtió de otra manera, sus marcas se conservan y aparece un aviso en vez de aplicarlas al texto equivocado.
 
-Los paquetes portables incluyen `format-tools/`: conserva esa carpeta y `pdfium.dll` junto a `crabpdf.exe`. Las herramientas de otros formatos se ejecutan durante la preparación; abrir PDF mantiene su ruta directa. Sus fuentes y licencias se entregan aparte del ejecutable Rust.
+Los paquetes de Windows incluyen `format-tools/`: conserva esa carpeta y `pdfium.dll` junto a `crabpdf.exe`. Los paquetes Linux llevan MuPDF 1.28.5 y libmobi 0.12 en `format-tools/`; el `.deb` instala DjVuLibre y 7-Zip mediante APT, mientras el tar requiere esos dos programas del sistema. Abrir PDF mantiene su ruta directa.
 
 ## Ejecutar en Windows
 
@@ -71,29 +73,26 @@ El script de PDFium descarga la build **7881**, comprueba su SHA-256 y conserva 
 
 Se han probado Windows 10 x64 y un proceso x86 bajo WOW64 en ese mismo sistema. Windows 10 con SO de 32 bits y Windows 11 necesitan pruebas propias. Windows 11 sólo tiene edición de SO de 64 bits.
 
-## macOS y Linux
+## Ubuntu y Linux
 
-Se preparó la configuración de compilación, pero **no se han compilado ni ejecutado aquí** estos sistemas.
+La edición Linux x86_64 de **0.3.3** se compiló con Rust 1.96 sobre Debian Bookworm y se ejecutó en Ubuntu 24.04 dentro de Docker. Los paquetes locales están en `artifacts/packages/`: `.deb` para Ubuntu 24.04 y `.tar.gz` para Linux x86_64 compatible con glibc 2.36 o posterior. Mint 22 puede usar el `.deb` si dispone de las dependencias declaradas, pero no se ha probado. La ejecución en un escritorio físico, las demás distribuciones y la accesibilidad siguen pendientes.
 
-En macOS instalar Rust y Command Line Tools (`xcode-select --install`). Descargar `pdfium-mac-arm64.tgz` para Apple Silicon o `pdfium-mac-x64.tgz` para Intel desde [PDFium 7881](https://github.com/bblanchon/pdfium-binaries/releases/tag/chromium%2F7881), conservando el paquete y sus licencias. Colocar `lib/libpdfium.dylib` en `native/`. No se proporciona todavía un `.app` firmado/notarizado.
+En Ubuntu, instalar el `.deb` con `sudo apt install ./crabpdf-0.3.3-ubuntu24.04-amd64.deb`. Incluye `libpdfium.so`, MuPDF, libmobi, icono, licencias y manifiesto; APT instala DjVuLibre, 7-Zip y las bibliotecas gráficas. El tar contiene el mismo lector y sus herramientas propias, y su `INSTALL-LINUX.md` explica los requisitos del sistema. Ambos paquetes son de desarrollo, sin firma.
 
-En Ubuntu/Debian se necesitan las bibliotecas de compilación:
+Para compilar desde la fuente en Ubuntu/Debian se necesitan Rust 1.96.0, PDFium build 7881 y las bibliotecas de compilación:
 
 ```sh
 sudo apt-get install build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libegl1-mesa-dev libwayland-dev libxkbcommon-dev libdbus-1-dev
+cargo build --locked --release
 ```
 
-El selector usa XDG Desktop Portal, con una sesión D-Bus y un backend GTK/KDE adecuado; `zenity` sirve de alternativa. Descargar `pdfium-linux-x64.tgz` de la misma build y colocar `lib/libpdfium.so` en `native/`. X11 y Wayland están habilitados, sin validación funcional local.
+`scripts/Build-LinuxFormatTools.sh` compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `scripts/Pack-Linux.sh` comprueba arquitectura y hashes de PDFium y los conversores y construye el tar y el `.deb` a partir de `artifacts/crabpdf-linux-x64`. Necesita `binutils` y los textos Rust generados con `python3 scripts/Export-RustLicenses.py`. [Evidencia de Linux](docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
 
-Con PowerShell 7 en estos sistemas se puede usar:
+## macOS
 
-```sh
-pwsh -File scripts/Get-Pdfium.ps1 -Platform mac -Architecture arm64 -Destination native
-# Linux: -Platform linux -Architecture x64
-cargo run --locked
-```
+Todavía no se ha compilado ni ejecutado macOS aquí. Instalar Rust y Command Line Tools (`xcode-select --install`). Descargar `pdfium-mac-arm64.tgz` para Apple Silicon o `pdfium-mac-x64.tgz` para Intel desde [PDFium 7881](https://github.com/bblanchon/pdfium-binaries/releases/tag/chromium%2F7881), conservando el paquete y sus licencias. Colocar `lib/libpdfium.dylib` en `native/`. No se proporciona todavía un `.app` firmado/notarizado.
 
-La [CI preparada](.github/workflows/ci.yml) incluye Windows x64/x86, Ubuntu x64 y macOS Intel/arm64. No se ha ejecutado; por decisión del usuario no se creará un repositorio remoto hasta obtener una versión estable.
+La [CI](.github/workflows/ci.yml) incluye Windows x64/x86, Ubuntu x64 y macOS Intel/arm64. Los resultados remotos se verifican por ejecución; el archivo de workflow por sí solo no los acredita.
 
 ## Biblioteca y preferencias
 

@@ -22,7 +22,7 @@ El diálogo muestra estos formatos y permite seleccionar otros archivos para rec
 
 La aplicación conserva el documento original. PDF se abre directamente en PDFium. La apertura explícita de otros formatos y la preparación de portadas sin caché ocurren en el hilo de importación; el worker PDF recibe el documento preparado para render por tiles, precarga, miniaturas y texto. Falta verificar la prioridad con un decodificador lento bajo carga. EPUB/FB2/Kindle conservan el texto seleccionable; se recuperan título e índice cuando el documento los proporciona. DjVu conserva su capa OCR existente, que se incorpora por página al solicitar texto; esto no realiza OCR nuevo.
 
-Los decodificadores acompañan al ejecutable en `format-tools`: MuPDF 1.28.5, libmobi 0.12, DjVuLibre 3.5.29 y 7-Zip 26.04. MuPDF y libmobi se compilan como herramientas x86 con CRT estático. Los procesos de conversión terminan al preparar el documento; leer PDF no inicia estos procesos. No se añaden un navegador ni un servicio en la nube.
+En Windows, los decodificadores acompañan al ejecutable en `format-tools`: MuPDF 1.28.5, libmobi 0.12, DjVuLibre 3.5.29 y 7-Zip 26.04. MuPDF y libmobi se compilan como herramientas x86 con CRT estático. En Linux también se empaquetan MuPDF 1.28.5 y libmobi 0.12, compilados desde los mismos archivos fuente; DjVuLibre y 7-Zip se instalan desde la distribución. Los procesos de conversión terminan al preparar el documento; leer PDF no inicia estos procesos. No se añaden un navegador ni un servicio en la nube.
 
 ## Seleccionar, resaltar y subrayar
 
@@ -56,7 +56,7 @@ La importación admite hasta 512 MiB por archivo/trabajo, 128 MiB por recurso de
 
 Son límites de controles actuales, no una cuota de RAM. La importación cancelable tiene un plazo total de tres minutos. La espera del bloqueo de cada entrada de caché se comprueba cada 25 ms, respeta cierre/cancelación y acaba con error tras 15 segundos si otra importación no libera la entrada. Ciertas copias de archivo aún no se interrumpen a mitad de la operación. Los registros de listado de archivos y metadatos generados por los decodificadores se limitan antes de cargarse en memoria. La caché v4 publica manifiestos al final y verifica tamaños/CRC antes de reutilizar. Si PDFium rechaza el PDF interno durante una apertura, se reconstruye en el hilo de importación y se reintenta una sola vez; las portadas y algunos conflictos entre procesos todavía no se recuperan de la misma forma. `--config` y `CRABPDF_DATA_DIR` determinan el perfil y sus datos derivados; para pruebas usa siempre un perfil aislado.
 
-Los paquetes Windows x64 y x86 incluyen todos los decodificadores. El paquete x64 ejecuta los ayudantes x86 mediante WOW64. Se comprobaron en Windows 10 x64; ejecutar x86 mediante WOW64 no sustituye una prueba en un Windows de 32 bits. Windows 11, Linux y macOS todavía necesitan validación propia. En Unix se buscan `mutool`, `mobitool`, `ddjvu`, `djvutoxml` y `7z`/`7zz` en PATH; aquí no se distribuyen aún sus paquetes.
+Los paquetes Windows x64 y x86 incluyen todos los decodificadores. El paquete x64 ejecuta los ayudantes x86 mediante WOW64. Se comprobaron en Windows 10 x64; ejecutar x86 mediante WOW64 no sustituye una prueba en un Windows de 32 bits. Windows 11 y macOS todavía necesitan validación propia. En Ubuntu, `mutool` y `mobitool` proceden de `format-tools/`; `ddjvu`, `djvutoxml` y `7z` proceden de APT. El tar Linux requiere instalar estos últimos por separado. Las demás distribuciones necesitan comprobación propia.
 
 ## Límites de paridad
 

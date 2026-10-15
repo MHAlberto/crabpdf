@@ -12,7 +12,7 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 - Conservar identidad CrabPDF, el logo `crabpdf-logo.svg` transparente, pestañas superiores, Inicio y lectura vertical continua ajustada al ancho con precarga.
 - Lectura sin cuentas ni conexión obligatoria. Las integraciones externas de referencia deben ser optativas y explícitas; nunca enviar documentos o selecciones automáticamente.
 - El usuario pidió mejoras incrementales y **consultar antes de cambiar el framework de UI**. Evitar reconstrucciones globales de la arquitectura.
-- Por decisión del usuario, no crear un repositorio remoto ni publicar en GitHub hasta nueva indicación. Se puede validar y empaquetar localmente. La CI escrita no es evidencia de ejecución.
+- El usuario autorizó publicar las versiones recientes en `https://github.com/MHAlberto/crabpdf`. Publicar solo artefactos identificados con versión, arquitectura, plataforma, procedencia y validación real. La CI escrita no es evidencia de ejecución.
 
 ## Dónde encontrar la verdad del proyecto
 
@@ -85,6 +85,7 @@ cargo test --locked --offline --test import_recovery -- --ignored --test-threads
 - Para cambios de UI/render/entrada, ejecutar el recorrido pertinente (`visual_smoke`, `search_smoke`, `refinement_smoke` o `formats_smoke`) e inspeccionar las capturas. Una captura no prueba todos los gestos.
 - Para cambios en persistencia/concurrencia, agregar una regresión que produzca el fallo real: dos instancias, cancelación, disco lleno simulado o caché dañada, según el cambio. Evitar pruebas que repitan la implementación.
 - Para cambios que se van a distribuir en Windows, usar `scripts/Test-Local.ps1` (x64 y x86); requiere escritorio interactivo y bibliotecas nativas. Después `scripts/Pack-Portable.ps1 -Architecture x64`/`x86` y `scripts/Verify-Portable.ps1` según sus parámetros documentados.
+- Para Linux x64, compilar con Rust 1.96.0 y bibliotecas X11/Wayland en un entorno con glibc 2.36, compilar MuPDF/libmobi con `scripts/Build-LinuxFormatTools.sh`, exportar los textos de Cargo con `python3 scripts/Export-RustLicenses.py` y ejecutar `bash scripts/Pack-Linux.sh`. Comprobar la instalación del `.deb` y su `SHA256SUMS` en Ubuntu 24.04 limpio; ejecutar `formats_and_marks` y el recorrido `visual_smoke` con Xvfb. El tar requiere DjVuLibre y 7-Zip del sistema. Un CLI que imprime `--help` no acredita la interfaz.
 - Aislar preferencias, datos y fixtures de prueba dentro de `artifacts/`. No probar sobre documentos personales ni borrar preferencias reales. Restaurar variables de entorno al terminar.
 - Para cambios solo documentales, verificar rutas, CSV, referencias y coherencia; no recompilar todos los motores sin necesidad.
 - Conservar informes históricos de validación. Guardar resultados nuevos con fecha, plataforma, hashes y comandos; no sustituir pruebas faltantes por resultados de otra versión o sistema.

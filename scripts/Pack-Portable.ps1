@@ -75,6 +75,7 @@ F11 o Escape: salir. F12: panel lateral. Flechas izquierda/derecha: paginas o de
 PDF, EPUB, Kindle sin DRM, FB2, XPS, DjVu, CHM, comics e imagenes comunes.
 Seleccionar palabras con doble clic o arrastrando. Marcas: resaltar, subrayar y elegir color.
 Lectura sin pie inferior; transiciones breves. Preferencias: Reducir movimiento para desactivarlas.
+Favoritos del libro actual, ordenados por pagina. Arrastrar una pestana fuera de la barra la duplica al soltar.
 Ctrl+Mayus+L resalta, Ctrl+Mayus+U subraya, Ctrl+Z deshace la ultima marca.
 Las marcas se conservan localmente. Ctrl+S exporta una copia PDF con las anotaciones.
 Version en desarrollo hacia la paridad de SumatraPDF; no es la version 1.0.

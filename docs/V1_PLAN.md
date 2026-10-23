@@ -178,3 +178,7 @@ Estas decisiones no bloquean el trabajo independiente de H1. Acceso a otros sist
 Al cerrar una ruta: actualizar su estado en CSV, enlazar casos y evidencia, registrar límites y revisar dependientes. Subdividir rutas grandes en casos/tareas hijos con IDs estables durante R00; las 31 rutas son paquetes de trabajo, **no 31 funciones ni 31 cambios de código**. Mantener trazabilidad de lo ya implementado.
 
 R29 solo se cierra cuando R28, R26 y la matriz de distribución están completos. Un candidato Windows aislado puede entregarse antes como desarrollo, con su versión y limitaciones explícitas. Los plugins Rust/WASM comienzan después de V1, conservando la carga opcional que solicitó el usuario.
+
+## Avance adicional 0.3.6
+
+La revisión [0.3.6](IMPLEMENTATION_PROGRESS_0_3_6.md) avanza parcialmente R10, R13 y R30: área nativa completa al entrar desde maximizada, favoritos del libro activo y duplicación por arrastre con ancla de lectura. Conserva los datos de otros libros y la vista al saltar a favoritos. Los criterios completos de estas rutas permanecen abiertos.

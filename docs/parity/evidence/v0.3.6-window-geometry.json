@@ -1,0 +1,219 @@
+{
+    "version":  "0.3.6",
+    "schema":  1,
+    "cases":  [
+                  {
+                      "captures":  25,
+                      "samples":  [
+                                      {
+                                          "phase":  18,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  19,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  22,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      }
+                                  ],
+                      "architecture":  "x64",
+                      "titlebar":  "normal"
+                  },
+                  {
+                      "captures":  25,
+                      "samples":  [
+                                      {
+                                          "phase":  18,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  19,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  22,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      }
+                                  ],
+                      "architecture":  "x64",
+                      "titlebar":  "native"
+                  },
+                  {
+                      "captures":  25,
+                      "samples":  [
+                                      {
+                                          "phase":  18,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  19,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  22,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      }
+                                  ],
+                      "architecture":  "x86",
+                      "titlebar":  "normal"
+                  },
+                  {
+                      "captures":  25,
+                      "samples":  [
+                                      {
+                                          "phase":  18,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  19,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      },
+                                      {
+                                          "phase":  22,
+                                          "monitor":  {
+                                                          "left":  0,
+                                                          "width":  1920,
+                                                          "height":  1080,
+                                                          "top":  0
+                                                      },
+                                          "client":  {
+                                                         "origin_x":  0,
+                                                         "width":  1920,
+                                                         "origin_y":  0,
+                                                         "height":  1080
+                                                     }
+                                      }
+                                  ],
+                      "architecture":  "x86",
+                      "titlebar":  "native"
+                  }
+              ],
+    "os":  "Microsoft Windows NT 10.0.19045.0",
+    "scope":  "Windows x86 runs under WOW64; one physical monitor",
+    "protocol":  "Each screenshot waits for an acknowledged Win32 measurement",
+    "implementation_commit":  "4421085a2a476e57290facf65675185abbb10329",
+    "date":  "2026-10-23"
+}

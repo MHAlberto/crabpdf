@@ -85,3 +85,7 @@ Los ayudantes se verifican como PE x86 en ambos paquetes; `mutool` se recompiló
 ## Revisión 0.3.5
 
 El [informe independiente de transiciones e interfaz](IMPLEMENTATION_PROGRESS_0_3_5.md) registra las ejecuciones del 23 de octubre de 2026 y sus límites. `transition_smoke` añade eventos de teclado, inversión rápida, capturas intermedias, offsets monótonos, movimiento reducido, comprobación del borde inferior y clic real de cierre. Sus resultados están en `artifacts/validation-ui-20261023/`; no actualizan retroactivamente las cifras de este informe histórico.
+
+## Revisión 0.3.6
+
+[Informe independiente](IMPLEMENTATION_PROGRESS_0_3_6.md). `document_chrome_smoke` comprueba dos libros con favoritos, navegación sin cambiar zoom, duplicación de una pestaña inactiva y cancelación de arrastre. `Test-WindowGeometry.ps1` añade lecturas Win32 de cliente, origen y monitor, con pantalla completa desde ventana normal/maximizada y ambas barras de título. Esta prueba cubre un recorte exterior al framebuffer que las capturas anteriores no detectaban.

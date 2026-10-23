@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Version = '0.3.5')
+param([string]$Version = '0.3.6')
 $ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repo = 'MHAlberto/crabpdf'

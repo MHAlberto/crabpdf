@@ -2,7 +2,7 @@
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
-Esta página describe la implementación en desarrollo 0.3.5. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
+Esta página describe la implementación en desarrollo 0.3.6. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
 
 ```mermaid
 flowchart LR
@@ -105,3 +105,9 @@ La selección sigue limitada a una página. Impresión, edición general, formul
 `ui/motion.rs` anima únicamente el desplazamiento y la entrada del contenido actual. El lienzo permanece opaco; no hay una textura duplicada ni mezcla de dos documentos. Los saltos cercanos se limitan a 160 ms, con cancelación por interacción y ajuste de ambos extremos cuando llega geometría real. Se elimina el objetivo cinético anterior de egui al aplicar un salto programático.
 
 El visor mantiene barras flotantes sin degradado y sin reserva variable de ancho. La vista previa debe coincidir en documento, revisión, página, giro y colores. La navegación a un destino frío espera como máximo 200 ms y la precarga vecina sigue dentro de los presupuestos existentes. Los avisos de éxito flotan sin alterar el viewport. `reduce_motion` es una preferencia TOML con valor por defecto compatible. [Regresiones y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
+
+## Ventana y documento en 0.3.6
+
+`ReaderApp::sync_fullscreen` centraliza F11, Escape, presentación y arranque CLI. En Windows retira temporalmente el estado maximizado antes de entrar, para evitar que `WM_NCCALCSIZE` limite el cliente al área de trabajo del monitor. Reaplica decoraciones tras el cambio para actualizar la sombra del marco sin decorar y restaura el estado maximizado al salir. No introduce FFI en el lector.
+
+`Preferences::favorites_for` filtra por ruta de origen y ordena por página; quitar una entrada usa ruta y página. El almacén TOML conserva su formato y los favoritos de otros libros. El panel navega directamente en la pestaña activa. `ui/chrome.rs` sigue el ID estable de la pestaña durante el arrastre y reutiliza la acción de duplicado al soltar fuera; el estado guardado proporciona el ancla de lectura.

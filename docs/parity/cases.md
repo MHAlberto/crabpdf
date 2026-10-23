@@ -33,3 +33,7 @@ Los casos de impresión, editor completo de anotaciones, edición/formularios, f
 ## Regresión adicional de interfaz — 0.3.5
 
 `examples/transition_smoke.rs` comprueba avanzar/volver con flechas, inversión rápida, modo no continuo, Inicio y vuelta al documento, Marcas y la cruz real de cierre. Registra offsets y frames durante el desplazamiento; verifica monotonicidad, posiciones intermedias con animación, salto directo al reducir movimiento y ausencia del pie inferior. Windows y Ubuntu/Xvfb tienen informes separados. [Resultados y límites](../IMPLEMENTATION_PROGRESS_0_3_5.md). Este caso no cierra la paridad de lectura ni del editor de anotaciones.
+
+## Documento y ventana — 0.3.6
+
+`document_chrome_smoke` comprueba favoritos separados entre dos libros, guardar/quitar, salto sin cambiar zoom, duplicación por arrastre de una pestaña inactiva y cancelación al volver o pulsar Escape. `Test-WindowGeometry.ps1` compara el área cliente con el monitor desde ventana normal y maximizada, con barra propia y nativa. [Evidencia y límites](../IMPLEMENTATION_PROGRESS_0_3_6.md). El panel de favoritos por libro responde a la preferencia explícita del usuario; no certifica paridad de toda la gestión de favoritos de la referencia.

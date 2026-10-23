@@ -43,6 +43,7 @@ public static class CrabGeometry {
     if([CrabGeometry]::GetWindowRect($h,[ref]$outer) -and [CrabGeometry]::GetClientRect($h,[ref]$client) -and [CrabGeometry]::ClientToScreen($h,[ref]$origin) -and [CrabGeometry]::GetMonitorInfo([CrabGeometry]::MonitorFromWindow($h,2),[ref]$monitor)){
      $rows.Add(@{phase=$phase.phase;fullscreen=$phase.fullscreen;native=$phase.native;outer=$outer;client=$client;origin=$origin;monitor=$monitor.Monitor})
      $lastPhase=$phase.phase
+     [IO.File]::WriteAllText((Join-Path $report 'native-sampled-phase.txt'),[string]$phase.phase)
     }
    }
   }
@@ -58,7 +59,9 @@ public static class CrabGeometry {
  }
  "Geometria nativa aprobada: $($full.Count) mediciones de pantalla completa."
 }
+$previousAck=$env:CRABPDF_WINDOW_GEOMETRY_ACK
 try{
+ $env:CRABPDF_WINDOW_GEOMETRY_ACK='1'
  Push-Location -LiteralPath $workspace
  $arguments=@($report)
  if($Native){$arguments+='--native'}
@@ -69,6 +72,7 @@ try{
  if($observer.State -ne 'Completed'){throw 'Fallo del observador Win32.'}
  if($code -ne 0){throw "Fallo del recorrido grafico: $code"}
 }finally{
+ $env:CRABPDF_WINDOW_GEOMETRY_ACK=$previousAck
  Pop-Location
  if($observer.State -eq 'Running'){Stop-Job $observer}
  Remove-Job $observer

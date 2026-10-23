@@ -22,6 +22,7 @@ struct Smoke {
     events: Vec<egui::Event>,
     source: Option<egui::Rect>,
     native: bool,
+    geometry_ack: bool,
     source_anchor: Option<(f32, f32)>,
     outcome: Arc<Mutex<Option<Result<(), String>>>>,
 }
@@ -263,8 +264,17 @@ impl eframe::App for Smoke {
                         self.finish(ctx, Err(e.to_string()));
                         return;
                     }
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
-                    self.capture = true;
+                    let measured = !self.geometry_ack
+                        || std::fs::read_to_string(self.output.join("native-sampled-phase.txt"))
+                            .ok()
+                            .and_then(|s| s.trim().parse::<usize>().ok())
+                            == Some(self.phase);
+                    if measured {
+                        ctx.send_viewport_cmd(
+                            egui::ViewportCommand::Screenshot(Default::default()),
+                        );
+                        self.capture = true;
+                    }
                 }
             }
             _ => {}
@@ -332,6 +342,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 events: Vec::new(),
                 source: None,
                 native,
+                geometry_ack: std::env::var_os("CRABPDF_WINDOW_GEOMETRY_ACK").is_some(),
                 source_anchor: None,
                 outcome,
             }))

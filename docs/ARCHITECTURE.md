@@ -1,5 +1,7 @@
 # Arquitectura de CrabPDF
 
+El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Son diseño pendiente de implementación; esta página conserva la estructura real de 0.3.6.
+
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
 Esta página describe la implementación en desarrollo 0.3.6. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).

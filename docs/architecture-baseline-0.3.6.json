@@ -1,0 +1,126 @@
+{
+    "schema":  1,
+    "inspected_on":  "2026-10-23",
+    "package":  "crabpdf",
+    "version":  "0.3.6",
+    "commit":  "3516ac91fc39c278a2c0ce19a3d85e01de761541",
+    "scope":  "src/**/*.rs; physical lines including blanks and comments; generated files, tests, examples and native dependencies excluded",
+    "measurement":  "Get-ChildItem src -Recurse -Filter *.rs | Sort-Object FullName; (Get-Content -LiteralPath file).Count",
+    "rust_source_files":  28,
+    "physical_lines_total":  11085,
+    "files":  [
+                  {
+                      "path":  "src/annotations.rs",
+                      "physical_lines":  139
+                  },
+                  {
+                      "path":  "src/app_paths.rs",
+                      "physical_lines":  46
+                  },
+                  {
+                      "path":  "src/branding.rs",
+                      "physical_lines":  20
+                  },
+                  {
+                      "path":  "src/cache.rs",
+                      "physical_lines":  100
+                  },
+                  {
+                      "path":  "src/cli.rs",
+                      "physical_lines":  187
+                  },
+                  {
+                      "path":  "src/commands.rs",
+                      "physical_lines":  330
+                  },
+                  {
+                      "path":  "src/config.rs",
+                      "physical_lines":  464
+                  },
+                  {
+                      "path":  "src/djvu_text.rs",
+                      "physical_lines":  89
+                  },
+                  {
+                      "path":  "src/document.rs",
+                      "physical_lines":  296
+                  },
+                  {
+                      "path":  "src/engine.rs",
+                      "physical_lines":  1007
+                  },
+                  {
+                      "path":  "src/fileops.rs",
+                      "physical_lines":  79
+                  },
+                  {
+                      "path":  "src/formats.rs",
+                      "physical_lines":  1532
+                  },
+                  {
+                      "path":  "src/layout.rs",
+                      "physical_lines":  348
+                  },
+                  {
+                      "path":  "src/lib.rs",
+                      "physical_lines":  19
+                  },
+                  {
+                      "path":  "src/library.rs",
+                      "physical_lines":  154
+                  },
+                  {
+                      "path":  "src/main.rs",
+                      "physical_lines":  64
+                  },
+                  {
+                      "path":  "src/platform.rs",
+                      "physical_lines":  110
+                  },
+                  {
+                      "path":  "src/reading_position.rs",
+                      "physical_lines":  85
+                  },
+                  {
+                      "path":  "src/state.rs",
+                      "physical_lines":  307
+                  },
+                  {
+                      "path":  "src/ui/chrome.rs",
+                      "physical_lines":  409
+                  },
+                  {
+                      "path":  "src/ui/home.rs",
+                      "physical_lines":  127
+                  },
+                  {
+                      "path":  "src/ui/icons.rs",
+                      "physical_lines":  219
+                  },
+                  {
+                      "path":  "src/ui/mod.rs",
+                      "physical_lines":  2181
+                  },
+                  {
+                      "path":  "src/ui/motion.rs",
+                      "physical_lines":  80
+                  },
+                  {
+                      "path":  "src/ui/panels.rs",
+                      "physical_lines":  1114
+                  },
+                  {
+                      "path":  "src/ui/theme.rs",
+                      "physical_lines":  70
+                  },
+                  {
+                      "path":  "src/ui/viewer.rs",
+                      "physical_lines":  702
+                  },
+                  {
+                      "path":  "src/worker.rs",
+                      "physical_lines":  807
+                  }
+              ],
+    "performance_baseline_measured":  false
+}

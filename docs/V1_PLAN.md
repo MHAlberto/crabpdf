@@ -1,5 +1,7 @@
 # Rutas de implementación hasta CrabPDF 1.0
 
+La revisión de arquitectura del 23 de octubre de 2026 parte del código 0.3.6 y propone una migración incremental A00–A07. El [plan y las correspondencias de rutas](ARCHITECTURE_MIGRATION.md) desarrollan R08/R09 sin dar por cerradas las demás funciones V1. La [decisión ADR-0001](adr/0001-modular-architecture.md) fija límites, alternativas y consecuencias.
+
 Base: **0.2.0**, 13 de octubre de 2026. Este documento convierte la [auditoría](AUDIT_V1.md) en trabajo ejecutable. Los IDs R00–R30 corresponden a [V1_BACKLOG.csv](V1_BACKLOG.csv). Todas las rutas siguen pendientes como entregas completas, aunque aprovechen funciones existentes. No se cambió la versión de la aplicación.
 
 La implementación posterior de **0.3.0** avanzó parcialmente R01–R08; [IMPLEMENTATION_PROGRESS.md](IMPLEMENTATION_PROGRESS.md) registra código, pruebas y límites sin alterar los criterios de salida de este plan.

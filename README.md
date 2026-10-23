@@ -180,4 +180,4 @@ El informe queda en `artifacts/validation/results.json`; los paquetes contienen 
 
 `search_smoke` verifica que una coincidencia al final de una página de 400×3000 puntos quede visible al descubrir sus dimensiones bajo demanda. Los ZIPs se comprueban con `scripts/Verify-Portable.ps1`.
 
-[Refinamiento por fases](docs/REFINEMENT.md) · [Acciones y atajos](docs/ACTIONS.md) · [Arquitectura](docs/ARCHITECTURE.md) · [Evidencia y límites de prueba](docs/VALIDATION.md) · [Avisos](docs/THIRD_PARTY_NOTICES.md) · [V1 y V2](docs/ROADMAP.md).
+[Refinamiento por fases](docs/REFINEMENT.md) · [Acciones y atajos](docs/ACTIONS.md) · [Arquitectura actual](docs/ARCHITECTURE.md) · [Plan de migración](docs/ARCHITECTURE_MIGRATION.md) · [Decisión de arquitectura](docs/adr/0001-modular-architecture.md) · [Evidencia y límites de prueba](docs/VALIDATION.md) · [Avisos](docs/THIRD_PARTY_NOTICES.md) · [V1 y V2](docs/ROADMAP.md).

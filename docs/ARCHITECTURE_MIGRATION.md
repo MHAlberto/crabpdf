@@ -1,6 +1,6 @@
 # Plan de migración de arquitectura de CrabPDF
 
-**Fecha:** 23 de octubre de 2026. **Base:** 0.3.6, commit `3516ac91fc39c278a2c0ce19a3d85e01de761541`. **Estado:** investigación y diseño preparados; extracción de código pendiente. Esta entrega no cambia el ejecutable ni su versión.
+**Fecha:** 23 de octubre de 2026. **Base:** 0.3.6, commit `3516ac91fc39c278a2c0ce19a3d85e01de761541`. **Estado:** ejecución iniciada. [Primeros cortes y evidencia](architecture/PHASE_1.md): base local A00, metadatos A01 y extracción de favoritos A02a. La aplicación conserva la versión de desarrollo 0.3.6.
 
 La dirección seleccionada es un **monolito modular con puertos y adaptadores**, dividido por funciones de lectura. La [decisión ADR-0001](adr/0001-modular-architecture.md) compara opciones y explica sus costes. [ARCHITECTURE.md](ARCHITECTURE.md) sigue describiendo el código que existe; este documento describe el destino y cómo llegar.
 
@@ -288,7 +288,9 @@ Tras el primer corte probado, las nuevas funciones entran por el módulo adecuad
 
 Para V2, mantener APIs pequeñas e identidades opacas facilitará un host opcional Rust/Wasm. La decisión de ABI, permisos y runtime de plugins requiere su propio diseño; este plan no añade ese coste a la base V1.
 
-## 9. Entrega de esta revisión
+## 9. Entrega de planificación (a231957)
+
+Esta sección conserva el resultado de la revisión de diseño. La ejecución posterior se registra en [PHASE_1.md](architecture/PHASE_1.md).
 
 - Inspección estructural sobre el commit de referencia y registro de tamaño por archivo.
 - Alternativas evaluadas y dirección seleccionada en ADR-0001.
@@ -296,7 +298,7 @@ Para V2, mantener APIs pequeñas e identidades opacas facilitará un host opcion
 - Enlaces de navegación actualizados en la documentación existente.
 - No se han movido módulos ni alterado comportamiento, dependencias, esquemas o versión.
 
-Las mediciones de rendimiento, las nuevas pruebas de contrato y A00–A07 están pendientes de ejecución; esta revisión prepara su realización y no las presenta como resultados.
+En el momento de esa revisión, las mediciones de rendimiento, las nuevas pruebas de contrato y A00–A07 estaban pendientes de ejecución. Los resultados posteriores y los hitos que siguen abiertos están separados en el registro de avance.
 
 ## Fuentes consultadas
 

@@ -131,3 +131,89 @@ pub fn paint(ui: &Ui, icon: Icon, rect: Rect, color: Color32) {
         }
     }
 }
+
+#[derive(Clone, Copy)]
+pub(super) enum Caption {
+    Minimize,
+    Maximize(bool),
+    Close,
+}
+
+pub(super) fn close_button(ui: &mut Ui, size: egui::Vec2, window: bool, label: &str) -> Response {
+    caption_button(ui, Caption::Close, size, window, label)
+}
+
+pub(super) fn caption_button(
+    ui: &mut Ui,
+    control: Caption,
+    size: egui::Vec2,
+    window: bool,
+    label: &str,
+) -> Response {
+    let response = ui.add_sized(size, egui::Button::new("").frame(false));
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
+    let hover = ui.ctx().animate_bool_with_time(
+        response.id.with("caption-hover"),
+        response.hovered() || response.has_focus(),
+        ui.style().animation_time,
+    );
+    let dangerous = window && matches!(control, Caption::Close);
+    let background = if dangerous {
+        Color32::from_rgb(202, 54, 65)
+    } else {
+        ui.visuals().widgets.hovered.bg_fill
+    };
+    if hover > 0.0 {
+        ui.painter().rect_filled(
+            response.rect,
+            if window { 2 } else { 5 },
+            background.gamma_multiply(hover),
+        );
+    }
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            response.rect.shrink(1.0),
+            3,
+            ui.visuals().selection.stroke,
+            StrokeKind::Inside,
+        );
+    }
+    let normal = ui.visuals().text_color();
+    let color = if dangerous && (ui.visuals().dark_mode || hover >= 0.7) {
+        Color32::WHITE
+    } else {
+        normal
+    };
+    let rect = Rect::from_center_size(response.rect.center(), egui::vec2(11.0, 11.0));
+    let stroke = Stroke::new(1.4, color);
+    match control {
+        Caption::Close => {
+            ui.painter()
+                .line_segment([rect.left_top(), rect.right_bottom()], stroke);
+            ui.painter()
+                .line_segment([rect.right_top(), rect.left_bottom()], stroke);
+        }
+        Caption::Minimize => {
+            ui.painter()
+                .line_segment([rect.left_center(), rect.right_center()], stroke);
+        }
+        Caption::Maximize(false) => {
+            ui.painter()
+                .rect_stroke(rect, 0, stroke, StrokeKind::Inside);
+        }
+        Caption::Maximize(true) => {
+            let back = rect.translate(egui::vec2(2.0, -2.0)).shrink(1.0);
+            ui.painter()
+                .line_segment([back.left_top(), back.right_top()], stroke);
+            ui.painter()
+                .line_segment([back.right_top(), back.right_bottom()], stroke);
+            ui.painter().rect_stroke(
+                rect.translate(egui::vec2(-1.0, 1.0)).shrink(1.0),
+                0,
+                stroke,
+                StrokeKind::Inside,
+            );
+        }
+    }
+    response.on_hover_text(label)
+}

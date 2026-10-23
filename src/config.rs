@@ -24,6 +24,7 @@ pub struct Preferences {
     pub sidebar_open: bool,
     pub restore_session: bool,
     pub native_titlebar: bool,
+    pub reduce_motion: bool,
     pub recent: Vec<StoredDocument>,
     pub session: Vec<StoredDocument>,
     pub favorites: Vec<Favorite>,
@@ -38,6 +39,7 @@ impl Default for Preferences {
             sidebar_open: false,
             restore_session: false,
             native_titlebar: false,
+            reduce_motion: false,
             recent: Vec::new(),
             session: Vec::new(),
             favorites: Vec::new(),
@@ -147,6 +149,7 @@ impl Preferences {
         scalar!(sidebar_open);
         scalar!(restore_session);
         scalar!(native_titlebar);
+        scalar!(reduce_motion);
         scalar!(markup_color);
         merge_entries(&base.recent, &self.recent, &mut merged.recent, |a, b| {
             a.path == b.path
@@ -296,6 +299,7 @@ mod tests {
             sidebar_open: true,
             restore_session: true,
             native_titlebar: false,
+            reduce_motion: false,
             recent: vec![StoredDocument {
                 path: PathBuf::from("Lecturas/niño.pdf"),
                 page: 42,

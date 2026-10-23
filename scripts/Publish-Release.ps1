@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Version = '0.3.4')
+param([string]$Version = '0.3.5')
 $ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repo = 'MHAlberto/crabpdf'
@@ -14,7 +14,8 @@ $assets = @(
 )
 Push-Location -LiteralPath $workspace
 try {
-    if ((git status --porcelain) -or (git remote get-url origin) -ne "https://github.com/$repo.git") {
+    $origin = (git remote get-url origin).Trim().TrimEnd('/') -replace '\.git$', ''
+    if ((git status --porcelain) -or $origin -ne "https://github.com/$repo") {
         throw 'El árbol debe estar limpio y origin debe apuntar al repositorio esperado.'
     }
     $releaseCommit = (git rev-list -n 1 $tag).Trim()

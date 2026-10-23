@@ -54,3 +54,11 @@ son disponibilidad de contexto, no implementaciones provisionales.
 Los atajos de navegación y zoom no interceptan escritura en campos de texto.
 Los comandos globales de apertura, búsqueda, ventanas y paneles siguen disponibles.
 La paleta consume sus flechas y Enter antes del editor para evitar que muevan el PDF.
+
+## Interfaz de lectura en 0.3.5
+
+Los saltos cercanos en modo continuo animan el desplazamiento durante 160 ms; los largos son inmediatos. **Reducir movimiento** en preferencias desactiva las animaciones. La rueda, el ratón y una nueva navegación interrumpen el movimiento.
+
+El visor ocupa también el espacio del antiguo pie inferior. La versión y el límite de resolución se consultan al situar el puntero sobre CrabPDF en la barra superior. Los avisos de éxito aparecen flotantes sin desplazar el documento.
+
+Marcas agrupa resaltar/subrayar, seis muestras circulares con indicador de selección, color personalizado, deshacer y guardar copia. Requiere documento; las acciones mantienen las comprobaciones de selección/permisos. Las cruces vectoriales de pestaña y ventana disponen de áreas de clic de 24×24 y 44×30 puntos respectivamente. [Evidencia y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).

@@ -2,7 +2,7 @@
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
-Esta página describe la implementación en desarrollo 0.3.4. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
+Esta página describe la implementación en desarrollo 0.3.5. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
 
 ```mermaid
 flowchart LR
@@ -38,6 +38,7 @@ flowchart LR
 | `ui/chrome.rs` | Pestañas integradas, operaciones nativas de ventana y controles flotantes de pantalla completa. |
 | `ui/home.rs`, `library.rs` | Biblioteca, tarjetas, portadas diferidas y caché PNG limitada. |
 | `ui/viewer.rs` | Viewport, regiones visibles, selección, enlaces y resaltados. |
+| `ui/motion.rs` | Desplazamiento programático breve, interrumpible y entradas sin mezclar documentos. |
 | `ui/theme.rs`, `ui/icons.rs` | Estilos e iconos vectoriales propios. |
 | `state.rs` | Estado de documento, historial, modos, zoom y rotación. |
 | `layout.rs` | Geometría, spreads y planificación de tiles. |
@@ -98,3 +99,9 @@ PDFium sigue siendo el motor de páginas. `formats.rs` prepara los formatos bás
 `annotations.rs` conserva marcas locales asociadas al archivo y a una firma del PDF preparado. El esquema 2 detecta si un importador produjo otra paginación: conserva las marcas antiguas, pero las deja sin aplicar y presenta un aviso para evitar marcarlas en el texto equivocado. Los PDF antiguos mantienen sus marcas compatibles. El worker crea anotaciones PDF nativas con quad points en orden Z; antes de exportar refresca las marcas bajo el bloqueo del almacén, y las revisiones invalidan las páginas afectadas y los resultados pendientes. El original no se sobrescribe. Faltan anclas por cita/contexto, migración segura y una prueba entre dos procesos de exportación. Estos límites se relacionan con F02/F03/F06 de la auditoría histórica.
 
 La selección sigue limitada a una página. Impresión, edición general, formularios y los restantes formatos/servicios de referencia requieren componentes adicionales. [Formatos, almacenamiento y límites](FORMATS_AND_ANNOTATIONS.md).
+
+## Transiciones y viewport en 0.3.5
+
+`ui/motion.rs` anima únicamente el desplazamiento y la entrada del contenido actual. El lienzo permanece opaco; no hay una textura duplicada ni mezcla de dos documentos. Los saltos cercanos se limitan a 160 ms, con cancelación por interacción y ajuste de ambos extremos cuando llega geometría real. Se elimina el objetivo cinético anterior de egui al aplicar un salto programático.
+
+El visor mantiene barras flotantes sin degradado y sin reserva variable de ancho. La vista previa debe coincidir en documento, revisión, página, giro y colores. La navegación a un destino frío espera como máximo 200 ms y la precarga vecina sigue dentro de los presupuestos existentes. Los avisos de éxito flotan sin alterar el viewport. `reduce_motion` es una preferencia TOML con valor por defecto compatible. [Regresiones y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).

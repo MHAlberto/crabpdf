@@ -407,7 +407,7 @@ dependencies = [
 
 [[package]]
 name = "crabpdf"
-version = "0.3.4"
+version = "0.3.5"
 dependencies = [
  "crc32fast",
  "eframe",

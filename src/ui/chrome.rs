@@ -187,12 +187,13 @@ impl ReaderApp {
                                                                 }
                                                             }
                                                         });
-                                                        if ui
-                                                            .small_button("×")
-                                                            .on_hover_text(
-                                                                "Cerrar pestaña · Ctrl/⌘ + W",
-                                                            )
-                                                            .clicked()
+                                                        if icons::close_button(
+                                                            ui,
+                                                            egui::vec2(24.0, 24.0),
+                                                            false,
+                                                            "Cerrar pestaña · Ctrl/⌘ + W",
+                                                        )
+                                                        .clicked()
                                                         {
                                                             close = Some(index);
                                                         }
@@ -218,30 +219,38 @@ impl ReaderApp {
                         }
                     } else if custom {
                         ui.spacing_mut().item_spacing.x = 0.0;
-                        if ui
-                            .add_sized([42.0, 28.0], egui::Button::new("—").frame(false))
-                            .on_hover_text("Minimizar")
-                            .clicked()
+                        if icons::caption_button(
+                            ui,
+                            icons::Caption::Minimize,
+                            egui::vec2(44.0, 30.0),
+                            true,
+                            "Minimizar",
+                        )
+                        .clicked()
                         {
                             ui.ctx()
                                 .send_viewport_cmd(egui::ViewportCommand::Minimized(true));
                         }
                         let maximized =
                             ui.input(|input| input.viewport().maximized.unwrap_or(false));
-                        if ui
-                            .add_sized(
-                                [42.0, 28.0],
-                                egui::Button::new(if maximized { "❐" } else { "□" }).frame(false),
-                            )
-                            .on_hover_text("Maximizar / restaurar")
-                            .clicked()
+                        if icons::caption_button(
+                            ui,
+                            icons::Caption::Maximize(maximized),
+                            egui::vec2(44.0, 30.0),
+                            true,
+                            "Maximizar / restaurar",
+                        )
+                        .clicked()
                         {
                             action = Some(Action::Maximize);
                         }
-                        if ui
-                            .add_sized([42.0, 28.0], egui::Button::new("×").frame(false))
-                            .on_hover_text("Cerrar ventana · Alt + F4")
-                            .clicked()
+                        if icons::close_button(
+                            ui,
+                            egui::vec2(44.0, 30.0),
+                            true,
+                            "Cerrar ventana · Alt + F4",
+                        )
+                        .clicked()
                         {
                             action = Some(Action::Exit);
                         }

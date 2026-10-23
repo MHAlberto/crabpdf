@@ -81,3 +81,7 @@ La versión sigue siendo **0.2.0 en desarrollo hacia v1**. El registro propio in
 Las cinco pruebas nuevas comprueban apertura/raster/texto de las familias básicas, índice y título EPUB, cómics RAR/ZIP/7z/TAR ordenados por números, TIFF multipágina, ICO/TGA/DIB, Kindle Huffman/KF8 y rechazo de DRM, marcas de cuatro colores en crop/rotación, persistencia/exportación/deshacer, concurrencia entre copias y conservación de un almacén dañado. El control geométrico exige superficie de resaltado y longitud de subrayado, además de cambios de píxeles. [Detalles](FORMATS_AND_ANNOTATIONS.md).
 
 Los ayudantes se verifican como PE x86 en ambos paquetes; `mutool` se recompiló porque la descarga oficial 1.28.5 es x64. La build local usa CRT estático y sus imports sólo incluyen KERNEL32/ADVAPI32. DjVuLibre usa las DLL x86 de CRT incluidas localmente. Los paquetes se acompañan del archivo de fuentes de los decodificadores.
+
+## Revisión 0.3.5
+
+El [informe independiente de transiciones e interfaz](IMPLEMENTATION_PROGRESS_0_3_5.md) registra las ejecuciones del 23 de octubre de 2026 y sus límites. `transition_smoke` añade eventos de teclado, inversión rápida, capturas intermedias, offsets monótonos, movimiento reducido, comprobación del borde inferior y clic real de cierre. Sus resultados están en `artifacts/validation-ui-20261023/`; no actualizan retroactivamente las cifras de este informe histórico.

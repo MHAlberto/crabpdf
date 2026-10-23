@@ -54,6 +54,15 @@ try {
             $code=$LASTEXITCODE
             $records.Add(@{check="$arch-reading-session";exit_code=$code;captures=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot "$arch-reading-session") -Filter '*.png').Count})
             if ($code -ne 0) {throw "Fallo de restauración de lectura entre procesos ($arch)."}
+            foreach ($mode in @('normal','reduced','dark')) {
+                $transitionArgs=@((Join-Path $reportRoot "$arch-transitions-$mode"))
+                if ($mode -eq 'reduced') { $transitionArgs+='--reduced' }
+                if ($mode -eq 'dark') { $transitionArgs+='--dark' }
+                & (Join-Path $workspace "target/$target/release/examples/transition_smoke.exe") @transitionArgs
+                $code=$LASTEXITCODE
+                $records.Add(@{check="$arch-transitions-$mode";exit_code=$code;captures=@(Get-ChildItem -LiteralPath $transitionArgs[0] -Filter '*.png').Count})
+                if ($code -ne 0) {throw "Fallo de transiciones $arch ($mode)."}
+            }
             & (Join-Path $workspace "target/$target/release/examples/refinement_smoke.exe") (Join-Path $reportRoot "$arch-refinement")
             $code=$LASTEXITCODE
             $records.Add(@{check="$arch-refinement";exit_code=$code;captures=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot "$arch-refinement") -Filter '*.png').Count})

@@ -29,3 +29,7 @@ La evidencia adicional de consistencia e importación de 0.3 consta en [0.3.0](.
 Las 25 capturas de `visual_smoke` son del framebuffer nativo, con preferencias aisladas. La prueba verifica estados de documento y búsqueda; una captura por sí sola no verifica todos los gestos de un control. La evidencia de x86 bajo un SO x64 no equivale a ejecutar Windows x86.
 
 Los casos de impresión, editor completo de anotaciones, edición/formularios, firmas, formatos adicionales y fidelidad de los básicos, SyncTeX, accesibilidad, integración del sistema y plataformas restantes continúan pendientes. La prueba de cierre elimina solicitudes que llegaron al worker; la UI ahora termina una apertura rechazada por la cola, pero falta una regresión determinista de cola llena (F09). Ningún control vacío se presenta como terminado.
+
+## Regresión adicional de interfaz — 0.3.5
+
+`examples/transition_smoke.rs` comprueba avanzar/volver con flechas, inversión rápida, modo no continuo, Inicio y vuelta al documento, Marcas y la cruz real de cierre. Registra offsets y frames durante el desplazamiento; verifica monotonicidad, posiciones intermedias con animación, salto directo al reducir movimiento y ausencia del pie inferior. Windows y Ubuntu/Xvfb tienen informes separados. [Resultados y límites](../IMPLEMENTATION_PROGRESS_0_3_5.md). Este caso no cierra la paridad de lectura ni del editor de anotaciones.

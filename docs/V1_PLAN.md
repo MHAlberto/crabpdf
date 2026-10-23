@@ -12,6 +12,8 @@ La revisión **0.3.3** corrige pantalla completa, márgenes, salida desde presen
 
 La revisión **0.3.4** avanza R10: guarda el punto relativo a la página y manga, restaura con otro tamaño/escala y respeta la vista explícita CLI. El historial completo y la reconciliación de sesiones concurrentes de R03 siguen pendientes. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_4.md).
 
+La revisión **0.3.5** avanza parcialmente R13, R16 y R22: navegación sin objetivo de scroll residual, transiciones breves, viewport sin pie inferior, Marcas compacto y controles de cierre vectoriales. No completa el editor ni la paridad visual. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
+
 En el CSV, **P0** es trabajo previo para proteger datos y establecer evidencia; **P1** es el resto de trabajo necesario para la 1.0. La prioridad ordena la ejecución y no elimina requisitos.
 
 ## Qué significa terminar 1.0

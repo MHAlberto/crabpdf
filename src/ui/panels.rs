@@ -7,46 +7,96 @@ use icons::Icon;
 
 impl ReaderApp {
     pub(super) fn markup_colors(&mut self, ui: &mut egui::Ui) {
-        ui.label("Color de las marcas");
-        for (label, color) in [
+        let colors = [
             ("Amarillo", [255, 230, 50]),
             ("Verde", [90, 210, 100]),
             ("Azul", [80, 170, 255]),
             ("Rosa", [255, 120, 190]),
             ("Naranja", [255, 165, 60]),
             ("Rojo", [245, 85, 85]),
-        ] {
-            let selected = self.preferences.markup_color == color;
-            let text = RichText::new(if selected {
-                format!("✓ {label}")
-            } else {
-                label.into()
-            })
-            .color(egui::Color32::BLACK);
-            if ui
-                .add(
-                    egui::Button::new(text)
-                        .fill(egui::Color32::from_rgb(color[0], color[1], color[2])),
-                )
-                .clicked()
-            {
-                self.set_markup_color(color);
-                ui.close();
+        ];
+        let selected_name = colors
+            .iter()
+            .find(|(_, rgb)| *rgb == self.preferences.markup_color)
+            .map_or("Personalizado", |(name, _)| *name);
+        ui.label(RichText::new(format!("Color · {selected_name}")).small());
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 6.0;
+            for (label, rgb) in colors {
+                let selected = self.preferences.markup_color == rgb;
+                let response = ui.add_sized([30.0, 30.0], egui::Button::new("").frame(false));
+                response.widget_info(|| {
+                    egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label)
+                });
+                let center = response.rect.center();
+                let color = egui::Color32::from_rgb(rgb[0], rgb[1], rgb[2]);
+                ui.painter().circle_filled(center, 10.0, color);
+                if selected || response.hovered() || response.has_focus() {
+                    ui.painter().circle_stroke(
+                        center,
+                        13.0,
+                        egui::Stroke::new(
+                            if selected { 2.0 } else { 1.0 },
+                            ui.visuals().selection.stroke.color,
+                        ),
+                    );
+                }
+                if selected {
+                    let ink = egui::Color32::from_rgb(28, 31, 36);
+                    let stroke = egui::Stroke::new(1.7, ink);
+                    ui.painter().line_segment(
+                        [
+                            center + egui::vec2(-4.0, 0.0),
+                            center + egui::vec2(-1.0, 3.0),
+                        ],
+                        stroke,
+                    );
+                    ui.painter().line_segment(
+                        [
+                            center + egui::vec2(-1.0, 3.0),
+                            center + egui::vec2(5.0, -4.0),
+                        ],
+                        stroke,
+                    );
+                }
+                if response.on_hover_text(label).clicked() {
+                    self.set_markup_color(rgb);
+                    ui.close();
+                }
             }
-        }
+        });
         ui.horizontal(|ui| {
             ui.label("Personalizado");
             let mut color = self.preferences.markup_color;
             if ui.color_edit_button_srgb(&mut color).changed() {
                 self.set_markup_color(color);
             }
+            let [r, g, b] = self.preferences.markup_color;
+            ui.label(
+                RichText::new(format!("#{r:02X}{g:02X}{b:02X}"))
+                    .monospace()
+                    .small(),
+            );
         });
     }
     pub(super) fn menu_action(&mut self, ui: &mut egui::Ui, action: Action) {
         if ui
             .add_enabled(
                 self.enabled(action),
-                egui::Button::new(action.label()).shortcut_text(action.shortcut().unwrap_or("")),
+                egui::Button::new(action.label()).shortcut_text(
+                    action
+                        .shortcut()
+                        .unwrap_or("")
+                        .replace(
+                            "Ctrl/⌘",
+                            if cfg!(target_os = "macos") {
+                                "⌘"
+                            } else {
+                                "Ctrl"
+                            },
+                        )
+                        .replace(" + ", "+"),
+                ),
             )
             .clicked()
         {
@@ -307,18 +357,31 @@ impl ReaderApp {
                     {
                         self.execute(Action::VerticalReading, ui.ctx());
                     }
-                    ui.menu_button("Marcas", |ui| {
-                        for action in [
-                            Action::Highlight,
-                            Action::Underline,
-                            Action::UndoMarkup,
-                            Action::SaveAs,
-                        ] {
-                            self.menu_action(ui, action);
-                        }
-                        ui.separator();
-                        self.markup_colors(ui);
-                    });
+                    let marks = ui
+                        .add_enabled_ui(count > 0, |ui| {
+                            ui.menu_button("Marcas", |ui| {
+                                ui.set_min_width(236.0);
+                                ui.set_max_width(280.0);
+                                ui.spacing_mut().item_spacing.y = 6.0;
+                                ui.strong("Marcas de texto");
+                                if !self.enabled(Action::Highlight) {
+                                    ui.add(egui::Label::new(RichText::new(
+                                "Selecciona texto del documento para resaltar o subrayar."
+                            ).small().color(palette.muted)).wrap());
+                                }
+                                for action in [Action::Highlight, Action::Underline] {
+                                    self.menu_action(ui, action);
+                                }
+                                ui.separator();
+                                self.markup_colors(ui);
+                                ui.separator();
+                                for action in [Action::UndoMarkup, Action::SaveAs] {
+                                    self.menu_action(ui, action);
+                                }
+                            })
+                        })
+                        .inner;
+                    self.markup_button = Some(marks.response.rect);
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if icons::button(ui, Icon::Theme, Action::Theme.label(), true, false)
                             .clicked()
@@ -331,7 +394,22 @@ impl ReaderApp {
                                     RichText::new(crate::branding::NAME).color(palette.muted),
                                 )
                                 .truncate(),
-                            );
+                            )
+                            .on_hover_text({
+                                let limited = self.state().requested.is_some_and(|key| {
+                                    self.pages.get(&key).is_some_and(|page| page.limited)
+                                });
+                                format!(
+                                    "{} {}{}",
+                                    crate::branding::NAME,
+                                    env!("CARGO_PKG_VERSION"),
+                                    if limited {
+                                        "\nResolución limitada para controlar la memoria."
+                                    } else {
+                                        ""
+                                    }
+                                )
+                            });
                         }
                     });
                 });
@@ -342,16 +420,15 @@ impl ReaderApp {
         if self.home {
             return;
         }
-        if !self
-            .tabs
-            .get(self.active)
-            .is_some_and(|tab| tab.search.open)
-        {
+        let Some(tab) = self.tabs.get(self.active) else {
             return;
-        }
+        };
+        let was_open = tab.search.open;
+        let mut open = was_open;
         let mut changed = false;
         let mut action = None;
-        egui::Panel::top("find").show(ui, |ui| {
+        egui::Panel::top("find").resizable(false).show_collapsible(ui, &mut open, |ui| {
+                if !was_open { ui.disable(); }
             ui.horizontal_wrapped(|ui| {
                 let tab = &mut self.tabs[self.active];
                 ui.label("Buscar:");
@@ -397,7 +474,7 @@ impl ReaderApp {
                         tab.search.scanned, tab.search.total
                     ));
                 }
-                if ui.small_button("×").clicked() {
+                if icons::close_button(ui, egui::vec2(24.0, 24.0), false, "Cerrar búsqueda · Escape").clicked() {
                     tab.search.open = false;
                 }
                 if response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
@@ -423,17 +500,17 @@ impl ReaderApp {
         if self.home {
             return;
         }
-        if !(if self.fullscreen {
+        let was_visible = if self.fullscreen {
             self.fullscreen_sidebar
         } else {
             self.preferences.sidebar_open
-        }) {
-            return;
-        }
+        };
+        let mut visible = was_visible;
         egui::Panel::left("sidebar")
             .default_size(210.0)
             .size_range(165.0..=340.0)
-            .show(ui, |ui| {
+            .drag_to_open(false)
+            .show_collapsible(ui, &mut visible, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     for (name, side) in [
                         ("Páginas", Sidebar::Thumbnails),
@@ -573,28 +650,14 @@ impl ReaderApp {
                     }
                 }
             });
-    }
-
-    pub(super) fn status_bar(&mut self, ui: &mut egui::Ui) {
-        let palette = theme::palette(self.preferences.theme);
-        egui::Panel::bottom("status")
-            .frame(egui::Frame::NONE.fill(palette.surface).inner_margin(egui::Margin::symmetric(14,4)))
-            .show(ui,|ui|ui.horizontal(|ui| {
-                let text=if self.dialog.is_some() {"Selecciona un archivo"}
-                    else if self.state().opening.is_some() {"Abriendo documento…"}
-                    else if self.state().rendering {"Renderizando página…"}
-                    else if self.state().document.is_some() {"Izq./Der. · Páginas o desplazar   ·   Arriba/Abajo · Desplazar"}
-                    else {"Lectura local · Sin cuentas"};
-                if self.state().opening.is_some() || self.state().rendering { ui.spinner(); }
-                ui.label(RichText::new(text).small().color(palette.muted));
-                ui.with_layout(Layout::right_to_left(Align::Center),|ui| {
-                    ui.label(RichText::new(format!("{} {}",crate::branding::NAME,env!("CARGO_PKG_VERSION"))).small().color(palette.muted));
-                    if let Some(key)=self.state().requested && self.pages.get(&key).is_some_and(|page|page.limited) {
-                        ui.label(RichText::new("Resolución limitada").small())
-                            .on_hover_text("Se limita la resolución para controlar la memoria y el tamaño máximo de textura.");
-                    }
-                });
-            }));
+        if visible != was_visible {
+            if self.fullscreen {
+                self.fullscreen_sidebar = visible;
+            } else {
+                self.preferences.sidebar_open = visible;
+                self.schedule_save();
+            }
+        }
     }
 
     pub(super) fn notices(&mut self, ui: &mut egui::Ui) {
@@ -638,17 +701,69 @@ impl ReaderApp {
                     });
                 });
         }
-        let notice = self.config_warning.clone().or_else(|| self.notice.clone());
-        if let Some(notice) = notice {
-            egui::Panel::top("notice").show(ui, |ui| {
+        if let Some(warning) = self.config_warning.clone() {
+            egui::Panel::top("configuration-warning").show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(notice);
+                    ui.label(warning);
                     if ui.small_button("Cerrar").clicked() {
                         self.config_warning = None;
-                        self.notice = None;
                     }
                 });
             });
+        }
+        if let Some(notice) = self.notice.clone() {
+            if self
+                .notice_started
+                .as_ref()
+                .is_none_or(|(message, _)| message != &notice)
+            {
+                self.notice_started = Some((notice.clone(), std::time::Instant::now()));
+            }
+            let elapsed = self
+                .notice_started
+                .as_ref()
+                .map_or(std::time::Duration::ZERO, |(_, started)| started.elapsed());
+            if elapsed >= std::time::Duration::from_secs(4) {
+                self.notice = None;
+                self.notice_started = None;
+                return;
+            }
+            let mut dismiss = false;
+            egui::Area::new(egui::Id::new("reader-toast"))
+                .order(egui::Order::Foreground)
+                .anchor(
+                    egui::Align2::RIGHT_TOP,
+                    egui::vec2(-10.0, ui.available_rect_before_wrap().top() + 8.0),
+                )
+                .movable(false)
+                .fade_in(!self.preferences.reduce_motion)
+                .show(ui.ctx(), |ui| {
+                    egui::Frame::popup(ui.style())
+                        .inner_margin(8)
+                        .show(ui, |ui| {
+                            ui.set_max_width(320.0);
+                            ui.horizontal(|ui| {
+                                ui.add(egui::Label::new(RichText::new(notice).small()).wrap());
+                                dismiss = icons::close_button(
+                                    ui,
+                                    egui::vec2(24.0, 24.0),
+                                    false,
+                                    "Cerrar aviso",
+                                )
+                                .clicked();
+                            });
+                        });
+                });
+            if dismiss {
+                self.notice = None;
+                self.notice_started = None;
+            } else {
+                ui.ctx().request_repaint_after(
+                    std::time::Duration::from_secs(4).saturating_sub(elapsed),
+                );
+            }
+        } else {
+            self.notice_started = None;
         }
     }
 
@@ -776,6 +891,9 @@ impl ReaderApp {
                             ));
                         changed = true;
                     }
+                    changed |= ui
+                        .checkbox(&mut self.preferences.reduce_motion, "Reducir movimiento")
+                        .changed();
                     if ui.button("Cambiar tema").clicked() {
                         self.toggle_theme(ctx);
                     }

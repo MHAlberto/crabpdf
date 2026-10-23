@@ -5,6 +5,81 @@ use eframe::egui::{self, Color32, Rect, Vec2, emath::GuiRounding};
 use std::sync::Arc;
 
 impl ReaderApp {
+    /// Keep the last view briefly on a cold jump; switch only to a preview
+    /// belonging to the requested document/content revision. Long jumps snap,
+    /// nearby continuous jumps scroll, and no two page texts are crossfaded.
+    fn prepare_page_navigation(
+        &mut self,
+        ui: &egui::Ui,
+        page: usize,
+        width: u32,
+        height: u32,
+        now: f64,
+    ) -> bool {
+        let tab = &self.tabs[self.active];
+        if !tab.state.scroll_to_page || tab.displayed_page.is_none_or(|old| old == page) {
+            self.tabs[self.active].navigation_wait = None;
+            return false;
+        }
+        let (cell_width, cell_height) = tab
+            .view_layout
+            .as_ref()
+            .map_or((width as f32, height as f32), |(spec, _)| spec.cell_size());
+        let Some(key) = tab.state.render_key_for(
+            page,
+            cell_width,
+            cell_height,
+            ui.ctx().pixels_per_point(),
+            ui.input(|input| input.max_texture_side),
+        ) else {
+            return false;
+        };
+        let count = tab
+            .state
+            .document
+            .as_ref()
+            .map_or(0, |document| document.info.page_count);
+        let spread = tab.state.layout.spread(page, count);
+        let mut ready = true;
+        for page in spread {
+            let found = self
+                .pages
+                .most_recent(|cached| {
+                    cached.document_id == key.document_id
+                        && cached.revision == key.revision
+                        && cached.page == page
+                        && cached.rotation == key.rotation
+                        && cached.colors == key.colors
+                        && cached.region.is_none()
+                })
+                .is_some();
+            if !found {
+                self.need_page(crate::document::RenderKey {
+                    page,
+                    bitmap_side_limit: key.bitmap_side_limit.min(768),
+                    region: None,
+                    ..key
+                });
+            }
+            ready &= found;
+        }
+        let tab = &mut self.tabs[self.active];
+        if tab.navigation_wait.is_none_or(|(target, _)| target != page) {
+            tab.navigation_wait = Some((page, now));
+        }
+        let waiting = !ready
+            && tab.state.error.is_none()
+            && tab
+                .navigation_wait
+                .is_some_and(|(_, started)| now - started < 0.2);
+        if waiting {
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(16));
+        } else {
+            tab.navigation_wait = None;
+        }
+        waiting
+    }
     pub(super) fn document_view(&mut self, ui: &mut egui::Ui) {
         let canvas = if self.presentation {
             Color32::BLACK
@@ -14,6 +89,15 @@ impl ReaderApp {
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE.fill(canvas))
             .show(ui, |ui| {
+                let identity = if self.home {
+                    (0, false)
+                } else {
+                    self.tabs
+                        .get(self.active)
+                        .map_or((0, false), |tab| (tab.id, tab.state.opening.is_some()))
+                };
+                self.entrance
+                    .apply(ui, identity, self.preferences.reduce_motion);
                 if self.state().opening.is_some() {
                     ui.centered_and_justified(|ui| {
                         ui.label("Abriendo documento…");
@@ -25,34 +109,64 @@ impl ReaderApp {
                     return;
                 }
                 let compact = self.fullscreen;
-                if compact {
-                    ui.spacing_mut().scroll = egui::style::ScrollStyle::floating();
-                }
-                let width = (ui.available_width() - if compact { 0.0 } else { 16.0 })
-                    .round()
-                    .max(1.0) as u32;
+                // Reserving animated scrollbar widths changes FitWidth and schedules
+                // another raster. Keep the reading viewport stable in every mode.
+                ui.spacing_mut().scroll = egui::style::ScrollStyle::floating();
+                ui.spacing_mut().scroll.fade.strength = 0.0;
+                let width = ui.available_width().round().max(1.0) as u32;
                 let height = ui.available_height().round().max(1.0) as u32;
-                let tab = &mut self.tabs[self.active];
-                if ui.input(|input| {
-                    input.smooth_scroll_delta != Vec2::ZERO
-                        || (input.pointer.any_pressed()
-                            && tab.viewport_rect.is_some_and(|rect| {
-                                input
-                                    .pointer
-                                    .interact_pos()
-                                    .is_some_and(|pos| rect.contains(pos))
-                            }))
-                }) {
-                    tab.pending_position = None;
+                let now = ui.input(|input| input.time);
+                {
+                    let tab = &mut self.tabs[self.active];
+                    if ui.input(|input| {
+                        input.smooth_scroll_delta != Vec2::ZERO
+                            || (input.pointer.any_pressed()
+                                && tab.viewport_rect.is_some_and(|rect| {
+                                    input
+                                        .pointer
+                                        .interact_pos()
+                                        .is_some_and(|pos| rect.contains(pos))
+                                }))
+                    }) {
+                        tab.pending_position = None;
+                        if (tab.state.scroll_to_page || tab.scroll_motion.is_some())
+                            && let Some(displayed) = tab.displayed_page
+                            && let Some(document) = &mut tab.state.document
+                        {
+                            document.page = displayed;
+                        }
+                        tab.scroll_motion = None;
+                        tab.navigation_wait = None;
+                        tab.state.scroll_to_page = false;
+                    }
                 }
-                let current = tab.state.document.as_ref().map_or(0, |d| d.page);
+                let current = self.state().document.as_ref().map_or(0, |d| d.page);
+                let waiting = self.prepare_page_navigation(ui, current, width, height, now);
+                let tab = &mut self.tabs[self.active];
+                let animate_navigation = !self.preferences.reduce_motion
+                    && tab.state.continuous
+                    && tab.view_layout.as_ref().is_some_and(|(old, _)| {
+                        old.continuous
+                            && old.zoom == tab.state.zoom
+                            && old.mode == tab.state.layout
+                            && old.rotation == tab.state.rotation
+                            && old.width == width
+                            && old.height == height
+                    });
+                let mut reset_scroll = false;
                 let spec = LayoutSpec {
                     width,
                     height,
                     zoom: tab.state.zoom,
                     mode: tab.state.layout,
                     continuous: tab.state.continuous,
-                    current: if tab.state.continuous { 0 } else { current },
+                    current: if tab.state.continuous {
+                        0
+                    } else if waiting {
+                        tab.displayed_page.unwrap_or(current)
+                    } else {
+                        current
+                    },
                     rotation: tab.state.rotation,
                     manga: tab.state.manga,
                     compact,
@@ -90,8 +204,11 @@ impl ReaderApp {
                         && let Some(placement) =
                             layout.placements.iter().find(|p| p.page == current)
                     {
-                        tab.scroll.y = (tab.scroll.y + placement.top - old_top).max(0.0);
-                        tab.scroll.x = (tab.scroll.x + placement.left - old_left).max(0.0);
+                        let delta = egui::vec2(placement.left - old_left, placement.top - old_top);
+                        tab.scroll = (tab.scroll + delta).max(Vec2::ZERO);
+                        if let Some(motion) = &mut tab.scroll_motion {
+                            motion.shift(delta);
+                        }
                     }
                     tab.view_layout = Some((spec, layout));
                 }
@@ -112,24 +229,40 @@ impl ReaderApp {
                 }
                 if tab.state.scroll_to_page {
                     tab.zoom_anchor = None;
+                    tab.scroll_motion = None;
                 }
                 if let Some(anchor) = tab.zoom_anchor.take()
                     && let Some((x, y)) = anchor.offset(&layout)
                 {
                     tab.scroll = egui::vec2(x, y);
+                    tab.scroll_motion = None;
                     tab.state.scroll_to_page = false;
+                    reset_scroll = true;
                 }
-                if tab.state.scroll_to_page {
-                    tab.scroll = layout.placements.iter().find(|p| p.page == current).map_or(
-                        Vec2::ZERO,
-                        |p| {
+                if tab.state.scroll_to_page && !waiting {
+                    let target = layout
+                        .placements
+                        .iter()
+                        .find(|p| p.page == current)
+                        .map_or(Vec2::ZERO, |p| {
                             egui::vec2(
                                 (p.left - spec.gutter()).max(0.0),
                                 (p.top - spec.gutter()).max(0.0),
                             )
-                        },
-                    );
+                        })
+                        .min(egui::vec2(
+                            (layout.width - width as f32).max(0.0),
+                            (layout.height - height as f32).max(0.0),
+                        ));
+                    let distance = (target - tab.scroll).length();
+                    if animate_navigation && distance > 1.0 && distance <= height as f32 * 2.5 {
+                        tab.scroll_motion =
+                            Some(super::motion::ScrollMotion::new(tab.scroll, target, now));
+                    } else {
+                        tab.scroll = target;
+                    }
                     tab.state.scroll_to_page = false;
+                    reset_scroll = true;
                 }
                 if tab.scroll_bottom {
                     tab.scroll.y = (layout.height - tab.viewport.y).max(0.0);
@@ -143,6 +276,8 @@ impl ReaderApp {
                     && let Some(placement) = layout.placements.iter().find(|p| p.page == page)
                 {
                     tab.reveal = None;
+                    tab.scroll_motion = None;
+                    reset_scroll = true;
                     let bounds = bounds.rotated(spec.rotation);
                     tab.scroll.x = (placement.left
                         + (bounds.left + bounds.right) * 0.5 * placement.size.width
@@ -153,8 +288,28 @@ impl ReaderApp {
                         - height as f32 * 0.5)
                         .max(0.0);
                 }
+                if let Some(motion) = tab.scroll_motion {
+                    let (offset, active) = motion.sample(if self.preferences.reduce_motion {
+                        now + f64::from(super::motion::DURATION)
+                    } else {
+                        now
+                    });
+                    tab.scroll = offset;
+                    if active {
+                        ui.ctx().request_repaint();
+                    } else {
+                        tab.scroll_motion = None;
+                    }
+                }
                 let id = tab.id;
                 let scroll = tab.scroll;
+                if reset_scroll {
+                    // Clear egui's previous kinetic/scroll-to target. Otherwise it
+                    // can pull the newly requested page back on the following frame.
+                    let mut state = egui::scroll_area::State::default();
+                    state.offset = scroll;
+                    state.store(ui.ctx(), ui.make_persistent_id(("pdf-scroll", id)));
+                }
                 let mut pan = Vec2::ZERO;
                 let mut visible_current = current;
                 let mut best_visible = 0.0;
@@ -173,6 +328,7 @@ impl ReaderApp {
                 };
                 let output = area
                     .id_salt(("pdf-scroll", id))
+                    .animated(false)
                     .auto_shrink([false, false])
                     .scroll_offset(scroll)
                     .show_viewport(ui, |ui, viewport| {
@@ -219,6 +375,7 @@ impl ReaderApp {
                             ui.painter().rect_filled(rect, 0, Color32::WHITE);
                             if let Some(preview) = self.pages.most_recent(|cached| {
                                 cached.document_id == key.document_id
+                                    && cached.revision == key.revision
                                     && cached.page == key.page
                                     && cached.rotation == key.rotation
                                     && cached.colors == key.colors
@@ -335,6 +492,36 @@ impl ReaderApp {
                             });
                         }
                     });
+                // Warm the next/previous spread even in non-continuous mode.
+                // Only bounded previews are retained by the existing byte-budgeted cache.
+                let count = self
+                    .state()
+                    .document
+                    .as_ref()
+                    .map_or(0, |doc| doc.info.page_count);
+                let spread = self.state().layout.spread(current, count);
+                if let (Some(first), Some(last)) = (spread.first(), spread.last()) {
+                    for neighbor in [first.saturating_sub(1), last.saturating_add(1)] {
+                        if neighbor >= count || spread.contains(&neighbor) {
+                            continue;
+                        }
+                        for page in self.state().layout.spread(neighbor, count) {
+                            if let Some(key) = self.state().render_key_for(
+                                page,
+                                cell_width,
+                                cell_height,
+                                density,
+                                texture_limit,
+                            ) {
+                                self.prefetch_page(crate::document::RenderKey {
+                                    bitmap_side_limit: key.bitmap_side_limit.min(768),
+                                    region: None,
+                                    ..key
+                                });
+                            }
+                        }
+                    }
+                }
                 if let Some(tab) = self.tabs.get_mut(self.active)
                     && tab.id == id
                 {
@@ -348,10 +535,14 @@ impl ReaderApp {
                     }
                     tab.scroll.y = tab.scroll.y.max(0.0);
                     if tab.state.continuous
+                        && tab.scroll_motion.is_none()
                         && !tab.state.scroll_to_page
                         && let Some(document) = tab.state.document.as_mut()
                     {
                         document.page = visible_current;
+                    }
+                    if !waiting {
+                        tab.displayed_page = Some(visible_current);
                     }
                     let page = tab.state.document.as_ref().map_or(0, |d| d.page);
                     tab.state.requested =

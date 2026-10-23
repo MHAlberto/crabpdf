@@ -1,6 +1,7 @@
 mod chrome;
 mod home;
 mod icons;
+mod motion;
 mod panels;
 mod theme;
 mod viewer;
@@ -61,6 +62,9 @@ struct Tab {
     zoom_anchor: Option<crate::layout::ReadingAnchor>,
     pending_position: Option<crate::reading_position::ReadingPosition>,
     scroll_bottom: bool,
+    scroll_motion: Option<motion::ScrollMotion>,
+    displayed_page: Option<usize>,
+    navigation_wait: Option<(usize, f64)>,
     reveal: Option<(usize, crate::document::Bounds)>,
     password_needed: bool,
     password: String,
@@ -72,6 +76,8 @@ struct Tab {
 impl Tab {
     fn go_to(&mut self, page: usize, remember: bool) {
         self.pending_position = None;
+        self.scroll_motion = None;
+        self.navigation_wait = None;
         self.state.go_to(page, remember);
     }
     fn supports_password(&self) -> bool {
@@ -99,6 +105,9 @@ impl Tab {
             zoom_anchor: None,
             pending_position: None,
             scroll_bottom: false,
+            scroll_motion: None,
+            displayed_page: None,
+            navigation_wait: None,
             reveal: None,
             password_needed: false,
             password: String::new(),
@@ -169,6 +178,8 @@ impl Tab {
     }
     fn zoom_at(&mut self, zoom: Zoom, pointer: Option<egui::Pos2>) {
         self.pending_position = None;
+        self.scroll_motion = None;
+        self.navigation_wait = None;
         if self.state.zoom == zoom {
             return;
         }
@@ -258,12 +269,21 @@ pub struct ReaderApp {
     properties_open: bool,
     settings_open: bool,
     notice: Option<String>,
+    notice_started: Option<(String, Instant)>,
     last_title: String,
+    entrance: motion::Entrance,
+    markup_button: Option<egui::Rect>,
 }
 impl ReaderApp {
     pub fn set_markup_color(&mut self, color: [u8; 3]) {
         self.preferences.markup_color = color;
         self.save_due = Some(Instant::now() + Duration::from_millis(500));
+    }
+    pub fn scroll_offset(&self) -> Option<Vec2> {
+        self.tabs.get(self.active).map(|tab| tab.scroll)
+    }
+    pub fn markup_button_rect(&self) -> Option<egui::Rect> {
+        self.markup_button
     }
     pub fn markup_count(&self) -> usize {
         self.tabs.get(self.active).map_or(0, |tab| tab.local_marks)
@@ -442,6 +462,9 @@ impl ReaderApp {
             properties_open: false,
             settings_open: false,
             notice: None,
+            notice_started: None,
+            entrance: motion::Entrance::default(),
+            markup_button: None,
             last_title: String::new(),
         };
         for saved in session.into_iter().take(64) {
@@ -502,7 +525,11 @@ impl ReaderApp {
     }
     pub fn current_page_viewport(&self) -> Option<crate::document::Bounds> {
         let tab = self.tabs.get(self.active)?;
-        if tab.state.scroll_to_page || tab.reveal.is_some() || tab.pending_position.is_some() {
+        if tab.state.scroll_to_page
+            || tab.reveal.is_some()
+            || tab.pending_position.is_some()
+            || tab.scroll_motion.is_some()
+        {
             return None;
         }
         let (spec, layout) = tab.view_layout.as_ref()?;
@@ -601,6 +628,8 @@ impl ReaderApp {
     pub fn navigate(&mut self, forward: bool) {
         if let Some(tab) = self.tabs.get_mut(self.active) {
             tab.pending_position = None;
+            tab.scroll_motion = None;
+            tab.navigation_wait = None;
             tab.state.navigate(forward);
             tab.selection = None;
         }
@@ -2018,6 +2047,19 @@ impl eframe::App for ReaderApp {
     }
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.frame_keys.clear();
+        self.markup_button = None;
+        let duration = if self.preferences.reduce_motion {
+            0.0
+        } else {
+            motion::DURATION
+        };
+        if ui.style().animation_time != duration {
+            for theme in [egui::Theme::Light, egui::Theme::Dark] {
+                ui.ctx()
+                    .style_mut_of(theme, |style| style.animation_time = duration);
+            }
+            ui.style_mut().animation_time = duration;
+        }
         let fullscreen_reading = self.fullscreen && self.state().document.is_some();
         if !fullscreen_reading {
             self.titlebar(ui);
@@ -2028,7 +2070,6 @@ impl eframe::App for ReaderApp {
                 self.toolbar(ui);
             }
             self.search_bar(ui);
-            self.status_bar(ui);
             self.notices(ui);
             self.sidebar_panel(ui);
         } else {

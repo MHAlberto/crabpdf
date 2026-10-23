@@ -1,5 +1,6 @@
 pub mod annotations;
 pub mod app_paths;
+pub mod application;
 pub mod branding;
 pub mod cache;
 pub mod cli;

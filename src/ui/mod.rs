@@ -7,6 +7,7 @@ mod theme;
 mod viewer;
 
 use crate::app_paths::AppPaths;
+use crate::application::favorites::{self, FavoriteAction, FavoriteEffect};
 use crate::cache::ByteCache;
 use crate::commands::Action;
 use crate::config::{Favorite, PreferenceWriter, Preferences, StoredDocument, Theme};
@@ -545,6 +546,29 @@ impl ReaderApp {
     }
     pub fn favorite_toggle_rect(&self) -> Option<egui::Rect> {
         self.favorite_toggle
+    }
+    fn favorite_action(&mut self, action: FavoriteAction) {
+        let save_now = matches!(action, FavoriteAction::Toggle { .. });
+        let Some(document) = self
+            .tabs
+            .get(self.active)
+            .filter(|_| !self.home)
+            .and_then(|tab| tab.state.document.as_ref())
+        else {
+            return;
+        };
+        let effect = favorites::apply(&mut self.preferences.favorites, &document.info, action);
+        match effect {
+            FavoriteEffect::Changed => {
+                if save_now {
+                    self.save_preferences();
+                } else {
+                    self.schedule_save();
+                }
+            }
+            FavoriteEffect::Navigate(page) => self.tabs[self.active].go_to(page, true),
+            FavoriteEffect::Unchanged => {}
+        }
     }
     pub fn current_favorites(&self) -> Vec<Favorite> {
         if self.home {
@@ -1553,15 +1577,11 @@ impl ReaderApp {
                 self.save_preferences();
             }
             Action::ToggleFavorite => {
-                if let Some(saved) = self.tabs[self.active].stored() {
-                    if !self.preferences.remove_favorite(&saved.path, saved.page) {
-                        self.preferences.favorites.push(Favorite {
-                            path: saved.path.clone(),
-                            page: saved.page,
-                            label: format!("Página {}", saved.page + 1),
-                        });
-                    }
-                    self.save_preferences();
+                if let Some(document) = &self.state().document {
+                    self.favorite_action(FavoriteAction::Toggle {
+                        page: document.page,
+                        label: format!("Página {}", document.page + 1),
+                    });
                 }
             }
             Action::Theme => self.toggle_theme(ctx),

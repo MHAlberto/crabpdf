@@ -1,3 +1,4 @@
+pub use crate::application::favorites::Favorite;
 use crate::document::{PageColors, Zoom};
 use crate::layout::LayoutMode;
 use serde::{Deserialize, Serialize};
@@ -64,13 +65,6 @@ pub struct StoredDocument {
     pub position: Option<crate::reading_position::ReadingPosition>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-pub struct Favorite {
-    pub path: PathBuf,
-    pub page: usize,
-    pub label: String,
-}
-
 #[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct LibraryEntry {
@@ -82,14 +76,10 @@ pub struct LibraryEntry {
 impl Preferences {
     /// Book-scoped view over the existing profile, preserving other books' entries.
     pub fn favorites_for(&self, path: &Path) -> Vec<&Favorite> {
-        let mut entries: Vec<_> = self.favorites.iter().filter(|f| f.path == path).collect();
-        entries.sort_by_key(|f| f.page);
-        entries
+        crate::application::favorites::for_document(&self.favorites, path)
     }
     pub fn remove_favorite(&mut self, path: &Path, page: usize) -> bool {
-        let before = self.favorites.len();
-        self.favorites.retain(|f| f.path != path || f.page != page);
-        self.favorites.len() != before
+        crate::application::favorites::remove(&mut self.favorites, path, page)
     }
     pub fn record_open(&mut self, path: &Path) {
         if let Some(entry) = self.library.iter_mut().find(|entry| entry.path == path) {

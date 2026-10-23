@@ -1,4 +1,5 @@
 use super::{Action, ReaderApp, Sidebar, icons, theme};
+use crate::application::favorites::FavoriteAction;
 use crate::document::{ErrorKind, Zoom};
 use crate::layout::LayoutMode;
 use eframe::egui::{self, Align, Layout, RichText};
@@ -685,7 +686,9 @@ impl ReaderApp {
                                             self.favorite_buttons
                                                 .push((favorite.page, response.rect));
                                             if response.clicked() {
-                                                self.tabs[self.active].go_to(favorite.page, true);
+                                                self.favorite_action(FavoriteAction::Navigate(
+                                                    favorite.page,
+                                                ));
                                             }
                                             if icons::close_button(
                                                 ui,
@@ -701,10 +704,8 @@ impl ReaderApp {
                                     });
                                 }
                             });
-                        if let Some(page) = remove
-                            && self.preferences.remove_favorite(&path, page)
-                        {
-                            self.schedule_save();
+                        if let Some(page) = remove {
+                            self.favorite_action(FavoriteAction::Remove(page));
                         }
                     }
                 }

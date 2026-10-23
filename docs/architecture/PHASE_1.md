@@ -9,7 +9,7 @@ Base de aplicación: 0.3.6. Dirección: [ADR-0001](../adr/0001-modular-architect
 | A00 | Instrumento de disponibilidad de UI, observador Windows, corpus determinista y cinco muestras anteriores al cambio | Base local registrada; el hito completo sigue abierto |
 | A01 | Consumidor de título, contador y aviso tipados; precedencia del título importado obtenida desde datos | Implementado y probado en Windows x64 |
 | A02a | Modelo y reglas de favoritos en `src/application/favorites.rs`; acciones y resultados compartidos por teclado y panel | Implementado y validado en Windows x64 |
-| A02b–A07 | Pestañas lógicas, búsqueda, servicios, workspace y demás extracciones | Pendientes |
+| A02b–A07 | Pestañas lógicas, búsqueda, servicios, workspace y demás extracciones | Pendientes al cerrar este corte; continuación de A02b en [PHASE_2.md](PHASE_2.md) |
 
 No se han introducido los cuatro paquetes aún. `src/application` es el primer módulo de aplicación dentro del paquete actual, conforme a la secuencia incremental.
 
@@ -67,4 +67,4 @@ No se publicaron paquetes nuevos ni se cambió la versión: son cortes de desarr
 
 ## Próximo corte
 
-A02b separará la pestaña lógica de su estado visual. El ID estable enlazará ambos; rectángulos, texturas, foco y animaciones seguirán en UI. La posición normalizada y las reglas de navegación seguirán independientes del framework. Antes de extraer búsqueda se fijará el contrato de generaciones y eventos tardíos.
+El siguiente corte previsto al cerrar esta fase fue A02b: separar la pestaña lógica de su estado visual, conservando el ID estable, la posición normalizada y las reglas de navegación. Su implementación y validación se registran en [PHASE_2.md](PHASE_2.md).

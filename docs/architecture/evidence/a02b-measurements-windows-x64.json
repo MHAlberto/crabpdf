@@ -1,0 +1,761 @@
+﻿{
+    "schema":  1,
+    "platform":  "Windows x64",
+    "os":  "Microsoft Windows NT 10.0.19045.0",
+    "cpu":  "Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz",
+    "rustc":  "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo":  "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "source_commit":  "bac17778347b71a7474a9d4c6248edd7faa73da3",
+    "sources":  [
+                    {
+                        "sha256":  "f0763252697833ba67cda6ba74c038463796c72d084b38c65ab5ca6df0def63f",
+                        "path":  "src/annotations.rs"
+                    },
+                    {
+                        "sha256":  "bb392a9e7f21e00ab9617a72d1054aa744f5043905ab0d224b9850be4f4fef6a",
+                        "path":  "src/app_paths.rs"
+                    },
+                    {
+                        "sha256":  "605e971a99717ded5bb551af360c7e58300ca5d7b471282cf952c5a3338ba339",
+                        "path":  "src/application/favorites.rs"
+                    },
+                    {
+                        "sha256":  "5dfa725363edbd0ef2d4c60f024ade23b586f323988290fc87969de6dd9ed7fb",
+                        "path":  "src/application/mod.rs"
+                    },
+                    {
+                        "sha256":  "3cd033ac57cf7c0b245b29ccbc7cd1214b09a802b34f9efec5c8f78e37bedeea",
+                        "path":  "src/application/profile.rs"
+                    },
+                    {
+                        "sha256":  "0c28986404e7500fa50cc221267cde33911a459a5314fff210cfda2ba82100ec",
+                        "path":  "src/application/search.rs"
+                    },
+                    {
+                        "sha256":  "c39bc2622e197c6472e4084d92f90896ce36b6784e4c8b3b3a304741997039de",
+                        "path":  "src/application/tabs.rs"
+                    },
+                    {
+                        "sha256":  "490a3fdc8335fdf52297b0346ee78cb2135e70abea65ad65b580627a6b4a6f09",
+                        "path":  "src/branding.rs"
+                    },
+                    {
+                        "sha256":  "5a1a33e96430f37ab51cff65e6f5555a9dcad8b078f5b0755e75cc31e53b0b20",
+                        "path":  "src/cache.rs"
+                    },
+                    {
+                        "sha256":  "6c385f7f94be269f32d42171e0c041b00f4a2027120d55082316bbf0ce22fa7f",
+                        "path":  "src/cli.rs"
+                    },
+                    {
+                        "sha256":  "bc939679e68124565fc649f7cd2abe50b133cc0bbcd12411701421a40d41ccdb",
+                        "path":  "src/commands.rs"
+                    },
+                    {
+                        "sha256":  "c7b6cf164806b4784f2c32fefb55e67dd27fd4b3cb748462ba039feb053ed474",
+                        "path":  "src/config.rs"
+                    },
+                    {
+                        "sha256":  "b48cb4b0a445b4c73edd0fbe07556dc6e069fb954a3d1961fc763464f56846e5",
+                        "path":  "src/djvu_text.rs"
+                    },
+                    {
+                        "sha256":  "70d681bf7ca921a737852d4e672ef699089952e7f3af507326744f6b3309652b",
+                        "path":  "src/document.rs"
+                    },
+                    {
+                        "sha256":  "0934c2b5d29fea8db474beb2d99f2eaf8d3e392797787b040fc8258d95f9040d",
+                        "path":  "src/engine.rs"
+                    },
+                    {
+                        "sha256":  "797716ccf283ebf293abb165d8c8bc1a84d8305528281795d32e1bf0083d0c7a",
+                        "path":  "src/fileops.rs"
+                    },
+                    {
+                        "sha256":  "2fcabaa7559f9ecbcd902043c6cd2574caa9ee8ae4f69fe4204a14c40a06c0ee",
+                        "path":  "src/formats.rs"
+                    },
+                    {
+                        "sha256":  "6d6ee129795baaaf04f9b4fe501d2df750d869ccb6e14a2c1577b4570cfe4250",
+                        "path":  "src/layout.rs"
+                    },
+                    {
+                        "sha256":  "80a5fc0dbe5946c50b40f490ad61dd60da6c4cdf14eb52a0913125fdfae207bc",
+                        "path":  "src/lib.rs"
+                    },
+                    {
+                        "sha256":  "89c7a24879dd4cb721b82abf66b40eadc05a62d5c9a72c2fd40f1fad9941f302",
+                        "path":  "src/library.rs"
+                    },
+                    {
+                        "sha256":  "96c8b65b50bf53e0b54ea46b8dc718f8a516b4271c6eab1c7ecd237c42625ab4",
+                        "path":  "src/main.rs"
+                    },
+                    {
+                        "sha256":  "3e47329d158b81341ed1a0d021e0edb2c5b369fbaa788abe5327b66d678bfdbb",
+                        "path":  "src/platform.rs"
+                    },
+                    {
+                        "sha256":  "66554e398392548007523c5e272677d026f0398a578f3c332fb8ed7ea5c43036",
+                        "path":  "src/reading_position.rs"
+                    },
+                    {
+                        "sha256":  "1f6008e7d841af43c6e532c680e69f38ef932ad313f6437f01680fb8fdc742d1",
+                        "path":  "src/state.rs"
+                    },
+                    {
+                        "sha256":  "3c9e0393dd51c3534768d3091c46c2797b8f31bbad64f85a225e8686bff2a8d3",
+                        "path":  "src/ui/chrome.rs"
+                    },
+                    {
+                        "sha256":  "f9b66365f0b19657dd0fa2715ec0ecbebae42933c6414ef35812af5dd576ae21",
+                        "path":  "src/ui/home.rs"
+                    },
+                    {
+                        "sha256":  "216d60886f5674d28c7024b7de06a7a19a746e36c8396815e3e95abb5340abb9",
+                        "path":  "src/ui/icons.rs"
+                    },
+                    {
+                        "sha256":  "6910a87a012dcc59787d88bde3736541420391529a5bf61a30a835e5a36f2323",
+                        "path":  "src/ui/mod.rs"
+                    },
+                    {
+                        "sha256":  "12b1931aaff1c749bac36752e4f22a09dfeecd3b0e473c1da4cb014e8091a22f",
+                        "path":  "src/ui/motion.rs"
+                    },
+                    {
+                        "sha256":  "646b9a9b05315edca0ddedfaf2eec716367a56e234780008aff05abfd9da1f75",
+                        "path":  "src/ui/panels.rs"
+                    },
+                    {
+                        "sha256":  "2ec695de8ca8fcd479776503a0b52af762f4c5241fcc1a341e53652ebae9c946",
+                        "path":  "src/ui/tab_view.rs"
+                    },
+                    {
+                        "sha256":  "c5fc80374aa25c97a8125313c30b5c5742fc56c00b8e58972bf259c1c8a0a572",
+                        "path":  "src/ui/theme.rs"
+                    },
+                    {
+                        "sha256":  "750621c9e3cab1053d481121fcac91e79852bbc846464fba514d2104ce51a243",
+                        "path":  "src/ui/viewer.rs"
+                    },
+                    {
+                        "sha256":  "a1eac254e8bce266824a4c3337976c5aa0c07ff1cb472c5adf6eea1234206213",
+                        "path":  "src/worker.rs"
+                    }
+                ],
+    "instrumentation":  [
+                            {
+                                "path":  "examples/performance_probe.rs",
+                                "sha256":  "d18c47076298f5e28d1d8e7deabebb4f529178cd3b008b75c67d2e59bc908101"
+                            },
+                            {
+                                "path":  "scripts/Measure-Architecture.ps1",
+                                "sha256":  "25b684e082b2f8914f331c248160e70b827dc2a0c55a7da8739691a4c0f49450"
+                            }
+                        ],
+    "corpus_and_native":  [
+                              {
+                                  "path":  "native/pdfium.dll",
+                                  "sha256":  "79d4676b656cfb1abcea88f9ade3b4b0826c5200382db5f4ec72a636c598c118",
+                                  "bytes":  7211520
+                              },
+                              {
+                                  "path":  "artifacts/architecture-phase2/after/performance.pdf",
+                                  "sha256":  "74566df9bec7a9cd04bf630720eca556071e55e1fd47ea5f4f0daaa9ba338fde",
+                                  "bytes":  84864
+                              },
+                              {
+                                  "path":  "artifacts/format-samples/book.epub",
+                                  "sha256":  "4f3f3058919076212428ff8e439c9bce7d2aadf283cd0e871cda03a20aa6a693",
+                                  "bytes":  2733
+                              },
+                              {
+                                  "path":  "native/format-tools/provenance.json",
+                                  "sha256":  "ba4a159c013741e9d49d148832fb9347875a9a9027b697cb45ced52434f0b965",
+                                  "bytes":  5312
+                              }
+                          ],
+    "app_executable_bytes":  {
+                                 "before":  11402240,
+                                 "after":  11397120
+                             },
+    "limits":  [
+                   "Three runs per series; no statistical performance claim.",
+                   "Readiness after UI submission, not physical compositor presentation.",
+                   "OS disk cache uncontrolled; independent profiles/data for each process.",
+                   "Working set covers the app only, excluding converter processes and GPU allocation.",
+                   "Idle CPU is observed over four seconds and expressed relative to one core.",
+                   "Reference control runs the preserved baseline probe verified by SHA-256. Its observer checkout contains migrated sources, which are not the measured baseline application.",
+                   "Main executable size is recorded separately; the measured application is linked into the probe."
+               ],
+    "series":  [
+                   {
+                       "role":  "before",
+                       "application_source_commit":  "8352541aae299e29f160464f1e27d88cdf8bef27",
+                       "observer_checkout":  "8352541aae299e29f160464f1e27d88cdf8bef27",
+                       "timestamp_utc":  "2026-10-23T19:14:26.5754477Z",
+                       "probe_sha256":  "ab5a930896a71e0eb9e56ddc6f355ad136f534ca8309cad477712d8220ca8901",
+                       "summary":  [
+                                       {
+                                           "phase":  "pdf_first_open",
+                                           "max_ms":  116.4803,
+                                           "min_ms":  70.4211,
+                                           "median_ms":  71.9448,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "startup_to_first_ready",
+                                           "max_ms":  471.3831,
+                                           "min_ms":  323.6248,
+                                           "median_ms":  373.01849999999996,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_next_prefetched",
+                                           "max_ms":  24.500700000000002,
+                                           "min_ms":  19.9982,
+                                           "median_ms":  22.1052,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_last_not_prefetched",
+                                           "max_ms":  83.0334,
+                                           "min_ms":  30.857,
+                                           "median_ms":  32.554,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "scroll_ready_and_stable_80ms",
+                                           "max_ms":  97.43400000000001,
+                                           "min_ms":  91.669,
+                                           "median_ms":  94.5684,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "pdf_reopen_same_process",
+                                           "max_ms":  80.39739999999999,
+                                           "min_ms":  65.6823,
+                                           "median_ms":  73.005,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "epub_first_open_empty_import_cache",
+                                           "max_ms":  238.893,
+                                           "min_ms":  198.7583,
+                                           "median_ms":  202.9411,
+                                           "n":  3
+                                       }
+                                   ],
+                       "runs":  [
+                                    {
+                                        "run":  1,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  116.4803
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  373.01849999999996
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  19.9982
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  83.0334
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  97.43400000000001
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  80.39739999999999
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  202.9411
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  121348096,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.9093168999999994,
+                                        "idle_logic_calls":  8
+                                    },
+                                    {
+                                        "run":  2,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  71.9448
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  471.3831
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  22.1052
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  32.554
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  94.5684
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  65.6823
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  198.7583
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  127033344,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.8884352,
+                                        "idle_logic_calls":  6
+                                    },
+                                    {
+                                        "run":  3,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  70.4211
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  323.6248
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  24.500700000000002
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  30.857
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  91.669
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  73.005
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  238.893
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  123211776,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.9695074,
+                                        "idle_logic_calls":  6
+                                    }
+                                ]
+                   },
+                   {
+                       "role":  "migrated",
+                       "application_source_commit":  "bac17778347b71a7474a9d4c6248edd7faa73da3",
+                       "observer_checkout":  "bac17778347b71a7474a9d4c6248edd7faa73da3",
+                       "timestamp_utc":  "2026-10-23T19:33:03.3387870Z",
+                       "probe_sha256":  "02544ca51e608847fea6d44ccc6c3dbe467f891356360e918f19e17a2b505ae0",
+                       "summary":  [
+                                       {
+                                           "phase":  "pdf_first_open",
+                                           "max_ms":  40.6213,
+                                           "min_ms":  33.244099999999996,
+                                           "median_ms":  33.7938,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "startup_to_first_ready",
+                                           "max_ms":  315.0086,
+                                           "min_ms":  284.6817,
+                                           "median_ms":  293.8369,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_next_prefetched",
+                                           "max_ms":  24.3092,
+                                           "min_ms":  12.357099999999999,
+                                           "median_ms":  12.7537,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_last_not_prefetched",
+                                           "max_ms":  30.492700000000003,
+                                           "min_ms":  23.755200000000002,
+                                           "median_ms":  24.543200000000002,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "scroll_ready_and_stable_80ms",
+                                           "max_ms":  87.3916,
+                                           "min_ms":  83.9528,
+                                           "median_ms":  84.74279999999999,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "pdf_reopen_same_process",
+                                           "max_ms":  77.89160000000001,
+                                           "min_ms":  52.0606,
+                                           "median_ms":  57.6888,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "epub_first_open_empty_import_cache",
+                                           "max_ms":  142.46020000000001,
+                                           "min_ms":  137.4343,
+                                           "median_ms":  139.1575,
+                                           "n":  3
+                                       }
+                                   ],
+                       "runs":  [
+                                    {
+                                        "run":  1,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  33.7938
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  284.6817
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  12.357099999999999
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  24.543200000000002
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  83.9528
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  77.89160000000001
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  142.46020000000001
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  122863616,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.9184281999999997,
+                                        "idle_logic_calls":  16
+                                    },
+                                    {
+                                        "run":  2,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  33.244099999999996
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  315.0086
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  12.7537
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  23.755200000000002
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  84.74279999999999
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  52.0606
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  139.1575
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  122724352,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.9055096,
+                                        "idle_logic_calls":  22
+                                    },
+                                    {
+                                        "run":  3,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  40.6213
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  293.8369
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  24.3092
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  30.492700000000003
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  87.3916
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  57.6888
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  137.4343
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  120709120,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.8880879,
+                                        "idle_logic_calls":  21
+                                    }
+                                ]
+                   },
+                   {
+                       "role":  "reference_control",
+                       "application_source_commit":  "8352541aae299e29f160464f1e27d88cdf8bef27",
+                       "observer_checkout":  "bac17778347b71a7474a9d4c6248edd7faa73da3",
+                       "timestamp_utc":  "2026-10-23T19:33:57.7051855Z",
+                       "probe_sha256":  "ab5a930896a71e0eb9e56ddc6f355ad136f534ca8309cad477712d8220ca8901",
+                       "summary":  [
+                                       {
+                                           "phase":  "pdf_first_open",
+                                           "max_ms":  38.2983,
+                                           "min_ms":  33.7904,
+                                           "median_ms":  36.9849,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "startup_to_first_ready",
+                                           "max_ms":  296.7173,
+                                           "min_ms":  284.3057,
+                                           "median_ms":  295.726,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_next_prefetched",
+                                           "max_ms":  16.2974,
+                                           "min_ms":  13.2532,
+                                           "median_ms":  14.9026,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "page_last_not_prefetched",
+                                           "max_ms":  29.8355,
+                                           "min_ms":  23.0934,
+                                           "median_ms":  26.1495,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "scroll_ready_and_stable_80ms",
+                                           "max_ms":  87.69069999999999,
+                                           "min_ms":  83.46979999999999,
+                                           "median_ms":  84.24289999999999,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "pdf_reopen_same_process",
+                                           "max_ms":  67.70049999999999,
+                                           "min_ms":  56.5291,
+                                           "median_ms":  65.844,
+                                           "n":  3
+                                       },
+                                       {
+                                           "phase":  "epub_first_open_empty_import_cache",
+                                           "max_ms":  226.90720000000002,
+                                           "min_ms":  135.6707,
+                                           "median_ms":  146.4302,
+                                           "n":  3
+                                       }
+                                   ],
+                       "runs":  [
+                                    {
+                                        "run":  1,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  36.9849
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  284.3057
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  16.2974
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  29.8355
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  87.69069999999999
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  67.70049999999999
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  226.90720000000002
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  121143296,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.9537703000000004,
+                                        "idle_logic_calls":  27
+                                    },
+                                    {
+                                        "run":  2,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  33.7904
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  295.726
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  13.2532
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  23.0934
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  83.46979999999999
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  65.844
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  135.6707
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  120782848,
+                                        "idle_cpu_seconds":  0,
+                                        "idle_cpu_percent_one_core":  0,
+                                        "idle_observed_seconds":  3.8956678,
+                                        "idle_logic_calls":  17
+                                    },
+                                    {
+                                        "run":  3,
+                                        "viewport_points":  [
+                                                                1080.0,
+                                                                780.0
+                                                            ],
+                                        "pixels_per_point":  1.0,
+                                        "timings":  [
+                                                        {
+                                                            "phase":  "pdf_first_open",
+                                                            "elapsed_ms":  38.2983
+                                                        },
+                                                        {
+                                                            "phase":  "startup_to_first_ready",
+                                                            "elapsed_ms":  296.7173
+                                                        },
+                                                        {
+                                                            "phase":  "page_next_prefetched",
+                                                            "elapsed_ms":  14.9026
+                                                        },
+                                                        {
+                                                            "phase":  "page_last_not_prefetched",
+                                                            "elapsed_ms":  26.1495
+                                                        },
+                                                        {
+                                                            "phase":  "scroll_ready_and_stable_80ms",
+                                                            "elapsed_ms":  84.24289999999999
+                                                        },
+                                                        {
+                                                            "phase":  "pdf_reopen_same_process",
+                                                            "elapsed_ms":  56.5291
+                                                        },
+                                                        {
+                                                            "phase":  "epub_first_open_empty_import_cache",
+                                                            "elapsed_ms":  146.4302
+                                                        }
+                                                    ],
+                                        "app_peak_working_set_bytes":  120827904,
+                                        "idle_cpu_seconds":  0.015625,
+                                        "idle_cpu_percent_one_core":  0.39349288435169838,
+                                        "idle_observed_seconds":  3.9708468999999997,
+                                        "idle_logic_calls":  7
+                                    }
+                                ]
+                   }
+               ]
+}

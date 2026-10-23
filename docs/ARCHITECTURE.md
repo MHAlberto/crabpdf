@@ -1,6 +1,6 @@
 # Arquitectura de CrabPDF
 
-El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) ya incorporan metadatos tipados y reglas de favoritos fuera de la UI. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
+El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
@@ -10,7 +10,10 @@ Esta página describe la implementación en desarrollo 0.3.6. La [auditoría](AU
 flowchart LR
     CLI[cli: arranque] --> UI[ui: pestañas y controles]
     UI --> Commands[commands: acciones compartidas]
-    UI --> State[state: navegación por documento]
+    CLI --> Tabs[application/tabs: apertura y restauración]
+    UI --> Tabs
+    Tabs --> State[state: navegación por documento]
+    UI --- View[ui/tab_view: geometría, foco y animación]
     State --> Layout[layout: páginas y regiones visibles]
     UI --> Worker[worker: colas con prioridad]
     UI -->|apertura de otros formatos| Import[worker: hilo de importación]
@@ -36,7 +39,10 @@ flowchart LR
 | `branding.rs`, `build.rs`, `crabpdf-logo.svg` | Identidad CrabPDF, icono de ventana y recursos del ejecutable; rasterización SVG durante la compilación. |
 | `commands.rs` | Vocabulario común para menús, contexto, paleta y atajos. |
 | `application/favorites.rs` | Modelo y reglas de favoritos por libro, acciones y resultados sin I/O; `config` conserva la fachada compatible. |
-| `ui/mod.rs` | Pestañas, eventos, diálogos asíncronos y coordinación. |
+| `application/tabs.rs` | Pestaña lógica, apertura/reintento, restauración, opciones iniciales, snapshots y navegación. |
+| `application/profile.rs`, `application/search.rs` | Registros de perfil compatibles y datos de búsqueda por pestaña; sin I/O ni tipos gráficos. |
+| `ui/tab_view.rs` | Estado visual de cada pestaña: scroll, geometría, foco, entrada de contraseña y animaciones. |
+| `ui/mod.rs` | Composición de pestañas, eventos, diálogos asíncronos y coordinación. |
 | `ui/panels.rs` | Menús, barras, miniaturas, índice, favoritos y diálogos. |
 | `ui/chrome.rs` | Pestañas integradas, operaciones nativas de ventana y controles flotantes de pantalla completa. |
 | `ui/home.rs`, `library.rs` | Biblioteca, tarjetas, portadas diferidas y caché PNG limitada. |

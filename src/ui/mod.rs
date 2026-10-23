@@ -74,6 +74,26 @@ struct Tab {
     view_layout: Option<(crate::layout::LayoutSpec, Arc<crate::layout::PageLayout>)>,
 }
 impl Tab {
+    /// Apply document data without interpreting translated property labels.
+    fn apply_details(
+        &mut self,
+        details: crate::document::DocumentDetails,
+        library: &mut [crate::config::LibraryEntry],
+    ) -> Option<String> {
+        let warning = details.annotation_warning.clone();
+        self.local_marks = details.annotation_count;
+        if let Some(title) = &details.title
+            && let Some(entry) = library.iter_mut().find(|entry| entry.path == self.path)
+        {
+            entry.title.clone_from(title);
+        }
+        if let Some(size) = self.state.page_sizes.get_mut(0) {
+            *size = Some(details.first_page_size);
+        }
+        self.layout_revision += 1;
+        self.state.details = Some(details);
+        warning
+    }
     fn go_to(&mut self, page: usize, remember: bool) {
         self.pending_position = None;
         self.scroll_motion = None;
@@ -943,34 +963,11 @@ impl ReaderApp {
                     if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
                         match result {
                             Ok(details) => {
-                                if let Some((_, warning)) = details
-                                    .properties
-                                    .iter()
-                                    .find(|(name, _)| name == "Aviso de anotaciones")
+                                if let Some(warning) =
+                                    tab.apply_details(details, &mut self.preferences.library)
                                 {
-                                    self.notice = Some(warning.clone());
+                                    self.notice = Some(warning);
                                 }
-                                tab.local_marks = details
-                                    .properties
-                                    .iter()
-                                    .find(|(name, _)| name == "Marcas locales")
-                                    .and_then(|(_, count)| count.parse().ok())
-                                    .unwrap_or(0);
-                                if let Some((_, title)) =
-                                    details.properties.iter().find(|(name, _)| name == "Título")
-                                    && let Some(entry) = self
-                                        .preferences
-                                        .library
-                                        .iter_mut()
-                                        .find(|entry| entry.path == tab.path)
-                                {
-                                    entry.title = title.clone();
-                                }
-                                if let Some(size) = tab.state.page_sizes.get_mut(0) {
-                                    *size = Some(details.first_page_size);
-                                }
-                                tab.layout_revision += 1;
-                                tab.state.details = Some(details);
                             }
                             Err(error) => tab.state.error = Some(error),
                         }
@@ -2177,5 +2174,78 @@ impl eframe::App for ReaderApp {
         if let Some(writer) = &mut self.preference_writer {
             self.config_warning = writer.finish().err();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        config::LibraryEntry,
+        document::{DocumentDetails, DocumentInfo, PageSize},
+    };
+
+    #[test]
+    fn typed_details_ignore_presentation_labels_and_preserve_unrelated_books() {
+        let path = PathBuf::from("book.epub");
+        let mut tab = Tab::new(7, path.clone(), None);
+        tab.state.finish_open(
+            7,
+            Ok(DocumentInfo {
+                path: path.clone(),
+                page_count: 2,
+            }),
+        );
+        let mut library = [
+            LibraryEntry {
+                path,
+                title: "Old title".into(),
+                opens: 1,
+            },
+            LibraryEntry {
+                path: "other.pdf".into(),
+                title: "Other book".into(),
+                opens: 2,
+            },
+        ];
+        let details = DocumentDetails {
+            title: Some("Imported book title".into()),
+            annotation_count: 4,
+            annotation_warning: Some("Typed warning".into()),
+            first_page_size: PageSize {
+                width: 420.0,
+                height: 595.0,
+            },
+            properties: vec![
+                ("Title".into(), "Misleading display title".into()),
+                ("Marcas locales".into(), "999".into()),
+                ("Aviso de anotaciones".into(), "Misleading warning".into()),
+            ],
+            ..Default::default()
+        };
+        assert_eq!(
+            tab.apply_details(details, &mut library).as_deref(),
+            Some("Typed warning")
+        );
+        assert_eq!(tab.local_marks, 4);
+        assert_eq!(library[0].title, "Imported book title");
+        assert_eq!(library[1].title, "Other book");
+        assert_eq!(
+            tab.state.page_sizes[0],
+            Some(PageSize {
+                width: 420.0,
+                height: 595.0
+            })
+        );
+        assert_eq!(tab.layout_revision, 1);
+        let update = DocumentDetails {
+            properties: vec![("Título".into(), "Presentation only".into())],
+            ..Default::default()
+        };
+        assert!(tab.apply_details(update, &mut library).is_none());
+        assert_eq!(tab.local_marks, 0);
+        assert_eq!(library[0].title, "Imported book title");
+        assert_eq!(tab.layout_revision, 2);
+        assert!(tab.state.details.unwrap().annotation_warning.is_none());
     }
 }

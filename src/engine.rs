@@ -177,6 +177,10 @@ impl<'a> PdfiumEngine<'a> {
     pub fn details(&self) -> Result<DocumentDetails, ReaderError> {
         let document = self.document()?;
         let page = document.pages().get(0).map_err(map_render_error)?;
+        let mut title = document
+            .metadata()
+            .get(PdfDocumentMetadataTagType::Title)
+            .map(|tag| tag.value().to_owned());
         let mut properties = vec![
             (
                 "Formato".into(),
@@ -232,26 +236,24 @@ impl<'a> PdfiumEngine<'a> {
                 outline = info.outline.clone();
             }
             if !info.title.is_empty() {
+                title = Some(info.title.clone());
                 properties.push(("Título".into(), info.title.clone()));
             }
             if !info.author.is_empty() {
                 properties.push(("Autor".into(), info.author.clone()));
             }
         }
-        if let Some(warning) = &self.mark_warning {
-            properties.push((
-                "Aviso de anotaciones".into(),
-                format!("{warning} El documento sigue disponible para lectura."),
-            ));
+        let annotation_warning = self
+            .mark_warning
+            .as_ref()
+            .map(|warning| format!("{warning} El documento sigue disponible para lectura."));
+        if let Some(warning) = &annotation_warning {
+            properties.push(("Aviso de anotaciones".into(), warning.clone()));
         }
         Ok(DocumentDetails {
-            title: properties
-                .iter()
-                .rev()
-                .find(|(label, _)| label == "Título")
-                .map(|(_, value)| value.clone()),
+            title,
             annotation_count: self.marks.len(),
-            annotation_warning: self.mark_warning.as_ref().map(ToString::to_string),
+            annotation_warning,
             first_page_size: PageSize {
                 width: page.width().value,
                 height: page.height().value,

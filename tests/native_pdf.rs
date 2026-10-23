@@ -352,3 +352,71 @@ fn text_bounds_follow_crop_box_and_intrinsic_rotation() {
         "Text bounds must overlap rendered text"
     );
 }
+
+#[test]
+#[ignore = "Requires the native PDFium 7881 library"]
+fn typed_titles_prefer_import_metadata_and_fall_back_without_display_labels() {
+    fn pdf(title: Option<&str>) -> Vec<u8> {
+        let stream = "q 0.9 0.95 1 rg 10 10 100 100 re f Q";
+        let objects = [
+            "<< /Type /Catalog /Pages 2 0 R >>".to_owned(),
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".into(),
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 400] /Contents 4 0 R /Resources << >> >>".into(),
+            format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len()),
+            title.map_or_else(|| "<< >>".into(), |title| format!("<< /Title ({title}) >>")),
+        ];
+        let mut bytes = b"%PDF-1.4\n".to_vec();
+        let mut offsets = Vec::new();
+        for (index, object) in objects.iter().enumerate() {
+            offsets.push(bytes.len());
+            bytes.extend_from_slice(format!("{} 0 obj\n{object}\nendobj\n", index + 1).as_bytes());
+        }
+        let xref = bytes.len();
+        bytes.extend_from_slice(b"xref\n0 6\n0000000000 65535 f \n");
+        for offset in offsets {
+            bytes.extend_from_slice(format!("{offset:010} 00000 n \n").as_bytes());
+        }
+        bytes.extend_from_slice(
+            format!("trailer\n<< /Size 6 /Root 1 0 R /Info 5 0 R >>\nstartxref\n{xref}\n%%EOF\n")
+                .as_bytes(),
+        );
+        bytes
+    }
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(format!("artifacts/metadata-test-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let pdfium = bind_pdfium().unwrap();
+    for (index, (native, imported, expected)) in [
+        (None, None, None),
+        (Some("PDF title"), None, Some("PDF title")),
+        (
+            Some("PDF title"),
+            Some("Imported title"),
+            Some("Imported title"),
+        ),
+        (Some("PDF title"), Some(""), Some("PDF title")),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let path = directory.join(format!("{index}.pdf"));
+        std::fs::write(&path, pdf(native)).unwrap();
+        if let Some(title) = imported {
+            std::fs::write(
+                path.with_extension("json"),
+                serde_json::to_vec(&crabpdf::formats::ImportInfo {
+                    title: title.into(),
+                    ..Default::default()
+                })
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let mut engine = PdfiumEngine::with_data_directory(&pdfium, directory.join("data"));
+        engine.open(&path).unwrap();
+        let details = engine.details().unwrap();
+        assert_eq!(details.title.as_deref(), expected, "case {index}");
+        assert_eq!(details.annotation_count, 0);
+        assert!(details.annotation_warning.is_none());
+    }
+}

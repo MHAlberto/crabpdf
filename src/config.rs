@@ -80,6 +80,17 @@ pub struct LibraryEntry {
 }
 
 impl Preferences {
+    /// Book-scoped view over the existing profile, preserving other books' entries.
+    pub fn favorites_for(&self, path: &Path) -> Vec<&Favorite> {
+        let mut entries: Vec<_> = self.favorites.iter().filter(|f| f.path == path).collect();
+        entries.sort_by_key(|f| f.page);
+        entries
+    }
+    pub fn remove_favorite(&mut self, path: &Path, page: usize) -> bool {
+        let before = self.favorites.len();
+        self.favorites.retain(|f| f.path != path || f.page != page);
+        self.favorites.len() != before
+    }
     pub fn record_open(&mut self, path: &Path) {
         if let Some(entry) = self.library.iter_mut().find(|entry| entry.path == path) {
             entry.opens = entry.opens.saturating_add(1);
@@ -290,6 +301,31 @@ impl Drop for PreferenceWriter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn favorites_are_sorted_and_removed_only_within_the_same_book() {
+        let mut p = Preferences::default();
+        for (path, page) in [("a/book.pdf", 7), ("b/book.pdf", 3), ("a/book.pdf", 2)] {
+            p.favorites.push(Favorite {
+                path: path.into(),
+                page,
+                label: format!("Page {page}"),
+            });
+        }
+        let a = Path::new("a/book.pdf");
+        assert_eq!(
+            p.favorites_for(a)
+                .iter()
+                .map(|f| f.page)
+                .collect::<Vec<_>>(),
+            vec![2, 7]
+        );
+        assert!(p.remove_favorite(a, 2));
+        assert!(!p.remove_favorite(a, 3));
+        assert_eq!(p.favorites_for(Path::new("b/book.pdf"))[0].page, 3);
+        assert_eq!(p.favorites_for(a)[0].page, 7);
+        assert!(p.favorites_for(Path::new("missing.pdf")).is_empty());
+    }
 
     #[test]
     fn preferences_roundtrip_and_defaults() {

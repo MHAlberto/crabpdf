@@ -252,6 +252,8 @@ pub struct ReaderApp {
     toolbar_visible: bool,
     menu_visible: bool,
     fullscreen: bool,
+    #[cfg(target_os = "windows")]
+    fullscreen_restore_maximized: Option<bool>,
     fullscreen_sidebar: bool,
     fullscreen_controls: Option<egui::Rect>,
     presentation: bool,
@@ -273,6 +275,10 @@ pub struct ReaderApp {
     last_title: String,
     entrance: motion::Entrance,
     markup_button: Option<egui::Rect>,
+    tab_drag: Option<u64>,
+    tab_buttons: Vec<(u64, egui::Rect)>,
+    favorite_buttons: Vec<(usize, egui::Rect)>,
+    favorite_toggle: Option<egui::Rect>,
 }
 impl ReaderApp {
     pub fn set_markup_color(&mut self, color: [u8; 3]) {
@@ -353,8 +359,7 @@ impl ReaderApp {
         }
         if options.fullscreen {
             app.fullscreen = true;
-            cc.egui_ctx
-                .send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
+            app.sync_fullscreen(&cc.egui_ctx);
         }
         app.initial_presentation = options.presentation;
         app
@@ -445,6 +450,8 @@ impl ReaderApp {
             toolbar_visible: true,
             menu_visible: true,
             fullscreen: false,
+            #[cfg(target_os = "windows")]
+            fullscreen_restore_maximized: None,
             fullscreen_sidebar: false,
             fullscreen_controls: None,
             presentation: false,
@@ -465,6 +472,10 @@ impl ReaderApp {
             notice_started: None,
             entrance: motion::Entrance::default(),
             markup_button: None,
+            tab_drag: None,
+            tab_buttons: Vec::new(),
+            favorite_buttons: Vec::new(),
+            favorite_toggle: None,
             last_title: String::new(),
         };
         for saved in session.into_iter().take(64) {
@@ -498,6 +509,61 @@ impl ReaderApp {
                 ..key
             })
         })
+    }
+    pub fn tab_button_rect(&self, index: usize) -> Option<egui::Rect> {
+        let id = self.tabs.get(index)?.id;
+        self.tab_buttons
+            .iter()
+            .find(|(tab, _)| *tab == id)
+            .map(|(_, rect)| *rect)
+    }
+    pub fn favorite_button_rect(&self, page: usize) -> Option<egui::Rect> {
+        self.favorite_buttons
+            .iter()
+            .find(|(p, _)| *p == page)
+            .map(|(_, rect)| *rect)
+    }
+    pub fn favorite_toggle_rect(&self) -> Option<egui::Rect> {
+        self.favorite_toggle
+    }
+    pub fn current_favorites(&self) -> Vec<Favorite> {
+        if self.home {
+            return Vec::new();
+        }
+        self.tabs
+            .get(self.active)
+            .filter(|tab| tab.state.document.is_some())
+            .map_or_else(Vec::new, |tab| {
+                self.preferences
+                    .favorites_for(&tab.path)
+                    .into_iter()
+                    .cloned()
+                    .collect()
+            })
+    }
+    /// Reapply decorations after switching mode: egui-winit also refreshes
+    /// Windows' undecorated shadow here, which must be disabled in fullscreen.
+    fn sync_fullscreen(&mut self, ctx: &egui::Context) {
+        #[cfg(target_os = "windows")]
+        if self.fullscreen && self.fullscreen_restore_maximized.is_none() {
+            let maximized = ctx.input(|input| input.viewport().maximized.unwrap_or(false));
+            self.fullscreen_restore_maximized = Some(maximized);
+            if maximized {
+                // winit's maximized WM_NCCALCSIZE path uses rcWork rather than
+                // rcMonitor, leaving the taskbar strip outside the client area.
+                ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(false));
+            }
+        }
+        ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(self.fullscreen));
+        #[cfg(target_os = "windows")]
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(
+                !self.fullscreen && self.preferences.native_titlebar,
+            ));
+            if !self.fullscreen && self.fullscreen_restore_maximized.take() == Some(true) {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(true));
+            }
+        }
     }
     pub fn tab_count(&self) -> usize {
         self.tabs.len()
@@ -1491,19 +1557,11 @@ impl ReaderApp {
             }
             Action::ToggleFavorite => {
                 if let Some(saved) = self.tabs[self.active].stored() {
-                    if let Some(index) = self
-                        .preferences
-                        .favorites
-                        .iter()
-                        .position(|f| f.path == saved.path && f.page == saved.page)
-                    {
-                        self.preferences.favorites.remove(index);
-                    } else {
-                        let name = saved.path.file_name().unwrap_or_default().to_string_lossy();
+                    if !self.preferences.remove_favorite(&saved.path, saved.page) {
                         self.preferences.favorites.push(Favorite {
                             path: saved.path.clone(),
                             page: saved.page,
-                            label: format!("{} · {}", name, saved.page + 1),
+                            label: format!("Página {}", saved.page + 1),
                         });
                     }
                     self.save_preferences();
@@ -1533,7 +1591,7 @@ impl ReaderApp {
                 }
                 self.fullscreen_sidebar = false;
                 self.fullscreen_controls = None;
-                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(self.fullscreen));
+                self.sync_fullscreen(ctx);
             }
             Action::Presentation => {
                 if self.presentation {
@@ -1542,7 +1600,7 @@ impl ReaderApp {
                     self.presentation_previous_fullscreen = Some(self.fullscreen);
                     self.presentation = true;
                     self.fullscreen = true;
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
+                    self.sync_fullscreen(ctx);
                 }
             }
             Action::Toolbar => self.toolbar_visible = !self.toolbar_visible,
@@ -1610,7 +1668,7 @@ impl ReaderApp {
             .presentation_previous_fullscreen
             .take()
             .unwrap_or(false);
-        ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(self.fullscreen));
+        self.sync_fullscreen(ctx);
     }
     fn scroll(&mut self, action: Action) {
         let tab = &mut self.tabs[self.active];
@@ -1693,6 +1751,9 @@ impl ReaderApp {
             return;
         }
         if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+            if self.tab_drag.take().is_some() {
+                return;
+            }
             let dismissing = self.palette_open
                 || self.go_to_open
                 || self.zoom_open
@@ -1713,7 +1774,7 @@ impl ReaderApp {
             } else if !dismissing && self.fullscreen {
                 self.fullscreen = false;
                 self.presentation = false;
-                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
+                self.sync_fullscreen(ctx);
             }
             if let Some(tab) = self.tabs.get_mut(self.active) {
                 tab.selection = None;
@@ -2048,6 +2109,9 @@ impl eframe::App for ReaderApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.frame_keys.clear();
         self.markup_button = None;
+        self.tab_buttons.clear();
+        self.favorite_buttons.clear();
+        self.favorite_toggle = None;
         let duration = if self.preferences.reduce_motion {
             0.0
         } else {
@@ -2061,6 +2125,9 @@ impl eframe::App for ReaderApp {
             ui.style_mut().animation_time = duration;
         }
         let fullscreen_reading = self.fullscreen && self.state().document.is_some();
+        if fullscreen_reading {
+            self.tab_drag = None;
+        }
         if !fullscreen_reading {
             self.titlebar(ui);
             if self.menu_visible {

@@ -93,7 +93,8 @@ impl ReaderApp {
         let mut activate = None;
         let mut close = None;
         let mut action = None;
-        egui::Panel::top("window-titlebar")
+        let mut started_drag = None;
+        let bar = egui::Panel::top("window-titlebar")
             .exact_size(36.0)
             .frame(
                 egui::Frame::NONE
@@ -135,6 +136,7 @@ impl ReaderApp {
                                 .show(ui, |ui| {
                                     ui.horizontal(|ui| {
                                         for (index, tab) in self.tabs.iter().enumerate() {
+                                            ui.push_id(tab.id, |ui| {
                                             let selected = !self.home && index == self.active;
                                             egui::Frame::new()
                                                 .inner_margin(egui::Margin::symmetric(2, 1))
@@ -155,11 +157,18 @@ impl ReaderApp {
                                                                 [160.0, 22.0],
                                                                 egui::Button::new(label)
                                                                     .truncate()
-                                                                    .selected(selected),
+                                                                    .selected(selected)
+                                                                    .sense(Sense::click_and_drag()),
                                                             )
-                                                            .on_hover_text(
-                                                                tab.path.display().to_string(),
-                                                            );
+                                                            .on_hover_text(format!(
+                                                                "{}\nArrastra fuera de la barra para duplicar la pestaña.",
+                                                                tab.path.display(),
+                                                            ))
+                                                            .on_hover_cursor(egui::CursorIcon::Grab);
+                                                        self.tab_buttons.push((tab.id, button.rect));
+                                                        if button.drag_started_by(egui::PointerButton::Primary) {
+                                                            started_drag = Some(tab.id);
+                                                        }
                                                         if button.clicked() {
                                                             activate = Some(index);
                                                         }
@@ -199,6 +208,7 @@ impl ReaderApp {
                                                         }
                                                     });
                                                 });
+                                            });
                                         }
                                     });
                                 });
@@ -258,6 +268,44 @@ impl ReaderApp {
                 });
             });
         self.reveal_tab = false;
+        if let Some(id) = started_drag {
+            self.tab_drag = Some(id);
+        }
+        if ui.input(|i| {
+            !i.pointer.primary_down() && !i.pointer.button_released(egui::PointerButton::Primary)
+        }) {
+            self.tab_drag = None;
+        }
+        let pointer = ui.input(|i| i.pointer.interact_pos());
+        let outside = pointer.is_some_and(|pos| !bar.response.rect.expand(12.0).contains(pos));
+        if self.tab_drag.is_some() && ui.input(|i| i.pointer.primary_down()) {
+            ui.ctx().set_cursor_icon(if outside {
+                egui::CursorIcon::Copy
+            } else {
+                egui::CursorIcon::Grabbing
+            });
+            if outside && let Some(pos) = pointer {
+                egui::Area::new(egui::Id::new("duplicate-tab-drag-hint"))
+                    .order(egui::Order::Tooltip)
+                    .interactable(false)
+                    .fixed_pos(pos + egui::vec2(12.0, 18.0))
+                    .show(ui.ctx(), |ui| {
+                        egui::Frame::popup(ui.style()).show(ui, |ui| {
+                            ui.label("Soltar para duplicar pestaña");
+                        });
+                    });
+            }
+        }
+        if ui.input(|i| i.pointer.button_released(egui::PointerButton::Primary))
+            && let Some(id) = self.tab_drag.take()
+            && outside
+            && let Some(index) = self.tabs.iter().position(|tab| tab.id == id)
+            && self.tabs[index].state.document.is_some()
+            && self.tabs.len() < 64
+        {
+            activate = Some(index);
+            action = Some(Action::DuplicateTab);
+        }
         if let Some(index) = activate {
             self.active = index;
             self.home = false;

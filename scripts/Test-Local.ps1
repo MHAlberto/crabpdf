@@ -63,6 +63,16 @@ try {
                 $records.Add(@{check="$arch-transitions-$mode";exit_code=$code;captures=@(Get-ChildItem -LiteralPath $transitionArgs[0] -Filter '*.png').Count})
                 if ($code -ne 0) {throw "Fallo de transiciones $arch ($mode)."}
             }
+            foreach ($useNativeFrame in @($false,$true)) {
+                $frameName=if($useNativeFrame){'native'}else{'custom'}
+                $geometryArgs=@{
+                    Executable="target/$target/release/examples/document_chrome_smoke.exe"
+                    ReportRoot=(Join-Path $reportRoot "$arch-document-chrome-$frameName")
+                    Native=$useNativeFrame
+                }
+                & (Join-Path $PSScriptRoot 'Test-WindowGeometry.ps1') @geometryArgs
+                $records.Add(@{check="$arch-document-chrome-$frameName";exit_code=0})
+            }
             & (Join-Path $workspace "target/$target/release/examples/refinement_smoke.exe") (Join-Path $reportRoot "$arch-refinement")
             $code=$LASTEXITCODE
             $records.Add(@{check="$arch-refinement";exit_code=$code;captures=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot "$arch-refinement") -Filter '*.png').Count})

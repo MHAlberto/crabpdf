@@ -1,6 +1,5 @@
 use super::{Action, ReaderApp, Sidebar, icons, theme};
-use crate::config::StoredDocument;
-use crate::document::{ErrorKind, PageColors, Zoom};
+use crate::document::{ErrorKind, Zoom};
 use crate::layout::LayoutMode;
 use eframe::egui::{self, Align, Layout, RichText};
 use icons::Icon;
@@ -618,35 +617,95 @@ impl ReaderApp {
                         });
                     }
                     Sidebar::Favorites => {
-                        let favorites = self.preferences.favorites.clone();
-                        if favorites.is_empty() {
-                            ui.label("Añade una página desde Paneles o Ctrl/⌘ + B.");
+                        let Some(tab) = self
+                            .tabs
+                            .get(self.active)
+                            .filter(|t| t.state.document.is_some())
+                        else {
+                            ui.label("Abre un documento para ver sus favoritos.");
+                            return;
+                        };
+                        let path = tab.path.clone();
+                        let current = tab.state.document.as_ref().map_or(0, |d| d.page);
+                        let name = path.file_name().unwrap_or_default().to_string_lossy();
+                        ui.label(RichText::new(name.as_ref()).strong())
+                            .on_hover_text(path.display().to_string());
+                        let favorites = self.current_favorites();
+                        let marked = favorites.iter().any(|f| f.page == current);
+                        let toggle = ui
+                            .add(
+                                egui::Button::new(if marked {
+                                    "Quitar esta página"
+                                } else {
+                                    "Guardar esta página"
+                                })
+                                .selected(marked),
+                            )
+                            .on_hover_text("Favorito del documento actual · Ctrl/⌘+B");
+                        self.favorite_toggle = Some(toggle.rect);
+                        if toggle.clicked() {
+                            self.execute(Action::ToggleFavorite, ui.ctx());
                         }
-                        egui::ScrollArea::vertical().show(ui, |ui| {
-                            for favorite in favorites {
-                                if ui
-                                    .button(&favorite.label)
-                                    .on_hover_text(favorite.path.display().to_string())
-                                    .clicked()
-                                {
-                                    let saved = StoredDocument {
-                                        path: favorite.path.clone(),
-                                        page: favorite.page,
-                                        zoom: Zoom::FitWidth,
-                                        layout: LayoutMode::Single,
-                                        continuous: false,
-                                        rotation: 0,
-                                        colors: PageColors::Original,
-                                        manga: false,
-                                        position: None,
-                                    };
-                                    self.open_document(favorite.path, Some(saved));
-                                    if let Some(tab) = self.tabs.get_mut(self.active) {
-                                        tab.go_to(favorite.page, true);
-                                    }
+                        ui.label(
+                            RichText::new(format!("{} páginas guardadas", favorites.len())).small(),
+                        );
+                        ui.separator();
+                        if favorites.is_empty() {
+                            ui.label("Todavía no hay favoritos en este documento.");
+                        }
+                        let mut remove = None;
+                        egui::ScrollArea::vertical()
+                            .id_salt(("book-favorites", &path))
+                            .show(ui, |ui| {
+                                for favorite in favorites {
+                                    ui.push_id(favorite.page, |ui| {
+                                        ui.horizontal(|ui| {
+                                            let default_old =
+                                                format!("{name} · {}", favorite.page + 1);
+                                            let label = if favorite.label == default_old {
+                                                format!("Página {}", favorite.page + 1)
+                                            } else {
+                                                favorite.label.clone()
+                                            };
+                                            let width = (ui.available_width()
+                                                - 24.0
+                                                - ui.spacing().item_spacing.x)
+                                                .max(40.0);
+                                            let response = ui
+                                                .add_sized(
+                                                    [width, 28.0],
+                                                    egui::Button::new(label)
+                                                        .truncate()
+                                                        .selected(favorite.page == current),
+                                                )
+                                                .on_hover_text(format!(
+                                                    "Ir a la página {}",
+                                                    favorite.page + 1
+                                                ));
+                                            self.favorite_buttons
+                                                .push((favorite.page, response.rect));
+                                            if response.clicked() {
+                                                self.tabs[self.active].go_to(favorite.page, true);
+                                            }
+                                            if icons::close_button(
+                                                ui,
+                                                egui::vec2(24.0, 24.0),
+                                                false,
+                                                "Eliminar favorito",
+                                            )
+                                            .clicked()
+                                            {
+                                                remove = Some(favorite.page);
+                                            }
+                                        });
+                                    });
                                 }
-                            }
-                        });
+                            });
+                        if let Some(page) = remove
+                            && self.preferences.remove_favorite(&path, page)
+                        {
+                            self.schedule_save();
+                        }
                     }
                 }
             });
@@ -887,7 +946,7 @@ impl ReaderApp {
                     {
                         ui.ctx()
                             .send_viewport_cmd(egui::ViewportCommand::Decorations(
-                                self.preferences.native_titlebar,
+                                !self.fullscreen && self.preferences.native_titlebar,
                             ));
                         changed = true;
                     }

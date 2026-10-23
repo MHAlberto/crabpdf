@@ -1,6 +1,6 @@
 pub use crate::application::favorites::Favorite;
-use crate::document::{PageColors, Zoom};
-use crate::layout::LayoutMode;
+pub use crate::application::profile::{LibraryEntry, StoredDocument};
+
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
@@ -48,29 +48,6 @@ impl Default for Preferences {
             markup_color: [255, 230, 50],
         }
     }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-pub struct StoredDocument {
-    pub path: PathBuf,
-    pub page: usize,
-    pub zoom: Zoom,
-    pub layout: LayoutMode,
-    pub continuous: bool,
-    pub rotation: u8,
-    pub colors: PageColors,
-    #[serde(default)]
-    pub manga: bool,
-    #[serde(default)]
-    pub position: Option<crate::reading_position::ReadingPosition>,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
-pub struct LibraryEntry {
-    pub path: PathBuf,
-    pub title: String,
-    pub opens: u64,
 }
 
 impl Preferences {
@@ -291,6 +268,8 @@ impl Drop for PreferenceWriter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::document::{PageColors, Zoom};
+    use crate::layout::LayoutMode;
 
     #[test]
     fn favorites_are_sorted_and_removed_only_within_the_same_book() {

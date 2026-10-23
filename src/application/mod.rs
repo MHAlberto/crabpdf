@@ -1,2 +1,5 @@
 //! Application use cases, extracted incrementally from desktop and persistence.
 pub mod favorites;
+pub mod profile;
+pub mod search;
+pub mod tabs;

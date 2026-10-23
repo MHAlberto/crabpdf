@@ -17,15 +17,17 @@ impl ReaderApp {
         now: f64,
     ) -> bool {
         let tab = &self.tabs[self.active];
-        if !tab.state.scroll_to_page || tab.displayed_page.is_none_or(|old| old == page) {
-            self.tabs[self.active].navigation_wait = None;
+        if !tab.reader.state.scroll_to_page || tab.view.displayed_page.is_none_or(|old| old == page)
+        {
+            self.tabs[self.active].view.navigation_wait = None;
             return false;
         }
         let (cell_width, cell_height) = tab
+            .view
             .view_layout
             .as_ref()
             .map_or((width as f32, height as f32), |(spec, _)| spec.cell_size());
-        let Some(key) = tab.state.render_key_for(
+        let Some(key) = tab.reader.state.render_key_for(
             page,
             cell_width,
             cell_height,
@@ -35,11 +37,12 @@ impl ReaderApp {
             return false;
         };
         let count = tab
+            .reader
             .state
             .document
             .as_ref()
             .map_or(0, |document| document.info.page_count);
-        let spread = tab.state.layout.spread(page, count);
+        let spread = tab.reader.state.layout.spread(page, count);
         let mut ready = true;
         for page in spread {
             let found = self
@@ -64,19 +67,24 @@ impl ReaderApp {
             ready &= found;
         }
         let tab = &mut self.tabs[self.active];
-        if tab.navigation_wait.is_none_or(|(target, _)| target != page) {
-            tab.navigation_wait = Some((page, now));
+        if tab
+            .view
+            .navigation_wait
+            .is_none_or(|(target, _)| target != page)
+        {
+            tab.view.navigation_wait = Some((page, now));
         }
         let waiting = !ready
-            && tab.state.error.is_none()
+            && tab.reader.state.error.is_none()
             && tab
+                .view
                 .navigation_wait
                 .is_some_and(|(_, started)| now - started < 0.2);
         if waiting {
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(16));
         } else {
-            tab.navigation_wait = None;
+            tab.view.navigation_wait = None;
         }
         waiting
     }
@@ -92,9 +100,9 @@ impl ReaderApp {
                 let identity = if self.home {
                     (0, false)
                 } else {
-                    self.tabs
-                        .get(self.active)
-                        .map_or((0, false), |tab| (tab.id, tab.state.opening.is_some()))
+                    self.tabs.get(self.active).map_or((0, false), |tab| {
+                        (tab.reader.id, tab.reader.state.opening.is_some())
+                    })
                 };
                 self.entrance
                     .apply(ui, identity, self.preferences.reduce_motion);
@@ -121,35 +129,35 @@ impl ReaderApp {
                     if ui.input(|input| {
                         input.smooth_scroll_delta != Vec2::ZERO
                             || (input.pointer.any_pressed()
-                                && tab.viewport_rect.is_some_and(|rect| {
+                                && tab.view.viewport_rect.is_some_and(|rect| {
                                     input
                                         .pointer
                                         .interact_pos()
                                         .is_some_and(|pos| rect.contains(pos))
                                 }))
                     }) {
-                        tab.pending_position = None;
-                        if (tab.state.scroll_to_page || tab.scroll_motion.is_some())
-                            && let Some(displayed) = tab.displayed_page
-                            && let Some(document) = &mut tab.state.document
+                        tab.reader.pending_position = None;
+                        if (tab.reader.state.scroll_to_page || tab.view.scroll_motion.is_some())
+                            && let Some(displayed) = tab.view.displayed_page
+                            && let Some(document) = &mut tab.reader.state.document
                         {
                             document.page = displayed;
                         }
-                        tab.scroll_motion = None;
-                        tab.navigation_wait = None;
-                        tab.state.scroll_to_page = false;
+                        tab.view.scroll_motion = None;
+                        tab.view.navigation_wait = None;
+                        tab.reader.state.scroll_to_page = false;
                     }
                 }
                 let current = self.state().document.as_ref().map_or(0, |d| d.page);
                 let waiting = self.prepare_page_navigation(ui, current, width, height, now);
                 let tab = &mut self.tabs[self.active];
                 let animate_navigation = !self.preferences.reduce_motion
-                    && tab.state.continuous
-                    && tab.view_layout.as_ref().is_some_and(|(old, _)| {
+                    && tab.reader.state.continuous
+                    && tab.view.view_layout.as_ref().is_some_and(|(old, _)| {
                         old.continuous
-                            && old.zoom == tab.state.zoom
-                            && old.mode == tab.state.layout
-                            && old.rotation == tab.state.rotation
+                            && old.zoom == tab.reader.state.zoom
+                            && old.mode == tab.reader.state.layout
+                            && old.rotation == tab.reader.state.rotation
                             && old.width == width
                             && old.height == height
                     });
@@ -157,23 +165,29 @@ impl ReaderApp {
                 let spec = LayoutSpec {
                     width,
                     height,
-                    zoom: tab.state.zoom,
-                    mode: tab.state.layout,
-                    continuous: tab.state.continuous,
-                    current: if tab.state.continuous {
+                    zoom: tab.reader.state.zoom,
+                    mode: tab.reader.state.layout,
+                    continuous: tab.reader.state.continuous,
+                    current: if tab.reader.state.continuous {
                         0
                     } else if waiting {
-                        tab.displayed_page.unwrap_or(current)
+                        tab.view.displayed_page.unwrap_or(current)
                     } else {
                         current
                     },
-                    rotation: tab.state.rotation,
-                    manga: tab.state.manga,
+                    rotation: tab.reader.state.rotation,
+                    manga: tab.reader.state.manga,
                     compact,
-                    revision: tab.layout_revision,
+                    revision: tab.reader.layout_revision,
                 };
-                if tab.view_layout.as_ref().is_none_or(|(old, _)| *old != spec) {
+                if tab
+                    .view
+                    .view_layout
+                    .as_ref()
+                    .is_none_or(|(old, _)| *old != spec)
+                {
                     let resize_anchor = tab
+                        .view
                         .view_layout
                         .as_ref()
                         .filter(|(old, _)| old.width != spec.width || old.height != spec.height)
@@ -183,63 +197,77 @@ impl ReaderApp {
                             anchor.screen_y = height as f32 * 0.5;
                             Some(anchor)
                         });
-                    let previous_position = tab.view_layout.as_ref().and_then(|(_, layout)| {
-                        layout
-                            .placements
-                            .iter()
-                            .find(|p| p.page == current)
-                            .map(|p| (p.left, p.top))
-                    });
+                    let previous_position =
+                        tab.view.view_layout.as_ref().and_then(|(_, layout)| {
+                            layout
+                                .placements
+                                .iter()
+                                .find(|p| p.page == current)
+                                .map(|p| (p.left, p.top))
+                        });
                     let fallback = tab
+                        .reader
                         .state
                         .details
                         .as_ref()
                         .map_or(PageSize::default(), |d| d.first_page_size);
-                    let layout = Arc::new(PageLayout::build(&tab.state.page_sizes, fallback, spec));
-                    if tab.zoom_anchor.is_none() && !tab.state.scroll_to_page {
-                        tab.zoom_anchor = resize_anchor;
+                    let layout = Arc::new(PageLayout::build(
+                        &tab.reader.state.page_sizes,
+                        fallback,
+                        spec,
+                    ));
+                    if tab.view.zoom_anchor.is_none() && !tab.reader.state.scroll_to_page {
+                        tab.view.zoom_anchor = resize_anchor;
                     }
-                    if !tab.state.scroll_to_page
+                    if !tab.reader.state.scroll_to_page
                         && let Some((old_left, old_top)) = previous_position
                         && let Some(placement) =
                             layout.placements.iter().find(|p| p.page == current)
                     {
                         let delta = egui::vec2(placement.left - old_left, placement.top - old_top);
-                        tab.scroll = (tab.scroll + delta).max(Vec2::ZERO);
-                        if let Some(motion) = &mut tab.scroll_motion {
+                        tab.view.scroll = (tab.view.scroll + delta).max(Vec2::ZERO);
+                        if let Some(motion) = &mut tab.view.scroll_motion {
                             motion.shift(delta);
                         }
                     }
-                    tab.view_layout = Some((spec, layout));
+                    tab.view.view_layout = Some((spec, layout));
                 }
-                let layout =
-                    Arc::clone(&tab.view_layout.as_ref().expect("layout was constructed").1);
-                if let Some(position) = tab.pending_position
+                let layout = Arc::clone(
+                    &tab.view
+                        .view_layout
+                        .as_ref()
+                        .expect("layout was constructed")
+                        .1,
+                );
+                if let Some(position) = tab.reader.pending_position
                     && tab
+                        .reader
                         .state
                         .page_sizes
                         .get(position.page())
                         .is_some_and(Option::is_some)
-                    && let Some(anchor) =
-                        position.anchor((width as f32, height as f32), tab.state.page_sizes.len())
+                    && let Some(anchor) = position.anchor(
+                        (width as f32, height as f32),
+                        tab.reader.state.page_sizes.len(),
+                    )
                 {
-                    tab.pending_position = None;
-                    tab.zoom_anchor = Some(anchor);
-                    tab.state.scroll_to_page = false;
+                    tab.reader.pending_position = None;
+                    tab.view.zoom_anchor = Some(anchor);
+                    tab.reader.state.scroll_to_page = false;
                 }
-                if tab.state.scroll_to_page {
-                    tab.zoom_anchor = None;
-                    tab.scroll_motion = None;
+                if tab.reader.state.scroll_to_page {
+                    tab.view.zoom_anchor = None;
+                    tab.view.scroll_motion = None;
                 }
-                if let Some(anchor) = tab.zoom_anchor.take()
+                if let Some(anchor) = tab.view.zoom_anchor.take()
                     && let Some((x, y)) = anchor.offset(&layout)
                 {
-                    tab.scroll = egui::vec2(x, y);
-                    tab.scroll_motion = None;
-                    tab.state.scroll_to_page = false;
+                    tab.view.scroll = egui::vec2(x, y);
+                    tab.view.scroll_motion = None;
+                    tab.reader.state.scroll_to_page = false;
                     reset_scroll = true;
                 }
-                if tab.state.scroll_to_page && !waiting {
+                if tab.reader.state.scroll_to_page && !waiting {
                     let target = layout
                         .placements
                         .iter()
@@ -254,55 +282,63 @@ impl ReaderApp {
                             (layout.width - width as f32).max(0.0),
                             (layout.height - height as f32).max(0.0),
                         ));
-                    let distance = (target - tab.scroll).length();
+                    let distance = (target - tab.view.scroll).length();
                     if animate_navigation && distance > 1.0 && distance <= height as f32 * 2.5 {
-                        tab.scroll_motion =
-                            Some(super::motion::ScrollMotion::new(tab.scroll, target, now));
+                        tab.view.scroll_motion = Some(super::motion::ScrollMotion::new(
+                            tab.view.scroll,
+                            target,
+                            now,
+                        ));
                     } else {
-                        tab.scroll = target;
+                        tab.view.scroll = target;
                     }
-                    tab.state.scroll_to_page = false;
+                    tab.reader.state.scroll_to_page = false;
                     reset_scroll = true;
                 }
-                if tab.scroll_bottom {
-                    tab.scroll.y = (layout.height - tab.viewport.y).max(0.0);
-                    tab.scroll_bottom = false;
+                if tab.view.scroll_bottom {
+                    tab.view.scroll.y = (layout.height - tab.view.viewport.y).max(0.0);
+                    tab.view.scroll_bottom = false;
                 }
-                if tab.reveal.is_some_and(|(page, _)| page != current) {
-                    tab.reveal = None;
+                if tab.view.reveal.is_some_and(|(page, _)| page != current) {
+                    tab.view.reveal = None;
                 }
-                if let Some((page, bounds)) = tab.reveal
-                    && tab.state.page_sizes.get(page).is_some_and(Option::is_some)
+                if let Some((page, bounds)) = tab.view.reveal
+                    && tab
+                        .reader
+                        .state
+                        .page_sizes
+                        .get(page)
+                        .is_some_and(Option::is_some)
                     && let Some(placement) = layout.placements.iter().find(|p| p.page == page)
                 {
-                    tab.reveal = None;
-                    tab.scroll_motion = None;
+                    tab.view.reveal = None;
+                    tab.view.scroll_motion = None;
                     reset_scroll = true;
                     let bounds = bounds.rotated(spec.rotation);
-                    tab.scroll.x = (placement.left
+                    tab.view.scroll.x = (placement.left
                         + (bounds.left + bounds.right) * 0.5 * placement.size.width
                         - width as f32 * 0.5)
                         .max(0.0);
-                    tab.scroll.y = (placement.top
+                    tab.view.scroll.y = (placement.top
                         + (bounds.top + bounds.bottom) * 0.5 * placement.size.height
                         - height as f32 * 0.5)
                         .max(0.0);
                 }
-                if let Some(motion) = tab.scroll_motion {
+                if let Some(motion) = tab.view.scroll_motion {
                     let (offset, active) = motion.sample(if self.preferences.reduce_motion {
                         now + f64::from(super::motion::DURATION)
                     } else {
                         now
                     });
-                    tab.scroll = offset;
+                    tab.view.scroll = offset;
                     if active {
                         ui.ctx().request_repaint();
                     } else {
-                        tab.scroll_motion = None;
+                        tab.view.scroll_motion = None;
                     }
                 }
-                let id = tab.id;
-                let scroll = tab.scroll;
+                let id = tab.reader.id;
+                let scroll = tab.view.scroll;
                 if reset_scroll {
                     // Clear egui's previous kinetic/scroll-to target. Otherwise it
                     // can pull the newly requested page back on the following frame.
@@ -523,34 +559,34 @@ impl ReaderApp {
                     }
                 }
                 if let Some(tab) = self.tabs.get_mut(self.active)
-                    && tab.id == id
+                    && tab.reader.id == id
                 {
-                    let previous_scroll = tab.scroll;
-                    tab.scroll = output.state.offset + pan;
-                    tab.viewport = output.inner_rect.size();
-                    tab.viewport_rect = Some(output.inner_rect);
-                    tab.scroll.x = tab.scroll.x.max(0.0);
+                    let previous_scroll = tab.view.scroll;
+                    tab.view.scroll = output.state.offset + pan;
+                    tab.view.viewport = output.inner_rect.size();
+                    tab.view.viewport_rect = Some(output.inner_rect);
+                    tab.view.scroll.x = tab.view.scroll.x.max(0.0);
                     if vertical_only {
-                        tab.scroll.x = 0.0;
+                        tab.view.scroll.x = 0.0;
                     }
-                    tab.scroll.y = tab.scroll.y.max(0.0);
-                    if tab.state.continuous
-                        && tab.scroll_motion.is_none()
-                        && !tab.state.scroll_to_page
-                        && let Some(document) = tab.state.document.as_mut()
+                    tab.view.scroll.y = tab.view.scroll.y.max(0.0);
+                    if tab.reader.state.continuous
+                        && tab.view.scroll_motion.is_none()
+                        && !tab.reader.state.scroll_to_page
+                        && let Some(document) = tab.reader.state.document.as_mut()
                     {
                         document.page = visible_current;
                     }
                     if !waiting {
-                        tab.displayed_page = Some(visible_current);
+                        tab.view.displayed_page = Some(visible_current);
                     }
-                    let page = tab.state.document.as_ref().map_or(0, |d| d.page);
-                    tab.state.requested =
+                    let page = tab.reader.state.document.as_ref().map_or(0, |d| d.page);
+                    tab.reader.state.requested =
                         displayed_keys.iter().copied().find(|key| key.page == page);
-                    tab.state.rendering = displayed_keys
+                    tab.reader.state.rendering = displayed_keys
                         .iter()
                         .any(|key| self.pending_pages.contains(key));
-                    if (tab.scroll - previous_scroll).length_sq() > 0.25 {
+                    if (tab.view.scroll - previous_scroll).length_sq() > 0.25 {
                         self.schedule_save();
                     }
                 }
@@ -603,23 +639,23 @@ impl ReaderApp {
                 while end + 1 < content.glyphs.len() && word(end + 1) {
                     end += 1;
                 }
-                self.tabs[self.active].selection =
+                self.tabs[self.active].reader.selection =
                     Some((page, content.glyphs[start].index, content.glyphs[end].index));
             } else if response.drag_started_by(egui::PointerButton::Primary) {
                 let (x, y) = normalize(ui.input(|i| i.pointer.press_origin()).unwrap_or(position));
                 if let Some(index) = content.nearest_glyph(x, y) {
-                    self.tabs[self.active].selection = Some((page, index, index));
+                    self.tabs[self.active].reader.selection = Some((page, index, index));
                 }
             }
             if response.dragged_by(egui::PointerButton::Primary)
                 && let Some(index) = content.nearest_glyph(x, y)
-                && let Some((selected, _, end)) = self.tabs[self.active].selection.as_mut()
+                && let Some((selected, _, end)) = self.tabs[self.active].reader.selection.as_mut()
                 && *selected == page
             {
                 *end = index;
             }
             if response.clicked() && !response.double_clicked() {
-                self.tabs[self.active].selection = None;
+                self.tabs[self.active].reader.selection = None;
                 if let Some(link) = content.links.iter().find(|link| link.bounds.contains(x, y)) {
                     match &link.target {
                         LinkTarget::Page(destination) => {
@@ -653,7 +689,7 @@ impl ReaderApp {
             );
             ui.painter().rect_filled(highlight, 0, color);
         };
-        if let Some((selected, start, end)) = self.tabs[self.active].selection
+        if let Some((selected, start, end)) = self.tabs[self.active].reader.selection
             && selected == page
         {
             for glyph in content
@@ -666,7 +702,7 @@ impl ReaderApp {
                 }
             }
         }
-        let search = &self.tabs[self.active].search;
+        let search = &self.tabs[self.active].reader.search;
         for (index, hit) in search
             .hits
             .iter()

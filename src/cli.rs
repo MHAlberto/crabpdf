@@ -5,16 +5,7 @@ use std::path::PathBuf;
 
 pub const HELP: &str = "CrabPDF — lector local de documentos\n\nUso: crabpdf [opciones] [documento.pdf ...]\n\n--page N              Página inicial (desde 1)\n--zoom P              Porcentaje 8–6400, fit-page, fit-width o fit-height\n--view MODE           single, facing o book\n--continuous          Desplazamiento continuo\n--manga               Lectura de derecha a izquierda\n--rotate DEG          0, 90, 180 o 270 grados\n--search TEXT         Buscar al abrir el documento\n--fullscreen          Pantalla completa\n--presentation        Presentación\n--config PATH         Archivo de preferencias TOML\n--help                Mostrar esta ayuda\n--version             Mostrar la versión\n--                    Fin de opciones\n\nTambién se aceptan -page, -zoom, -view, -search, -fullscreen y -presentation.\nLos parámetros todavía no implementados producen un error explícito.";
 
-#[derive(Clone, Debug, Default)]
-pub struct InitialView {
-    pub page: Option<usize>,
-    pub zoom: Option<Zoom>,
-    pub layout: Option<LayoutMode>,
-    pub continuous: Option<bool>,
-    pub manga: Option<bool>,
-    pub rotation: Option<u8>,
-    pub search: Option<String>,
-}
+pub use crate::application::tabs::InitialView;
 #[derive(Clone, Debug, Default)]
 pub struct LaunchOptions {
     pub files: Vec<PathBuf>,

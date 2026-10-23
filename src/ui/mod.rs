@@ -3,8 +3,11 @@ mod home;
 mod icons;
 mod motion;
 mod panels;
+mod tab_view;
 mod theme;
 mod viewer;
+
+use tab_view::Tab;
 
 use crate::app_paths::AppPaths;
 use crate::application::favorites::{self, FavoriteAction, FavoriteEffect};
@@ -32,185 +35,6 @@ struct DisplayPage {
     size: Vec2,
     zoom: f32,
     limited: bool,
-}
-#[derive(Default)]
-struct SearchState {
-    open: bool,
-    focus: bool,
-    query: String,
-    match_case: bool,
-    whole_word: bool,
-    generation: u64,
-    hits: Vec<SearchHit>,
-    index: usize,
-    scanned: usize,
-    total: usize,
-    limited: bool,
-    due: Option<Instant>,
-}
-struct Tab {
-    id: DocumentId,
-    path: PathBuf,
-    state: AppState,
-    search: SearchState,
-    selection: Option<(usize, usize, usize)>,
-    local_marks: usize,
-    marking: bool,
-    select_all_pending: bool,
-    scroll: Vec2,
-    viewport: Vec2,
-    viewport_rect: Option<egui::Rect>,
-    zoom_anchor: Option<crate::layout::ReadingAnchor>,
-    pending_position: Option<crate::reading_position::ReadingPosition>,
-    scroll_bottom: bool,
-    scroll_motion: Option<motion::ScrollMotion>,
-    displayed_page: Option<usize>,
-    navigation_wait: Option<(usize, f64)>,
-    reveal: Option<(usize, crate::document::Bounds)>,
-    password_needed: bool,
-    password: String,
-    restore: Option<StoredDocument>,
-    startup: Option<crate::cli::InitialView>,
-    layout_revision: u64,
-    view_layout: Option<(crate::layout::LayoutSpec, Arc<crate::layout::PageLayout>)>,
-}
-impl Tab {
-    /// Apply document data without interpreting translated property labels.
-    fn apply_details(
-        &mut self,
-        details: crate::document::DocumentDetails,
-        library: &mut [crate::config::LibraryEntry],
-    ) -> Option<String> {
-        let warning = details.annotation_warning.clone();
-        self.local_marks = details.annotation_count;
-        if let Some(title) = &details.title
-            && let Some(entry) = library.iter_mut().find(|entry| entry.path == self.path)
-        {
-            entry.title.clone_from(title);
-        }
-        if let Some(size) = self.state.page_sizes.get_mut(0) {
-            *size = Some(details.first_page_size);
-        }
-        self.layout_revision += 1;
-        self.state.details = Some(details);
-        warning
-    }
-    fn go_to(&mut self, page: usize, remember: bool) {
-        self.pending_position = None;
-        self.scroll_motion = None;
-        self.navigation_wait = None;
-        self.state.go_to(page, remember);
-    }
-    fn supports_password(&self) -> bool {
-        matches!(
-            crate::formats::Format::detect(&self.path),
-            Ok(crate::formats::Format::Pdf)
-        )
-    }
-
-    fn new(id: DocumentId, path: PathBuf, restore: Option<StoredDocument>) -> Self {
-        let mut state = AppState::default();
-        state.begin_open_with_id(id);
-        Self {
-            id,
-            path,
-            state,
-            search: SearchState::default(),
-            selection: None,
-            local_marks: 0,
-            marking: false,
-            select_all_pending: false,
-            scroll: Vec2::ZERO,
-            viewport: Vec2::ZERO,
-            viewport_rect: None,
-            zoom_anchor: None,
-            pending_position: None,
-            scroll_bottom: false,
-            scroll_motion: None,
-            displayed_page: None,
-            navigation_wait: None,
-            reveal: None,
-            password_needed: false,
-            password: String::new(),
-            restore,
-            startup: None,
-            layout_revision: 0,
-            view_layout: None,
-        }
-    }
-    fn stored(&self) -> Option<StoredDocument> {
-        let document = self.state.document.as_ref()?;
-        Some(StoredDocument {
-            path: self.path.clone(),
-            page: document.page,
-            zoom: self.state.zoom,
-            layout: self.state.layout,
-            continuous: self.state.continuous,
-            rotation: self.state.rotation,
-            colors: self.state.colors,
-            manga: self.state.manga,
-            position: self.pending_position.or_else(|| {
-                let (_, layout) = self.view_layout.as_ref()?;
-                crate::reading_position::ReadingPosition::capture(
-                    layout,
-                    (self.scroll.x, self.scroll.y),
-                    (self.viewport.x, self.viewport.y),
-                )
-                .filter(|position| {
-                    self.state
-                        .page_sizes
-                        .get(position.page())
-                        .is_some_and(Option::is_some)
-                })
-            }),
-        })
-    }
-    fn anchor(&self, pointer: Option<egui::Pos2>) -> Option<crate::layout::ReadingAnchor> {
-        let (_, layout) = self.view_layout.as_ref()?;
-        let screen = pointer
-            .zip(self.viewport_rect)
-            .filter(|(pointer, rect)| rect.contains(*pointer))
-            .map_or(self.viewport * 0.5, |(pointer, rect)| pointer - rect.min);
-        let point = self.scroll + screen;
-        let placement = layout
-            .placements
-            .iter()
-            .find(|p| {
-                point.x >= p.left
-                    && point.x <= p.left + p.size.width
-                    && point.y >= p.top
-                    && point.y <= p.top + p.size.height
-            })
-            .or_else(|| {
-                layout.placements.iter().find(|p| {
-                    self.state
-                        .document
-                        .as_ref()
-                        .is_some_and(|document| p.page == document.page)
-                })
-            })?;
-        Some(crate::layout::ReadingAnchor {
-            page: placement.page,
-            x: ((point.x - placement.left) / placement.size.width).clamp(0.0, 1.0),
-            y: ((point.y - placement.top) / placement.size.height).clamp(0.0, 1.0),
-            screen_x: screen.x,
-            screen_y: screen.y,
-        })
-    }
-    fn zoom_at(&mut self, zoom: Zoom, pointer: Option<egui::Pos2>) {
-        self.pending_position = None;
-        self.scroll_motion = None;
-        self.navigation_wait = None;
-        if self.state.zoom == zoom {
-            return;
-        }
-        let anchor = self.anchor(pointer);
-        self.state.set_zoom(zoom);
-        self.zoom_anchor = anchor;
-        if self.zoom_anchor.is_some() {
-            self.state.scroll_to_page = false;
-        }
-    }
 }
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
 enum Sidebar {
@@ -307,23 +131,26 @@ impl ReaderApp {
         self.save_due = Some(Instant::now() + Duration::from_millis(500));
     }
     pub fn scroll_offset(&self) -> Option<Vec2> {
-        self.tabs.get(self.active).map(|tab| tab.scroll)
+        self.tabs.get(self.active).map(|tab| tab.view.scroll)
     }
     pub fn markup_button_rect(&self) -> Option<egui::Rect> {
         self.markup_button
     }
     pub fn markup_count(&self) -> usize {
-        self.tabs.get(self.active).map_or(0, |tab| tab.local_marks)
+        self.tabs
+            .get(self.active)
+            .map_or(0, |tab| tab.reader.local_marks)
     }
     pub fn password_prompt_active(&self) -> bool {
         self.tabs
             .get(self.active)
-            .is_some_and(|tab| tab.password_needed)
+            .is_some_and(|tab| tab.reader.password_needed)
     }
     pub fn password_retry_available(&self) -> bool {
         self.tabs.get(self.active).is_some_and(|tab| {
             tab.supports_password()
                 && tab
+                    .reader
                     .state
                     .error
                     .as_ref()
@@ -336,28 +163,28 @@ impl ReaderApp {
     /// Visible text position for native integration tests and accessibility automation.
     pub fn text_hit_position(&mut self) -> Option<egui::Pos2> {
         let tab = self.tabs.get(self.active)?;
-        let id = tab.id;
-        let page = tab.state.document.as_ref()?.page;
+        let id = tab.reader.id;
+        let page = tab.reader.state.document.as_ref()?.page;
         let content = self.need_content(id, page)?;
         let tab = &self.tabs[self.active];
-        let (_, layout) = tab.view_layout.as_ref()?;
+        let (_, layout) = tab.view.view_layout.as_ref()?;
         let placement = layout
             .placements
             .iter()
             .find(|placement| placement.page == page)?;
-        let viewport = tab.viewport_rect?;
+        let viewport = tab.view.viewport_rect?;
         content
             .glyphs
             .iter()
             .filter(|glyph| glyph.text.chars().any(char::is_alphanumeric))
             .filter_map(|glyph| glyph.bounds)
             .find_map(|bounds| {
-                let bounds = bounds.rotated(tab.state.rotation);
+                let bounds = bounds.rotated(tab.reader.state.rotation);
                 let position = viewport.min
                     + egui::vec2(
-                        placement.left - tab.scroll.x
+                        placement.left - tab.view.scroll.x
                             + (bounds.left + bounds.right) * 0.5 * placement.size.width,
-                        placement.top - tab.scroll.y
+                        placement.top - tab.view.scroll.y
                             + (bounds.top + bounds.bottom) * 0.5 * placement.size.height,
                     );
                 viewport.contains(position).then_some(position)
@@ -376,7 +203,7 @@ impl ReaderApp {
             app.open_path(path);
         }
         for tab in &mut app.tabs {
-            tab.startup = Some(options.view.clone());
+            tab.reader.startup = Some(options.view.clone());
         }
         if options.fullscreen {
             app.fullscreen = true;
@@ -513,7 +340,7 @@ impl ReaderApp {
         }
         self.tabs
             .get(self.active)
-            .map_or(&self.empty, |tab| &tab.state)
+            .map_or(&self.empty, |tab| &tab.reader.state)
     }
     pub fn has_current_render(&self) -> bool {
         self.state()
@@ -532,7 +359,7 @@ impl ReaderApp {
         })
     }
     pub fn tab_button_rect(&self, index: usize) -> Option<egui::Rect> {
-        let id = self.tabs.get(index)?.id;
+        let id = self.tabs.get(index)?.reader.id;
         self.tab_buttons
             .iter()
             .find(|(tab, _)| *tab == id)
@@ -553,7 +380,7 @@ impl ReaderApp {
             .tabs
             .get(self.active)
             .filter(|_| !self.home)
-            .and_then(|tab| tab.state.document.as_ref())
+            .and_then(|tab| tab.reader.state.document.as_ref())
         else {
             return;
         };
@@ -576,10 +403,10 @@ impl ReaderApp {
         }
         self.tabs
             .get(self.active)
-            .filter(|tab| tab.state.document.is_some())
+            .filter(|tab| tab.reader.state.document.is_some())
             .map_or_else(Vec::new, |tab| {
                 self.preferences
-                    .favorites_for(&tab.path)
+                    .favorites_for(&tab.reader.path)
                     .into_iter()
                     .cloned()
                     .collect()
@@ -616,43 +443,49 @@ impl ReaderApp {
         (self.fullscreen, self.presentation)
     }
     pub fn reading_viewport(&self) -> Option<egui::Rect> {
-        self.tabs.get(self.active)?.viewport_rect
+        self.tabs.get(self.active)?.view.viewport_rect
     }
     pub fn fullscreen_controls_rect(&self) -> Option<egui::Rect> {
         self.fullscreen_controls
     }
     pub fn search_query(&self) -> Option<&str> {
-        Some(&self.tabs.get(self.active)?.search.query)
+        Some(&self.tabs.get(self.active)?.reader.search.query)
     }
     pub fn search_progress(&self) -> (usize, usize, usize) {
         self.tabs.get(self.active).map_or((0, 0, 0), |tab| {
-            (tab.search.hits.len(), tab.search.scanned, tab.search.total)
+            (
+                tab.reader.search.hits.len(),
+                tab.reader.search.scanned,
+                tab.reader.search.total,
+            )
         })
     }
     pub fn current_search_hit(&self) -> Option<&SearchHit> {
         let tab = self.tabs.get(self.active)?;
-        tab.search.hits.get(tab.search.index)
+        tab.reader.search.hits.get(tab.reader.search.index)
     }
     pub fn current_page_viewport(&self) -> Option<crate::document::Bounds> {
         let tab = self.tabs.get(self.active)?;
-        if tab.state.scroll_to_page
-            || tab.reveal.is_some()
-            || tab.pending_position.is_some()
-            || tab.scroll_motion.is_some()
+        if tab.reader.state.scroll_to_page
+            || tab.view.reveal.is_some()
+            || tab.reader.pending_position.is_some()
+            || tab.view.scroll_motion.is_some()
         {
             return None;
         }
-        let (spec, layout) = tab.view_layout.as_ref()?;
-        if spec.revision != tab.layout_revision {
+        let (spec, layout) = tab.view.view_layout.as_ref()?;
+        if spec.revision != tab.reader.layout_revision {
             return None;
         }
-        let page = tab.state.document.as_ref()?.page;
+        let page = tab.reader.state.document.as_ref()?.page;
         let placement = layout.placements.iter().find(|p| p.page == page)?;
         Some(crate::document::Bounds {
-            left: (tab.scroll.x - placement.left) / placement.size.width,
-            top: (tab.scroll.y - placement.top) / placement.size.height,
-            right: (tab.scroll.x + tab.viewport.x - placement.left) / placement.size.width,
-            bottom: (tab.scroll.y + tab.viewport.y - placement.top) / placement.size.height,
+            left: (tab.view.scroll.x - placement.left) / placement.size.width,
+            top: (tab.view.scroll.y - placement.top) / placement.size.height,
+            right: (tab.view.scroll.x + tab.view.viewport.x - placement.left)
+                / placement.size.width,
+            bottom: (tab.view.scroll.y + tab.view.viewport.y - placement.top)
+                / placement.size.height,
         })
     }
     pub fn open_path(&mut self, path: PathBuf) {
@@ -670,7 +503,8 @@ impl ReaderApp {
         self.home = false;
         self.reveal_tab = true;
         let path = path.canonicalize().unwrap_or(path);
-        if !duplicate && let Some(index) = self.tabs.iter().position(|tab| tab.path == path) {
+        if !duplicate && let Some(index) = self.tabs.iter().position(|tab| tab.reader.path == path)
+        {
             self.active = index;
             if let Some(saved) = restore {
                 self.tabs[index].go_to(saved.page, true);
@@ -701,7 +535,10 @@ impl ReaderApp {
         if let Some(worker) = &self.worker
             && let Err(error) = worker.open(id, path)
         {
-            self.tabs[self.active].state.finish_open(id, Err(error));
+            self.tabs[self.active]
+                .reader
+                .state
+                .finish_open(id, Err(error));
         }
     }
     fn close_index(&mut self, index: usize) {
@@ -720,14 +557,15 @@ impl ReaderApp {
             self.home = true;
         }
         if let Some(worker) = &self.worker
-            && let Err(error) = worker.close(tab.id)
+            && let Err(error) = worker.close(tab.reader.id)
         {
             self.empty.error = Some(error);
         }
-        self.pages.retain(|key| key.document_id != tab.id);
-        self.content.retain(|(id, _)| *id != tab.id);
-        self.pending_pages.retain(|key| key.document_id != tab.id);
-        self.pending_content.retain(|(id, _)| *id != tab.id);
+        self.pages.retain(|key| key.document_id != tab.reader.id);
+        self.content.retain(|(id, _)| *id != tab.reader.id);
+        self.pending_pages
+            .retain(|key| key.document_id != tab.reader.id);
+        self.pending_content.retain(|(id, _)| *id != tab.reader.id);
         if index < self.active {
             self.active -= 1;
         } else {
@@ -737,11 +575,11 @@ impl ReaderApp {
     }
     pub fn navigate(&mut self, forward: bool) {
         if let Some(tab) = self.tabs.get_mut(self.active) {
-            tab.pending_position = None;
-            tab.scroll_motion = None;
-            tab.navigation_wait = None;
-            tab.state.navigate(forward);
-            tab.selection = None;
+            tab.reader.pending_position = None;
+            tab.view.scroll_motion = None;
+            tab.view.navigation_wait = None;
+            tab.reader.state.navigate(forward);
+            tab.reader.selection = None;
         }
         self.schedule_save();
     }
@@ -761,7 +599,7 @@ impl ReaderApp {
     }
     fn error(&mut self, error: ReaderError) {
         if let Some(tab) = self.tabs.get_mut(self.active) {
-            tab.state.error = Some(error);
+            tab.reader.state.error = Some(error);
         } else {
             self.empty.error = Some(error);
         }
@@ -819,7 +657,7 @@ impl ReaderApp {
             return;
         }
         if let Some(tab) = self.tabs.get(self.active) {
-            let name = tab.path.with_extension("pdf");
+            let name = tab.reader.path.with_extension("pdf");
             let name = name
                 .file_name()
                 .unwrap_or_default()
@@ -831,7 +669,7 @@ impl ReaderApp {
                 .set_file_name(name)
                 .save_file();
             self.dialog = Some(Dialog::Save(
-                tab.id,
+                tab.reader.id,
                 Box::pin(async move { future.await.map(|file| vec![file]) }),
             ));
         }
@@ -908,115 +746,63 @@ impl ReaderApp {
                     }
                 }
                 WorkerEvent::Opened(id, result) => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
-                        let protected = result
-                            .as_ref()
-                            .is_err_and(|e| e.kind == ErrorKind::Protected)
-                            && tab.supports_password();
-                        tab.state.finish_open(id, result);
-                        tab.password_needed = protected;
-                        if tab.state.document.is_some() {
-                            if let Some(saved) = tab.restore.take() {
-                                tab.state.set_zoom(saved.zoom);
-                                tab.state.layout = saved.layout;
-                                tab.state.continuous = saved.continuous;
-                                tab.state.rotation = saved.rotation % 4;
-                                tab.state.colors = saved.colors;
-                                tab.state.manga = saved.manga;
-                                let count =
-                                    tab.state.document.as_ref().map_or(0, |d| d.info.page_count);
-                                tab.pending_position = saved
-                                    .position
-                                    .filter(|p| p.anchor((1.0, 1.0), count).is_some());
-                                tab.state.go_to(
-                                    tab.pending_position.map_or(saved.page, |p| p.page()),
-                                    false,
-                                );
-                            }
-                            if let Some(view) = tab.startup.take() {
-                                if view.page.is_some()
-                                    || view.zoom.is_some()
-                                    || view.layout.is_some()
-                                    || view.continuous.is_some()
-                                    || view.manga.is_some()
-                                    || view.rotation.is_some()
-                                    || view.search.is_some()
-                                {
-                                    tab.pending_position = None;
-                                }
-                                if let Some(zoom) = view.zoom {
-                                    tab.state.set_zoom(zoom);
-                                }
-                                if let Some(layout) = view.layout {
-                                    tab.state.layout = layout;
-                                }
-                                if let Some(continuous) = view.continuous {
-                                    tab.state.continuous = continuous;
-                                }
-                                if let Some(manga) = view.manga {
-                                    tab.state.manga = manga;
-                                }
-                                if let Some(rotation) = view.rotation {
-                                    tab.state.rotation = rotation;
-                                }
-                                if let Some(page) = view.page {
-                                    tab.state.go_to(page, false);
-                                }
-                                if let Some(query) = view.search {
-                                    self.next_search += 1;
-                                    tab.search.query = query;
-                                    tab.search.open = true;
-                                    tab.search.generation = self.next_search;
-                                    tab.search.total = tab
-                                        .state
-                                        .document
-                                        .as_ref()
-                                        .map_or(0, |d| d.info.page_count);
-                                    tab.search.due = Some(Instant::now());
-                                }
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
+                        let supports_password = tab.supports_password();
+                        if let crate::application::tabs::OpenOutcome::Ready { initial_search } =
+                            tab.reader.finish_open(id, result, supports_password)
+                        {
+                            if initial_search {
+                                self.next_search += 1;
+                                tab.view.search.open = true;
+                                tab.reader.search.generation = self.next_search;
+                                tab.view.search.due = Some(Instant::now());
                             }
                             if let Some(saved) = tab.stored() {
                                 self.preferences.remember(saved);
-                                self.preferences.record_open(&tab.path);
+                                self.preferences.record_open(&tab.reader.path);
                             }
                             self.schedule_save();
                         }
                     }
                 }
                 WorkerEvent::Details(id, result) => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
                         match result {
                             Ok(details) => {
-                                if let Some(warning) =
-                                    tab.apply_details(details, &mut self.preferences.library)
+                                if let Some(warning) = tab
+                                    .reader
+                                    .apply_details(details, &mut self.preferences.library)
                                 {
                                     self.notice = Some(warning);
                                 }
                             }
-                            Err(error) => tab.state.error = Some(error),
+                            Err(error) => tab.reader.state.error = Some(error),
                         }
                     }
                 }
                 WorkerEvent::Rendered(key, result) => {
                     self.pending_pages.remove(&key);
                     if !self.tabs.iter().any(|tab| {
-                        tab.id == key.document_id && tab.state.content_revision == key.revision
+                        tab.reader.id == key.document_id
+                            && tab.reader.state.content_revision == key.revision
                     }) {
                         continue;
                     }
                     match result {
                         Ok(page) => {
-                            if let Some(tab) =
-                                self.tabs.iter_mut().find(|tab| tab.id == key.document_id)
+                            if let Some(tab) = self
+                                .tabs
+                                .iter_mut()
+                                .find(|tab| tab.reader.id == key.document_id)
                             {
-                                if let Some(size) = tab.state.page_sizes.get_mut(key.page)
+                                if let Some(size) = tab.reader.state.page_sizes.get_mut(key.page)
                                     && *size != Some(page.page_size)
                                 {
                                     *size = Some(page.page_size);
-                                    tab.layout_revision += 1;
+                                    tab.reader.layout_revision += 1;
                                 }
-                                if tab.state.requested == Some(key) {
-                                    tab.state.rendering = false;
+                                if tab.reader.state.requested == Some(key) {
+                                    tab.reader.state.rendering = false;
                                 }
                             }
                             let image = egui::ColorImage::from_rgba_unmultiplied(
@@ -1037,28 +823,35 @@ impl ReaderApp {
                             self.pages.insert(key, display, page.rgba.len());
                         }
                         Err(error) => {
-                            if let Some(tab) =
-                                self.tabs.iter_mut().find(|tab| tab.id == key.document_id)
+                            if let Some(tab) = self
+                                .tabs
+                                .iter_mut()
+                                .find(|tab| tab.reader.id == key.document_id)
                             {
-                                tab.state.error = Some(error);
-                                tab.state.rendering = false;
+                                tab.reader.state.error = Some(error);
+                                tab.reader.state.rendering = false;
                             }
                         }
                     }
                 }
                 WorkerEvent::Content(id, page, result) => {
                     self.pending_content.remove(&(id, page));
-                    if !self.tabs.iter().any(|tab| tab.id == id) {
+                    if !self.tabs.iter().any(|tab| tab.reader.id == id) {
                         continue;
                     }
                     match result {
                         Ok(content) => {
-                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id)
-                                && tab.select_all_pending
-                                && tab.state.document.as_ref().is_some_and(|d| d.page == page)
+                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
+                                && tab.reader.select_all_pending
+                                && tab
+                                    .reader
+                                    .state
+                                    .document
+                                    .as_ref()
+                                    .is_some_and(|d| d.page == page)
                             {
-                                tab.select_all_pending = false;
-                                tab.selection = content
+                                tab.reader.select_all_pending = false;
+                                tab.reader.selection = content
                                     .glyphs
                                     .first()
                                     .zip(content.glyphs.last())
@@ -1068,8 +861,9 @@ impl ReaderApp {
                             self.content.insert((id, page), content, bytes);
                         }
                         Err(error) => {
-                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
-                                tab.state.error = Some(error);
+                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
+                            {
+                                tab.reader.state.error = Some(error);
                             }
                         }
                     }
@@ -1081,52 +875,56 @@ impl ReaderApp {
                     scanned,
                     total,
                 } => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id)
-                        && tab.search.generation == generation
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
+                        && tab.reader.search.generation == generation
                     {
-                        let first = tab.search.hits.is_empty() && !hits.is_empty();
-                        tab.search.hits.extend(hits);
-                        if tab.search.hits.len() >= crate::document::MAX_SEARCH_HITS {
-                            tab.search.hits.truncate(crate::document::MAX_SEARCH_HITS);
-                            tab.search.limited = true;
+                        let first = tab.reader.search.hits.is_empty() && !hits.is_empty();
+                        tab.reader.search.hits.extend(hits);
+                        if tab.reader.search.hits.len() >= crate::document::MAX_SEARCH_HITS {
+                            tab.reader
+                                .search
+                                .hits
+                                .truncate(crate::document::MAX_SEARCH_HITS);
+                            tab.reader.search.limited = true;
                             if let Some(worker) = &self.worker {
                                 let _ = worker.stop_search(id, generation);
                             }
                         }
-                        tab.search.scanned = scanned;
-                        tab.search.total = total;
+                        tab.reader.search.scanned = scanned;
+                        tab.reader.search.total = total;
                         if first {
-                            tab.search.index = 0;
-                            tab.go_to(tab.search.hits[0].page, true);
-                            tab.reveal = tab.search.hits[0]
+                            tab.reader.search.index = 0;
+                            tab.go_to(tab.reader.search.hits[0].page, true);
+                            tab.view.reveal = tab.reader.search.hits[0]
                                 .bounds
                                 .first()
                                 .copied()
-                                .map(|bounds| (tab.search.hits[0].page, bounds));
+                                .map(|bounds| (tab.reader.search.hits[0].page, bounds));
                         }
                     }
                 }
                 WorkerEvent::Changed(id, state) => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
-                        tab.local_marks = state.count;
-                        if tab.state.content_revision != state.revision {
-                            tab.state.content_revision = state.revision;
-                            tab.state.requested = None;
-                            tab.state.rendering = false;
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
+                        tab.reader.local_marks = state.count;
+                        if tab.reader.state.content_revision != state.revision {
+                            tab.reader.state.content_revision = state.revision;
+                            tab.reader.state.requested = None;
+                            tab.reader.state.rendering = false;
                             self.pages.retain(|key| key.document_id != id);
                             self.pending_pages.retain(|key| key.document_id != id);
                         }
                     }
                 }
                 WorkerEvent::Marked(id, result) => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
-                        tab.marking = false;
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
+                        tab.reader.marking = false;
                     }
                     match result {
                         Ok((page, count)) => {
-                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.id == id) {
-                                tab.local_marks = count;
-                                tab.selection = None;
+                            if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
+                            {
+                                tab.reader.local_marks = count;
+                                tab.reader.selection = None;
                             }
                             self.pages
                                 .retain(|key| key.document_id != id || key.page != page);
@@ -1148,8 +946,8 @@ impl ReaderApp {
                 WorkerEvent::Unavailable(error) => {
                     self.worker = None;
                     for tab in &mut self.tabs {
-                        tab.state.opening = None;
-                        tab.state.rendering = false;
+                        tab.reader.state.opening = None;
+                        tab.reader.state.rendering = false;
                     }
                     self.error(error);
                 }
@@ -1187,14 +985,19 @@ impl ReaderApp {
     fn start_search(&mut self) {
         if let Some(tab) = self.tabs.get_mut(self.active) {
             self.next_search += 1;
-            tab.search.generation = self.next_search;
-            tab.search.hits.clear();
-            tab.search.index = 0;
-            tab.search.scanned = 0;
-            tab.search.limited = false;
-            tab.reveal = None;
-            tab.search.total = tab.state.document.as_ref().map_or(0, |d| d.info.page_count);
-            tab.search.due = Some(Instant::now() + Duration::from_millis(200));
+            tab.reader.search.generation = self.next_search;
+            tab.reader.search.hits.clear();
+            tab.reader.search.index = 0;
+            tab.reader.search.scanned = 0;
+            tab.reader.search.limited = false;
+            tab.view.reveal = None;
+            tab.reader.search.total = tab
+                .reader
+                .state
+                .document
+                .as_ref()
+                .map_or(0, |d| d.info.page_count);
+            tab.view.search.due = Some(Instant::now() + Duration::from_millis(200));
         }
     }
     fn prefetch_page(&mut self, key: RenderKey) {
@@ -1212,23 +1015,23 @@ impl ReaderApp {
     }
     fn step_search(&mut self, forward: bool) {
         if let Some(tab) = self.tabs.get_mut(self.active)
-            && !tab.search.hits.is_empty()
+            && !tab.reader.search.hits.is_empty()
         {
-            let count = tab.search.hits.len();
-            tab.search.index = if forward {
-                (tab.search.index + 1) % count
+            let count = tab.reader.search.hits.len();
+            tab.reader.search.index = if forward {
+                (tab.reader.search.index + 1) % count
             } else {
-                (tab.search.index + count - 1) % count
+                (tab.reader.search.index + count - 1) % count
             };
-            tab.go_to(tab.search.hits[tab.search.index].page, true);
-            let hit = &tab.search.hits[tab.search.index];
-            tab.reveal = hit.bounds.first().copied().map(|bounds| (hit.page, bounds));
+            tab.go_to(tab.reader.search.hits[tab.reader.search.index].page, true);
+            let hit = &tab.reader.search.hits[tab.reader.search.index];
+            tab.view.reveal = hit.bounds.first().copied().map(|bounds| (hit.page, bounds));
         }
     }
     fn selected_text(&mut self) -> Option<String> {
         let tab = self.tabs.get(self.active)?;
-        let (page, start, end) = tab.selection?;
-        Some(self.content.get(&(tab.id, page))?.text(start, end))
+        let (page, start, end) = tab.reader.selection?;
+        Some(self.content.get(&(tab.reader.id, page))?.text(start, end))
     }
     fn enabled(&self, action: Action) -> bool {
         if self.home
@@ -1261,7 +1064,7 @@ impl ReaderApp {
             Action::Highlight | Action::Underline => {
                 self.tabs
                     .get(self.active)
-                    .is_some_and(|tab| tab.selection.is_some() && !tab.marking)
+                    .is_some_and(|tab| tab.reader.selection.is_some() && !tab.reader.marking)
                     && self
                         .state()
                         .details
@@ -1271,7 +1074,7 @@ impl ReaderApp {
             Action::UndoMarkup => self
                 .tabs
                 .get(self.active)
-                .is_some_and(|tab| tab.local_marks > 0 && !tab.marking),
+                .is_some_and(|tab| tab.reader.local_marks > 0 && !tab.reader.marking),
             Action::Reopen => !self.closed.is_empty(),
             Action::Open => self.worker.is_some() && self.dialog.is_none(),
             Action::Previous | Action::First => {
@@ -1287,7 +1090,7 @@ impl ReaderApp {
             Action::Copy => {
                 self.tabs
                     .get(self.active)
-                    .is_some_and(|t| t.selection.is_some())
+                    .is_some_and(|t| t.reader.selection.is_some())
                     && self
                         .state()
                         .details
@@ -1297,7 +1100,7 @@ impl ReaderApp {
             Action::FindNext | Action::FindPrevious => self
                 .tabs
                 .get(self.active)
-                .is_some_and(|t| !t.search.hits.is_empty()),
+                .is_some_and(|t| !t.reader.search.hits.is_empty()),
             Action::NextTab | Action::PreviousTab => !self.tabs.is_empty(),
             Action::MoveTabLeft | Action::MoveTabRight => self.tabs.len() > 1,
             _ => true,
@@ -1344,12 +1147,12 @@ impl ReaderApp {
                 | Action::Manga
         ) && let Some(tab) = self.tabs.get_mut(self.active)
         {
-            tab.pending_position = None;
+            tab.reader.pending_position = None;
         }
         match action {
             Action::Highlight | Action::Underline => {
                 let tab = &mut self.tabs[self.active];
-                if let Some((page, start, end)) = tab.selection
+                if let Some((page, start, end)) = tab.reader.selection
                     && let Some(worker) = &self.worker
                 {
                     let mark = crate::document::TextMarkup {
@@ -1363,8 +1166,8 @@ impl ReaderApp {
                         },
                         color: self.preferences.markup_color,
                     };
-                    match worker.mark(tab.id, mark) {
-                        Ok(()) => tab.marking = true,
+                    match worker.mark(tab.reader.id, mark) {
+                        Ok(()) => tab.reader.marking = true,
                         Err(error) => self.error(error),
                     }
                 }
@@ -1372,8 +1175,8 @@ impl ReaderApp {
             Action::UndoMarkup => {
                 let tab = &mut self.tabs[self.active];
                 if let Some(worker) = &self.worker {
-                    match worker.undo_mark(tab.id) {
-                        Ok(()) => tab.marking = true,
+                    match worker.undo_mark(tab.reader.id) {
+                        Ok(()) => tab.reader.marking = true,
                         Err(error) => self.error(error),
                     }
                 }
@@ -1397,9 +1200,9 @@ impl ReaderApp {
                 }
             }
             Action::CloseOthers => {
-                let keep = self.tabs[self.active].id;
+                let keep = self.tabs[self.active].reader.id;
                 for index in (0..self.tabs.len()).rev() {
-                    if self.tabs[index].id != keep {
+                    if self.tabs[index].reader.id != keep {
                         self.close_index(index);
                     }
                 }
@@ -1421,7 +1224,7 @@ impl ReaderApp {
             }
             Action::Reload => {
                 let saved = self.tabs[self.active].stored();
-                let path = self.tabs[self.active].path.clone();
+                let path = self.tabs[self.active].reader.path.clone();
                 let index = self.active;
                 self.close_index(index);
                 self.open_document(path, saved);
@@ -1436,16 +1239,18 @@ impl ReaderApp {
                     self.open_document_inner(saved.path.clone(), Some(saved), true);
                 }
             }
-            Action::CopyPath => ctx.copy_text(self.tabs[self.active].path.display().to_string()),
+            Action::CopyPath => {
+                ctx.copy_text(self.tabs[self.active].reader.path.display().to_string())
+            }
             Action::Exit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
             Action::DuplicateWindow => {
-                let path = self.tabs[self.active].path.clone();
+                let path = self.tabs[self.active].reader.path.clone();
                 if let Err(e) = platform::new_window_with_paths(Some(&path), &self.app_paths) {
                     self.error(e);
                 }
             }
             Action::Reveal => {
-                let path = self.tabs[self.active].path.clone();
+                let path = self.tabs[self.active].reader.path.clone();
                 if let Err(e) = platform::reveal(&path) {
                     self.error(e);
                 }
@@ -1453,17 +1258,23 @@ impl ReaderApp {
             Action::Properties => self.properties_open = true,
             Action::Previous => self.navigate(false),
             Action::Next => self.navigate(true),
-            Action::First => self.tabs[self.active].state.go_to(0, true),
+            Action::First => self.tabs[self.active].reader.state.go_to(0, true),
             Action::Last => {
                 let tab = &mut self.tabs[self.active];
-                let count = tab.state.document.as_ref().map_or(1, |d| d.info.page_count);
-                tab.state.go_to(count - 1, true);
+                let count = tab
+                    .reader
+                    .state
+                    .document
+                    .as_ref()
+                    .map_or(1, |d| d.info.page_count);
+                tab.reader.state.go_to(count - 1, true);
             }
             Action::GoTo => {
                 self.go_to_value = self.state().document.as_ref().map_or(1, |d| d.page + 1);
                 self.go_to_open = true;
             }
             Action::Back | Action::Forward => self.tabs[self.active]
+                .reader
                 .state
                 .history_navigate(action == Action::Forward),
             Action::ScrollUp
@@ -1480,12 +1291,12 @@ impl ReaderApp {
                 let zoom = self.effective_zoom();
                 let tab = &mut self.tabs[self.active];
                 let anchor = tab.anchor(None);
-                let before = tab.state.zoom;
-                tab.state.change_zoom(action == Action::ZoomIn, zoom);
-                if tab.state.zoom != before {
-                    tab.zoom_anchor = anchor;
+                let before = tab.reader.state.zoom;
+                tab.reader.state.change_zoom(action == Action::ZoomIn, zoom);
+                if tab.reader.state.zoom != before {
+                    tab.view.zoom_anchor = anchor;
                     if anchor.is_some() {
-                        tab.state.scroll_to_page = false;
+                        tab.reader.state.scroll_to_page = false;
                     }
                 }
             }
@@ -1498,40 +1309,42 @@ impl ReaderApp {
                 self.zoom_open = true;
             }
             Action::RotateLeft | Action::RotateRight => self.tabs[self.active]
+                .reader
                 .state
                 .rotate(action == Action::RotateRight),
             Action::Single | Action::Facing | Action::Book => {
                 let tab = &mut self.tabs[self.active];
-                tab.state.layout = match action {
+                tab.reader.state.layout = match action {
                     Action::Facing => LayoutMode::Facing,
                     Action::Book => LayoutMode::Book,
                     _ => LayoutMode::Single,
                 };
-                tab.state.invalidate();
-                tab.state.scroll_to_page = true;
+                tab.reader.state.invalidate();
+                tab.reader.state.scroll_to_page = true;
             }
             Action::Continuous => {
                 let tab = &mut self.tabs[self.active];
-                tab.state.continuous = !tab.state.continuous;
-                tab.state.invalidate();
-                tab.state.scroll_to_page = true;
+                tab.reader.state.continuous = !tab.reader.state.continuous;
+                tab.reader.state.invalidate();
+                tab.reader.state.scroll_to_page = true;
             }
             Action::Manga => {
-                self.tabs[self.active].state.manga = !self.tabs[self.active].state.manga
+                self.tabs[self.active].reader.state.manga =
+                    !self.tabs[self.active].reader.state.manga
             }
             Action::VerticalReading => {
                 let tab = &mut self.tabs[self.active];
-                tab.state.layout = LayoutMode::Single;
-                tab.state.continuous = true;
-                tab.state.set_zoom(Zoom::FitWidth);
-                tab.state.invalidate();
-                tab.state.scroll_to_page = true;
-                tab.scroll.x = 0.0;
+                tab.reader.state.layout = LayoutMode::Single;
+                tab.reader.state.continuous = true;
+                tab.reader.state.set_zoom(Zoom::FitWidth);
+                tab.reader.state.invalidate();
+                tab.reader.state.scroll_to_page = true;
+                tab.view.scroll.x = 0.0;
             }
             Action::Find => {
                 let tab = &mut self.tabs[self.active];
-                tab.search.open = true;
-                tab.search.focus = true;
+                tab.view.search.open = true;
+                tab.view.search.focus = true;
             }
             Action::FindNext => self.step_search(true),
             Action::FindPrevious => self.step_search(false),
@@ -1542,13 +1355,13 @@ impl ReaderApp {
             }
             Action::SelectAll => {
                 let tab = &mut self.tabs[self.active];
-                tab.select_all_pending = true;
-                let id = tab.id;
-                let page = tab.state.document.as_ref().map_or(0, |d| d.page);
+                tab.reader.select_all_pending = true;
+                let id = tab.reader.id;
+                let page = tab.reader.state.document.as_ref().map_or(0, |d| d.page);
                 if let Some(content) = self.need_content(id, page) {
                     let tab = &mut self.tabs[self.active];
-                    tab.select_all_pending = false;
-                    tab.selection = content
+                    tab.reader.select_all_pending = false;
+                    tab.reader.selection = content
                         .glyphs
                         .first()
                         .zip(content.glyphs.last())
@@ -1592,12 +1405,12 @@ impl ReaderApp {
                 } else {
                     crate::document::PageColors::Grayscale
                 };
-                tab.state.colors = if tab.state.colors == selected {
+                tab.reader.state.colors = if tab.reader.state.colors == selected {
                     crate::document::PageColors::Original
                 } else {
                     selected
                 };
-                tab.state.invalidate();
+                tab.reader.state.invalidate();
             }
             Action::Fullscreen => {
                 if self.presentation {
@@ -1704,11 +1517,12 @@ impl ReaderApp {
                 | Action::ScrollRightPage
                 | Action::ScrollDownHalf
         );
-        let fits_horizontally = tab.view_layout.as_ref().is_some_and(|(_, layout)| {
-            let Some(document) = &tab.state.document else {
+        let fits_horizontally = tab.view.view_layout.as_ref().is_some_and(|(_, layout)| {
+            let Some(document) = &tab.reader.state.document else {
                 return false;
             };
             let spread = tab
+                .reader
                 .state
                 .layout
                 .spread(document.page, document.info.page_count);
@@ -1720,18 +1534,19 @@ impl ReaderApp {
                     right = right.max(placement.left + placement.size.width);
                 }
             }
-            left.is_finite() && right - left <= tab.viewport.x + 1.0
+            left.is_finite() && right - left <= tab.view.viewport.x + 1.0
         });
         if horizontal
-            && (matches!(tab.state.zoom, Zoom::FitWidth | Zoom::FitPage) || fits_horizontally)
+            && (matches!(tab.reader.state.zoom, Zoom::FitWidth | Zoom::FitPage)
+                || fits_horizontally)
         {
             self.navigate(forward);
             return;
         }
         let screen = if horizontal {
-            tab.viewport.x
+            tab.view.viewport.x
         } else {
-            tab.viewport.y
+            tab.view.viewport.y
         };
         let step = match action {
             Action::ScrollUpPage
@@ -1741,7 +1556,7 @@ impl ReaderApp {
             Action::ScrollUpHalf | Action::ScrollDownHalf => screen * 0.5,
             _ => 40.0,
         };
-        let content = tab.view_layout.as_ref().map_or(screen, |(_, layout)| {
+        let content = tab.view.view_layout.as_ref().map_or(screen, |(_, layout)| {
             if horizontal {
                 layout.width
             } else {
@@ -1749,17 +1564,17 @@ impl ReaderApp {
             }
         });
         let offset = if horizontal {
-            &mut tab.scroll.x
+            &mut tab.view.scroll.x
         } else {
-            &mut tab.scroll.y
+            &mut tab.view.scroll.y
         };
         let old = *offset;
         *offset =
             (*offset + if forward { step } else { -step }).clamp(0.0, (content - screen).max(0.0));
-        if (*offset - old).abs() < 0.1 && (horizontal || !tab.state.continuous) {
+        if (*offset - old).abs() < 0.1 && (horizontal || !tab.reader.state.continuous) {
             self.navigate(forward);
             if !forward && !horizontal {
-                self.tabs[self.active].scroll_bottom = true;
+                self.tabs[self.active].view.scroll_bottom = true;
             }
         }
     }
@@ -1780,7 +1595,7 @@ impl ReaderApp {
                     && self
                         .tabs
                         .get(self.active)
-                        .is_some_and(|tab| tab.password_needed || tab.search.open);
+                        .is_some_and(|tab| tab.reader.password_needed || tab.view.search.open);
             self.palette_open = false;
             self.go_to_open = false;
             self.zoom_open = false;
@@ -1794,10 +1609,10 @@ impl ReaderApp {
                 self.sync_fullscreen(ctx);
             }
             if let Some(tab) = self.tabs.get_mut(self.active) {
-                tab.selection = None;
-                tab.search.open = false;
-                tab.password_needed = false;
-                tab.password.clear();
+                tab.reader.selection = None;
+                tab.view.search.open = false;
+                tab.reader.password_needed = false;
+                tab.view.password.clear();
             }
             ctx.memory_mut(|memory| {
                 if let Some(id) = memory.focused() {
@@ -1816,7 +1631,7 @@ impl ReaderApp {
             || self
                 .tabs
                 .get(self.active)
-                .is_some_and(|tab| tab.password_needed)
+                .is_some_and(|tab| tab.reader.password_needed)
             || egui::Popup::is_any_open(ctx);
         let (wheel_zoom, pointer) =
             ctx.input(|input| (input.zoom_delta(), input.pointer.hover_pos()));
@@ -1825,7 +1640,7 @@ impl ReaderApp {
             && wheel_zoom != 1.0
             && let Some(tab) = self.tabs.get(self.active)
             && pointer
-                .zip(tab.viewport_rect)
+                .zip(tab.view.viewport_rect)
                 .is_some_and(|(pointer, rect)| rect.contains(pointer))
         {
             let percent = (self.effective_zoom() * wheel_zoom)
@@ -2088,20 +1903,20 @@ impl eframe::App for ReaderApp {
         }
         self.shortcuts(ctx);
         if let Some(tab) = self.tabs.get_mut(self.active)
-            && let Some(due) = tab.search.due
+            && let Some(due) = tab.view.search.due
         {
             if due <= Instant::now() {
-                tab.search.due = None;
+                tab.view.search.due = None;
                 if let Some(worker) = &self.worker
                     && let Err(error) = worker.search(SearchRequest {
-                        document_id: tab.id,
-                        generation: tab.search.generation,
-                        query: tab.search.query.clone(),
-                        match_case: tab.search.match_case,
-                        whole_word: tab.search.whole_word,
+                        document_id: tab.reader.id,
+                        generation: tab.reader.search.generation,
+                        query: tab.reader.search.query.clone(),
+                        match_case: tab.reader.search.match_case,
+                        whole_word: tab.reader.search.whole_word,
                     })
                 {
-                    tab.state.error = Some(error);
+                    tab.reader.state.error = Some(error);
                 }
             } else {
                 ctx.request_repaint_after(due.saturating_duration_since(Instant::now()));
@@ -2194,78 +2009,5 @@ impl eframe::App for ReaderApp {
         if let Some(writer) = &mut self.preference_writer {
             self.config_warning = writer.finish().err();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        config::LibraryEntry,
-        document::{DocumentDetails, DocumentInfo, PageSize},
-    };
-
-    #[test]
-    fn typed_details_ignore_presentation_labels_and_preserve_unrelated_books() {
-        let path = PathBuf::from("book.epub");
-        let mut tab = Tab::new(7, path.clone(), None);
-        tab.state.finish_open(
-            7,
-            Ok(DocumentInfo {
-                path: path.clone(),
-                page_count: 2,
-            }),
-        );
-        let mut library = [
-            LibraryEntry {
-                path,
-                title: "Old title".into(),
-                opens: 1,
-            },
-            LibraryEntry {
-                path: "other.pdf".into(),
-                title: "Other book".into(),
-                opens: 2,
-            },
-        ];
-        let details = DocumentDetails {
-            title: Some("Imported book title".into()),
-            annotation_count: 4,
-            annotation_warning: Some("Typed warning".into()),
-            first_page_size: PageSize {
-                width: 420.0,
-                height: 595.0,
-            },
-            properties: vec![
-                ("Title".into(), "Misleading display title".into()),
-                ("Marcas locales".into(), "999".into()),
-                ("Aviso de anotaciones".into(), "Misleading warning".into()),
-            ],
-            ..Default::default()
-        };
-        assert_eq!(
-            tab.apply_details(details, &mut library).as_deref(),
-            Some("Typed warning")
-        );
-        assert_eq!(tab.local_marks, 4);
-        assert_eq!(library[0].title, "Imported book title");
-        assert_eq!(library[1].title, "Other book");
-        assert_eq!(
-            tab.state.page_sizes[0],
-            Some(PageSize {
-                width: 420.0,
-                height: 595.0
-            })
-        );
-        assert_eq!(tab.layout_revision, 1);
-        let update = DocumentDetails {
-            properties: vec![("Título".into(), "Presentation only".into())],
-            ..Default::default()
-        };
-        assert!(tab.apply_details(update, &mut library).is_none());
-        assert_eq!(tab.local_marks, 0);
-        assert_eq!(library[0].title, "Imported book title");
-        assert_eq!(tab.layout_revision, 2);
-        assert!(tab.state.details.unwrap().annotation_warning.is_none());
     }
 }

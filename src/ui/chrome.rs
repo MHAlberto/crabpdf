@@ -136,18 +136,17 @@ impl ReaderApp {
                                 .show(ui, |ui| {
                                     ui.horizontal(|ui| {
                                         for (index, tab) in self.tabs.iter().enumerate() {
-                                            ui.push_id(tab.id, |ui| {
+                                            ui.push_id(tab.reader.id, |ui| {
                                             let selected = !self.home && index == self.active;
                                             egui::Frame::new()
                                                 .inner_margin(egui::Margin::symmetric(2, 1))
                                                 .show(ui, |ui| {
                                                     ui.horizontal(|ui| {
-                                                        let name = tab
-                                                            .path
+                                                        let name = tab.reader.path
                                                             .file_name()
                                                             .unwrap_or_default()
                                                             .to_string_lossy();
-                                                        let label = if tab.state.opening.is_some() {
+                                                        let label = if tab.reader.state.opening.is_some() {
                                                             format!("{name} …")
                                                         } else {
                                                             name.into_owned()
@@ -162,12 +161,12 @@ impl ReaderApp {
                                                             )
                                                             .on_hover_text(format!(
                                                                 "{}\nArrastra fuera de la barra para duplicar la pestaña.",
-                                                                tab.path.display(),
+                                                                tab.reader.path.display(),
                                                             ))
                                                             .on_hover_cursor(egui::CursorIcon::Grab);
-                                                        self.tab_buttons.push((tab.id, button.rect));
+                                                        self.tab_buttons.push((tab.reader.id, button.rect));
                                                         if button.drag_started_by(egui::PointerButton::Primary) {
-                                                            started_drag = Some(tab.id);
+                                                            started_drag = Some(tab.reader.id);
                                                         }
                                                         if button.clicked() {
                                                             activate = Some(index);
@@ -299,8 +298,8 @@ impl ReaderApp {
         if ui.input(|i| i.pointer.button_released(egui::PointerButton::Primary))
             && let Some(id) = self.tab_drag.take()
             && outside
-            && let Some(index) = self.tabs.iter().position(|tab| tab.id == id)
-            && self.tabs[index].state.document.is_some()
+            && let Some(index) = self.tabs.iter().position(|tab| tab.reader.id == id)
+            && self.tabs[index].reader.state.document.is_some()
             && self.tabs.len() < 64
         {
             activate = Some(index);

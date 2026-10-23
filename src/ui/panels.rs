@@ -423,7 +423,7 @@ impl ReaderApp {
         let Some(tab) = self.tabs.get(self.active) else {
             return;
         };
-        let was_open = tab.search.open;
+        let was_open = tab.view.search.open;
         let mut open = was_open;
         let mut changed = false;
         let mut action = None;
@@ -433,26 +433,26 @@ impl ReaderApp {
                 let tab = &mut self.tabs[self.active];
                 ui.label("Buscar:");
                 let response = ui.add(
-                    egui::TextEdit::singleline(&mut tab.search.query)
+                    egui::TextEdit::singleline(&mut tab.reader.search.query)
                         .desired_width(240.0)
                         .hint_text("Texto del documento"),
                 );
-                if tab.search.focus {
+                if tab.view.search.focus {
                     response.request_focus();
-                    tab.search.focus = false;
+                    tab.view.search.focus = false;
                 }
                 changed |= response.changed();
                 changed |= ui
-                    .checkbox(&mut tab.search.match_case, "Aa")
+                    .checkbox(&mut tab.reader.search.match_case, "Aa")
                     .on_hover_text("Distinguir mayúsculas")
                     .changed();
                 changed |= ui
-                    .checkbox(&mut tab.search.whole_word, "Palabra completa")
+                    .checkbox(&mut tab.reader.search.whole_word, "Palabra completa")
                     .changed();
-                let count = tab.search.hits.len();
+                let count = tab.reader.search.hits.len();
                 ui.label(format!(
                     "{} / {count}",
-                    if count == 0 { 0 } else { tab.search.index + 1 }
+                    if count == 0 { 0 } else { tab.reader.search.index + 1 }
                 ));
                 if ui
                     .add_enabled(count > 0, egui::Button::new("Anterior"))
@@ -466,16 +466,16 @@ impl ReaderApp {
                 {
                     action = Some(Action::FindNext);
                 }
-                if tab.search.limited { ui.label("Límite de 10 000 coincidencias").on_hover_text("Refina la búsqueda para consultar otros resultados. El límite controla la memoria de documentos extensos."); }
-                if !tab.search.limited && tab.search.scanned < tab.search.total && !tab.search.query.is_empty() {
+                if tab.reader.search.limited { ui.label("Límite de 10 000 coincidencias").on_hover_text("Refina la búsqueda para consultar otros resultados. El límite controla la memoria de documentos extensos."); }
+                if !tab.reader.search.limited && tab.reader.search.scanned < tab.reader.search.total && !tab.reader.search.query.is_empty() {
                     ui.spinner();
                     ui.label(format!(
                         "{}/{} páginas",
-                        tab.search.scanned, tab.search.total
+                        tab.reader.search.scanned, tab.reader.search.total
                     ));
                 }
                 if icons::close_button(ui, egui::vec2(24.0, 24.0), false, "Cerrar búsqueda · Escape").clicked() {
-                    tab.search.open = false;
+                    tab.view.search.open = false;
                 }
                 if response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                     action = Some(if ui.input(|i| i.modifiers.shift) {
@@ -532,7 +532,7 @@ impl ReaderApp {
                             ui.label("Abre un documento.");
                             return;
                         };
-                        let Some(document) = &tab.state.document else {
+                        let Some(document) = &tab.reader.state.document else {
                             ui.label("Esperando documento…");
                             return;
                         };
@@ -621,13 +621,13 @@ impl ReaderApp {
                         let Some(tab) = self
                             .tabs
                             .get(self.active)
-                            .filter(|t| t.state.document.is_some())
+                            .filter(|t| t.reader.state.document.is_some())
                         else {
                             ui.label("Abre un documento para ver sus favoritos.");
                             return;
                         };
-                        let path = tab.path.clone();
-                        let current = tab.state.document.as_ref().map_or(0, |d| d.page);
+                        let path = tab.reader.path.clone();
+                        let current = tab.reader.state.document.as_ref().map_or(0, |d| d.page);
                         let name = path.file_name().unwrap_or_default().to_string_lossy();
                         ui.label(RichText::new(name.as_ref()).strong())
                             .on_hover_text(path.display().to_string());
@@ -742,18 +742,18 @@ impl ReaderApp {
                             && ui.button("Introducir contraseña").clicked()
                             && let Some(tab) = self.tabs.get_mut(self.active)
                         {
-                            tab.password_needed = true;
+                            tab.reader.password_needed = true;
                         }
                         if error.kind == ErrorKind::Render
                             && ui.button("Reintentar").clicked()
                             && let Some(tab) = self.tabs.get_mut(self.active)
                         {
-                            tab.state.invalidate();
+                            tab.reader.state.invalidate();
                             self.pending_pages.clear();
                         }
                         if self.worker.is_some() && ui.small_button("Cerrar aviso").clicked() {
                             if let Some(tab) = self.tabs.get_mut(self.active) {
-                                tab.state.error = None;
+                                tab.reader.state.error = None;
                             } else {
                                 self.empty.error = None;
                             }
@@ -898,7 +898,7 @@ impl ReaderApp {
                 .as_ref()
                 .map(|d| d.properties.clone())
                 .unwrap_or_default();
-            let path = self.tabs.get(self.active).map(|t| t.path.clone());
+            let path = self.tabs.get(self.active).map(|t| t.reader.path.clone());
             egui::Window::new("Propiedades del documento")
                 .open(&mut open)
                 .default_width(420.0)
@@ -1062,7 +1062,7 @@ impl ReaderApp {
         let Some(tab) = self.tabs.get_mut(self.active) else {
             return;
         };
-        if !tab.password_needed {
+        if !tab.reader.password_needed {
             return;
         }
         let mut submit = false;
@@ -1072,9 +1072,16 @@ impl ReaderApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
-                ui.label(tab.path.file_name().unwrap_or_default().to_string_lossy());
+                ui.label(
+                    tab.reader
+                        .path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy(),
+                );
                 ui.label("Introduce la contraseña para abrir este documento.");
-                let response = ui.add(egui::TextEdit::singleline(&mut tab.password).password(true));
+                let response =
+                    ui.add(egui::TextEdit::singleline(&mut tab.view.password).password(true));
                 response.request_focus();
                 ui.horizontal(|ui| {
                     submit = ui.button("Abrir").clicked()
@@ -1083,19 +1090,20 @@ impl ReaderApp {
                 });
             });
         if cancel {
-            tab.password_needed = false;
-            tab.password.clear();
+            tab.reader.password_needed = false;
+            tab.view.password.clear();
         }
         if submit {
-            tab.password_needed = false;
-            tab.state.opening = Some(tab.id);
-            tab.state.error = None;
-            let password = std::mem::take(&mut tab.password);
+            tab.reader.retry_open();
+            let password = std::mem::take(&mut tab.view.password);
             if let Some(worker) = &self.worker
-                && let Err(error) =
-                    worker.open_with_password(tab.id, tab.path.clone(), Some(password))
+                && let Err(error) = worker.open_with_password(
+                    tab.reader.id,
+                    tab.reader.path.clone(),
+                    Some(password),
+                )
             {
-                tab.state.finish_open(tab.id, Err(error));
+                tab.reader.state.finish_open(tab.reader.id, Err(error));
             }
         }
     }

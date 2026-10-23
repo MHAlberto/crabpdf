@@ -5,7 +5,7 @@ param(
     [string]$AppExecutable='target/x86_64-pc-windows-msvc/release/crabpdf.exe',
     [string]$Pdfium='native/pdfium.dll',
     [string]$Output='artifacts/architecture-phase1/before',
-    [ValidateRange(3,50)][int]$Runs=5
+    [ValidateRange(1,50)][int]$Runs=5
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -89,7 +89,13 @@ try{
                 try{
                     $process.Refresh()
                     $peak=[Math]::Max($peak,$process.PeakWorkingSet64)
-                    $phase=if(Test-Path -LiteralPath (Join-Path $runPath 'phase.txt')){[IO.File]::ReadAllText((Join-Path $runPath 'phase.txt'))}else{'0'}
+                    $phase='0'
+                    $phasePath=Join-Path $runPath 'phase.txt'
+                    if(Test-Path -LiteralPath $phasePath){
+                        # The probe may replace this file while it changes phase.
+                        # A sharing violation only skips this resource sample.
+                        try{$phase=[IO.File]::ReadAllText($phasePath)}catch [IO.IOException]{}
+                    }
                     if($phase -eq '9'){$idle.Add(@{wall=$watch.Elapsed.TotalSeconds;cpu=$process.TotalProcessorTime.TotalSeconds})}
                 }catch [InvalidOperationException]{if(-not $process.HasExited){throw}}
                 Start-Sleep -Milliseconds 50

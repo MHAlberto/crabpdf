@@ -82,7 +82,7 @@ Son mediciones de la app en Windows x64, sin sumar conversores o GPU. La caché 
 
 ## Continuación
 
-A02c extraerá las reglas de búsqueda y selección. Los datos ya tienen propietario, pero el controlador de búsqueda y su coordinación con el worker aún están en UI. El siguiente corte tiene estas entradas concretas:
+Al cerrar A02b, el siguiente corte previsto fue A02c, con estas entradas concretas. Su implementación y evidencia se registran ahora en [PHASE_3.md](PHASE_3.md):
 
 1. Mover reinicio, aceptación de lotes y avance de coincidencias desde `ReaderApp::{start_search, poll_worker, step_search}` a aplicación. Recibir la generación como dato; devolver destino/revelado y solicitud de detener al alcanzar el límite. El foco y el debounce de 200 ms siguen en la vista.
 2. Separar reglas de rango/selección pendiente de los handlers de contenido y acciones, conservando la caché de texto en su adaptador y el hit testing de pantalla en el visor.

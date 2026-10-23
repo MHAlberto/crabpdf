@@ -1,6 +1,6 @@
 # Arquitectura de CrabPDF
 
-El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
+El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. [A02c](architecture/PHASE_3.md) extrae búsqueda y selección, incluida la cancelación por documento/generación. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
@@ -13,6 +13,8 @@ flowchart LR
     CLI --> Tabs[application/tabs: apertura y restauración]
     UI --> Tabs
     Tabs --> State[state: navegación por documento]
+    Tabs --> Search[application/search: consulta y resultados]
+    Tabs --> Selection[application/selection: rango y selección pendiente]
     UI --- View[ui/tab_view: geometría, foco y animación]
     State --> Layout[layout: páginas y regiones visibles]
     UI --> Worker[worker: colas con prioridad]
@@ -40,7 +42,9 @@ flowchart LR
 | `commands.rs` | Vocabulario común para menús, contexto, paleta y atajos. |
 | `application/favorites.rs` | Modelo y reglas de favoritos por libro, acciones y resultados sin I/O; `config` conserva la fachada compatible. |
 | `application/tabs.rs` | Pestaña lógica, apertura/reintento, restauración, opciones iniciales, snapshots y navegación. |
-| `application/profile.rs`, `application/search.rs` | Registros de perfil compatibles y datos de búsqueda por pestaña; sin I/O ni tipos gráficos. |
+| `application/profile.rs` | Registros de perfil compatibles, sin I/O. |
+| `application/search.rs` | Generaciones, aceptación de resultados/progreso, límite y navegación circular; produce destinos y cancelación como datos. |
+| `application/selection.rs` | Palabra, arrastre y selección completa por página/documento; descarta contenido tardío o cancelado. |
 | `ui/tab_view.rs` | Estado visual de cada pestaña: scroll, geometría, foco, entrada de contraseña y animaciones. |
 | `ui/mod.rs` | Composición de pestañas, eventos, diálogos asíncronos y coordinación. |
 | `ui/panels.rs` | Menús, barras, miniaturas, índice, favoritos y diálogos. |

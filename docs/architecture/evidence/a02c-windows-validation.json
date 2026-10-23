@@ -1,0 +1,217 @@
+﻿{
+    "schema":  1,
+    "source_commit":  "ea38997507fbe73150b302703b735771bce241e3",
+    "platform":  "Windows x64",
+    "profiles":  {
+                     "tests":  "dev, --lib --tests --include-ignored --test-threads=1",
+                     "gui_and_application":  "release, opt-level=3, ThinLTO"
+                 },
+    "checks":  {
+                   "fmt":  "passed",
+                   "clippy":  "passed, --all-targets -D warnings",
+                   "unique_tests":  78,
+                   "unit_tests":  33,
+                   "integration_tests":  {
+                                             "annotation_sync":  2,
+                                             "favorites_contract":  1,
+                                             "formats_and_marks":  7,
+                                             "import_recovery":  1,
+                                             "native_pdf":  8,
+                                             "profile_sessions":  2,
+                                             "reading_session":  4,
+                                             "tabs_contract":  7,
+                                             "search_selection_contract":  13
+                                         }
+               },
+    "gui_checks":  [
+                       "document_chrome_smoke custom/native",
+                       "Win32 full client geometry",
+                       "transition_smoke normal/reduced: selection, highlight, navigation",
+                       "search_smoke: tall-page reveal, empty query, rapid replacement"
+                   ],
+    "captures":  50,
+    "fullscreen_samples":  [
+                               {
+                                   "frame":  "custom",
+                                   "phase":  18,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "custom",
+                                   "phase":  19,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "custom",
+                                   "phase":  22,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  18,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  19,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  22,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               }
+                           ],
+    "executables":  [
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/examples/document_chrome_smoke.exe",
+                            "sha256":  "c46ae3506db67530077811e121da0277e212a2f43ce5e804761f42f93eccbfbc"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/examples/transition_smoke.exe",
+                            "sha256":  "41c2efec21cf00720c375204350c3de27229bae9c0d8cd3d7fa518fa27a438c3"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/examples/search_smoke.exe",
+                            "sha256":  "033370202e9232bc6d2e1bb8967b790a012fd20625eebc8c15ebff0eb96947cb"
+                        }
+                    ],
+    "ci":  {
+               "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402",
+               "source_commit":  "ea38997507fbe73150b302703b735771bce241e3",
+               "status":  "completed",
+               "conclusion":  "success",
+               "jobs":  [
+                            {
+                                "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402/job/120646002439"
+                            },
+                            {
+                                "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402/job/120646002742"
+                            },
+                            {
+                                "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402/job/120646002781"
+                            },
+                            {
+                                "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402/job/120646002785"
+                            },
+                            {
+                                "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40021230402/job/120646002861"
+                            }
+                        ]
+           },
+    "limits":  [
+                   "GUI executed locally on Windows x64 only.",
+                   "CI includes compilation/non-GUI tests on five targets, native PDF tests on all and native formats/marks in Windows jobs.",
+                   "Search errors still use a generic details event; typed error generations remain in A03."
+               ],
+    "reproduction":  {
+                         "build":  "cargo build --locked --offline --release --target x86_64-pc-windows-msvc --bin crabpdf --example performance_probe --example document_chrome_smoke --example transition_smoke --example search_smoke",
+                         "geometry_custom":  "./scripts/Test-WindowGeometry.ps1 -Executable target/x86_64-pc-windows-msvc/release/examples/document_chrome_smoke.exe -ReportRoot artifacts/architecture-phase3/ui/custom",
+                         "geometry_native":  "./scripts/Test-WindowGeometry.ps1 -Executable target/x86_64-pc-windows-msvc/release/examples/document_chrome_smoke.exe -ReportRoot artifacts/architecture-phase3/ui/native -Native"
+                     }
+}

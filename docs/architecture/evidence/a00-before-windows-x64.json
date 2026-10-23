@@ -1,0 +1,469 @@
+{
+    "summary":  [
+                    {
+                        "phase":  "pdf_first_open",
+                        "max_ms":  49.904700000000005,
+                        "min_ms":  31.6371,
+                        "median_ms":  40.603100000000005,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "startup_to_first_ready",
+                        "max_ms":  302.27520000000004,
+                        "min_ms":  289.674,
+                        "median_ms":  296.5909,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "page_next_prefetched",
+                        "max_ms":  16.4575,
+                        "min_ms":  12.7754,
+                        "median_ms":  15.2314,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "page_last_not_prefetched",
+                        "max_ms":  74.3673,
+                        "min_ms":  23.7349,
+                        "median_ms":  28.8945,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "scroll_ready_and_stable_80ms",
+                        "max_ms":  92.9428,
+                        "min_ms":  84.2893,
+                        "median_ms":  85.0407,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "pdf_reopen_same_process",
+                        "max_ms":  58.5231,
+                        "min_ms":  53.2536,
+                        "median_ms":  56.0048,
+                        "n":  5
+                    },
+                    {
+                        "phase":  "epub_first_open_empty_import_cache",
+                        "max_ms":  149.3091,
+                        "min_ms":  139.759,
+                        "median_ms":  142.1415,
+                        "n":  5
+                    }
+                ],
+    "rustc":  "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "runs":  [
+                 {
+                     "run":  1,
+                     "idle_observed_seconds":  3.8895934,
+                     "app_peak_working_set_bytes":  120934400,
+                     "timings":  {
+                                     "schema":  1,
+                                     "version":  "0.3.6",
+                                     "architecture":  "x86_64",
+                                     "os":  "windows",
+                                     "viewport_points":  [
+                                                             1080.0,
+                                                             780.0
+                                                         ],
+                                     "pixels_per_point":  1.0,
+                                     "samples":  [
+                                                     {
+                                                         "phase":  "pdf_first_open",
+                                                         "elapsed_ms":  37.505700000000004
+                                                     },
+                                                     {
+                                                         "phase":  "startup_to_first_ready",
+                                                         "elapsed_ms":  289.674
+                                                     },
+                                                     {
+                                                         "phase":  "page_next_prefetched",
+                                                         "elapsed_ms":  12.7754
+                                                     },
+                                                     {
+                                                         "phase":  "page_last_not_prefetched",
+                                                         "elapsed_ms":  25.5659
+                                                     },
+                                                     {
+                                                         "phase":  "scroll_ready_and_stable_80ms",
+                                                         "elapsed_ms":  85.8555
+                                                     },
+                                                     {
+                                                         "phase":  "pdf_reopen_same_process",
+                                                         "elapsed_ms":  55.154599999999995
+                                                     },
+                                                     {
+                                                         "phase":  "epub_first_open_empty_import_cache",
+                                                         "elapsed_ms":  139.759
+                                                     }
+                                                 ],
+                                     "idle_logic_calls":  22,
+                                     "idle_seconds":  4.0007205,
+                                     "notes":  "Readiness is sampled after UI submission; not physical presentation. OS disk cache is uncontrolled. Scroll includes motion and an 80ms stability gate. Idle uses a single 4s observation timer."
+                                 },
+                     "idle_cpu_seconds":  0,
+                     "idle_cpu_percent_one_core":  0
+                 },
+                 {
+                     "run":  2,
+                     "idle_observed_seconds":  3.9957380999999996,
+                     "app_peak_working_set_bytes":  121270272,
+                     "timings":  {
+                                     "schema":  1,
+                                     "version":  "0.3.6",
+                                     "architecture":  "x86_64",
+                                     "os":  "windows",
+                                     "viewport_points":  [
+                                                             1080.0,
+                                                             780.0
+                                                         ],
+                                     "pixels_per_point":  1.0,
+                                     "samples":  [
+                                                     {
+                                                         "phase":  "pdf_first_open",
+                                                         "elapsed_ms":  48.6614
+                                                     },
+                                                     {
+                                                         "phase":  "startup_to_first_ready",
+                                                         "elapsed_ms":  296.5909
+                                                     },
+                                                     {
+                                                         "phase":  "page_next_prefetched",
+                                                         "elapsed_ms":  16.0864
+                                                     },
+                                                     {
+                                                         "phase":  "page_last_not_prefetched",
+                                                         "elapsed_ms":  28.8945
+                                                     },
+                                                     {
+                                                         "phase":  "scroll_ready_and_stable_80ms",
+                                                         "elapsed_ms":  84.8468
+                                                     },
+                                                     {
+                                                         "phase":  "pdf_reopen_same_process",
+                                                         "elapsed_ms":  57.8031
+                                                     },
+                                                     {
+                                                         "phase":  "epub_first_open_empty_import_cache",
+                                                         "elapsed_ms":  145.2815
+                                                     }
+                                                 ],
+                                     "idle_logic_calls":  5,
+                                     "idle_seconds":  4.0024699,
+                                     "notes":  "Readiness is sampled after UI submission; not physical presentation. OS disk cache is uncontrolled. Scroll includes motion and an 80ms stability gate. Idle uses a single 4s observation timer."
+                                 },
+                     "idle_cpu_seconds":  0.03125,
+                     "idle_cpu_percent_one_core":  0.78208329019361911
+                 },
+                 {
+                     "run":  3,
+                     "idle_observed_seconds":  3.9409911999999996,
+                     "app_peak_working_set_bytes":  120971264,
+                     "timings":  {
+                                     "schema":  1,
+                                     "version":  "0.3.6",
+                                     "architecture":  "x86_64",
+                                     "os":  "windows",
+                                     "viewport_points":  [
+                                                             1080.0,
+                                                             780.0
+                                                         ],
+                                     "pixels_per_point":  1.0,
+                                     "samples":  [
+                                                     {
+                                                         "phase":  "pdf_first_open",
+                                                         "elapsed_ms":  31.6371
+                                                     },
+                                                     {
+                                                         "phase":  "startup_to_first_ready",
+                                                         "elapsed_ms":  291.28150000000005
+                                                     },
+                                                     {
+                                                         "phase":  "page_next_prefetched",
+                                                         "elapsed_ms":  14.8423
+                                                     },
+                                                     {
+                                                         "phase":  "page_last_not_prefetched",
+                                                         "elapsed_ms":  23.7349
+                                                     },
+                                                     {
+                                                         "phase":  "scroll_ready_and_stable_80ms",
+                                                         "elapsed_ms":  84.2893
+                                                     },
+                                                     {
+                                                         "phase":  "pdf_reopen_same_process",
+                                                         "elapsed_ms":  53.2536
+                                                     },
+                                                     {
+                                                         "phase":  "epub_first_open_empty_import_cache",
+                                                         "elapsed_ms":  142.1415
+                                                     }
+                                                 ],
+                                     "idle_logic_calls":  21,
+                                     "idle_seconds":  4.0000938,
+                                     "notes":  "Readiness is sampled after UI submission; not physical presentation. OS disk cache is uncontrolled. Scroll includes motion and an 80ms stability gate. Idle uses a single 4s observation timer."
+                                 },
+                     "idle_cpu_seconds":  0,
+                     "idle_cpu_percent_one_core":  0
+                 },
+                 {
+                     "run":  4,
+                     "idle_observed_seconds":  3.9032025,
+                     "app_peak_working_set_bytes":  121835520,
+                     "timings":  {
+                                     "schema":  1,
+                                     "version":  "0.3.6",
+                                     "architecture":  "x86_64",
+                                     "os":  "windows",
+                                     "viewport_points":  [
+                                                             1080.0,
+                                                             780.0
+                                                         ],
+                                     "pixels_per_point":  1.0,
+                                     "samples":  [
+                                                     {
+                                                         "phase":  "pdf_first_open",
+                                                         "elapsed_ms":  40.603100000000005
+                                                     },
+                                                     {
+                                                         "phase":  "startup_to_first_ready",
+                                                         "elapsed_ms":  297.711
+                                                     },
+                                                     {
+                                                         "phase":  "page_next_prefetched",
+                                                         "elapsed_ms":  15.2314
+                                                     },
+                                                     {
+                                                         "phase":  "page_last_not_prefetched",
+                                                         "elapsed_ms":  29.7008
+                                                     },
+                                                     {
+                                                         "phase":  "scroll_ready_and_stable_80ms",
+                                                         "elapsed_ms":  92.9428
+                                                     },
+                                                     {
+                                                         "phase":  "pdf_reopen_same_process",
+                                                         "elapsed_ms":  56.0048
+                                                     },
+                                                     {
+                                                         "phase":  "epub_first_open_empty_import_cache",
+                                                         "elapsed_ms":  149.3091
+                                                     }
+                                                 ],
+                                     "idle_logic_calls":  20,
+                                     "idle_seconds":  4.00051,
+                                     "notes":  "Readiness is sampled after UI submission; not physical presentation. OS disk cache is uncontrolled. Scroll includes motion and an 80ms stability gate. Idle uses a single 4s observation timer."
+                                 },
+                     "idle_cpu_seconds":  0,
+                     "idle_cpu_percent_one_core":  0
+                 },
+                 {
+                     "run":  5,
+                     "idle_observed_seconds":  3.9413528,
+                     "app_peak_working_set_bytes":  124973056,
+                     "timings":  {
+                                     "schema":  1,
+                                     "version":  "0.3.6",
+                                     "architecture":  "x86_64",
+                                     "os":  "windows",
+                                     "viewport_points":  [
+                                                             1080.0,
+                                                             780.0
+                                                         ],
+                                     "pixels_per_point":  1.0,
+                                     "samples":  [
+                                                     {
+                                                         "phase":  "pdf_first_open",
+                                                         "elapsed_ms":  49.904700000000005
+                                                     },
+                                                     {
+                                                         "phase":  "startup_to_first_ready",
+                                                         "elapsed_ms":  302.27520000000004
+                                                     },
+                                                     {
+                                                         "phase":  "page_next_prefetched",
+                                                         "elapsed_ms":  16.4575
+                                                     },
+                                                     {
+                                                         "phase":  "page_last_not_prefetched",
+                                                         "elapsed_ms":  74.3673
+                                                     },
+                                                     {
+                                                         "phase":  "scroll_ready_and_stable_80ms",
+                                                         "elapsed_ms":  85.0407
+                                                     },
+                                                     {
+                                                         "phase":  "pdf_reopen_same_process",
+                                                         "elapsed_ms":  58.5231
+                                                     },
+                                                     {
+                                                         "phase":  "epub_first_open_empty_import_cache",
+                                                         "elapsed_ms":  141.8515
+                                                     }
+                                                 ],
+                                     "idle_logic_calls":  20,
+                                     "idle_seconds":  4.0004634,
+                                     "notes":  "Readiness is sampled after UI submission; not physical presentation. OS disk cache is uncontrolled. Scroll includes motion and an 80ms stability gate. Idle uses a single 4s observation timer."
+                                 },
+                     "idle_cpu_seconds":  0.015625,
+                     "idle_cpu_percent_one_core":  0.39643748714908239
+                 }
+             ],
+    "logical_processors":  6,
+    "limits":  "Windows observer measures only this app process. Converter CPU/RSS, GPU allocation and compositor presentation latency are not measured. Fresh per-run app/import caches; OS disk cache uncontrolled. Fixture is synthetic; not a large real-world corpus. Probe polls at 8ms outside idle; observer samples resources at 50ms. Min/median/max only; no p95 estimate.",
+    "cpu":  "Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz",
+    "schema":  1,
+    "cargo":  "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "source":  [
+                   {
+                       "sha256":  "f0763252697833ba67cda6ba74c038463796c72d084b38c65ab5ca6df0def63f",
+                       "path":  "src/annotations.rs"
+                   },
+                   {
+                       "sha256":  "bb392a9e7f21e00ab9617a72d1054aa744f5043905ab0d224b9850be4f4fef6a",
+                       "path":  "src/app_paths.rs"
+                   },
+                   {
+                       "sha256":  "490a3fdc8335fdf52297b0346ee78cb2135e70abea65ad65b580627a6b4a6f09",
+                       "path":  "src/branding.rs"
+                   },
+                   {
+                       "sha256":  "5a1a33e96430f37ab51cff65e6f5555a9dcad8b078f5b0755e75cc31e53b0b20",
+                       "path":  "src/cache.rs"
+                   },
+                   {
+                       "sha256":  "58b166a3f8bf04035ae6b8b5806b22e0477e61e11a66ca55b6f621cc3136fb9f",
+                       "path":  "src/cli.rs"
+                   },
+                   {
+                       "sha256":  "bc939679e68124565fc649f7cd2abe50b133cc0bbcd12411701421a40d41ccdb",
+                       "path":  "src/commands.rs"
+                   },
+                   {
+                       "sha256":  "e420308ff08fdcc21229ec83bae9cfcd1147ea367895705d481c90b08e559d31",
+                       "path":  "src/config.rs"
+                   },
+                   {
+                       "sha256":  "b48cb4b0a445b4c73edd0fbe07556dc6e069fb954a3d1961fc763464f56846e5",
+                       "path":  "src/djvu_text.rs"
+                   },
+                   {
+                       "sha256":  "70d681bf7ca921a737852d4e672ef699089952e7f3af507326744f6b3309652b",
+                       "path":  "src/document.rs"
+                   },
+                   {
+                       "sha256":  "117fdbf9e6bf21fb4b3848fd542cb386cb1ccdf23c52cb9d7dc2405943336241",
+                       "path":  "src/engine.rs"
+                   },
+                   {
+                       "sha256":  "797716ccf283ebf293abb165d8c8bc1a84d8305528281795d32e1bf0083d0c7a",
+                       "path":  "src/fileops.rs"
+                   },
+                   {
+                       "sha256":  "2fcabaa7559f9ecbcd902043c6cd2574caa9ee8ae4f69fe4204a14c40a06c0ee",
+                       "path":  "src/formats.rs"
+                   },
+                   {
+                       "sha256":  "6d6ee129795baaaf04f9b4fe501d2df750d869ccb6e14a2c1577b4570cfe4250",
+                       "path":  "src/layout.rs"
+                   },
+                   {
+                       "sha256":  "edcdb905633edfebfab7bb462392ae5899458483eadf71977c616034b2f4ca2d",
+                       "path":  "src/lib.rs"
+                   },
+                   {
+                       "sha256":  "89c7a24879dd4cb721b82abf66b40eadc05a62d5c9a72c2fd40f1fad9941f302",
+                       "path":  "src/library.rs"
+                   },
+                   {
+                       "sha256":  "96c8b65b50bf53e0b54ea46b8dc718f8a516b4271c6eab1c7ecd237c42625ab4",
+                       "path":  "src/main.rs"
+                   },
+                   {
+                       "sha256":  "3e47329d158b81341ed1a0d021e0edb2c5b369fbaa788abe5327b66d678bfdbb",
+                       "path":  "src/platform.rs"
+                   },
+                   {
+                       "sha256":  "66554e398392548007523c5e272677d026f0398a578f3c332fb8ed7ea5c43036",
+                       "path":  "src/reading_position.rs"
+                   },
+                   {
+                       "sha256":  "1f6008e7d841af43c6e532c680e69f38ef932ad313f6437f01680fb8fdc742d1",
+                       "path":  "src/state.rs"
+                   },
+                   {
+                       "sha256":  "9732806e2a73bd2360ef86962ec09e7fcd213889ea2cbd201d8d33477d4be8b5",
+                       "path":  "src/ui/chrome.rs"
+                   },
+                   {
+                       "sha256":  "f9b66365f0b19657dd0fa2715ec0ecbebae42933c6414ef35812af5dd576ae21",
+                       "path":  "src/ui/home.rs"
+                   },
+                   {
+                       "sha256":  "216d60886f5674d28c7024b7de06a7a19a746e36c8396815e3e95abb5340abb9",
+                       "path":  "src/ui/icons.rs"
+                   },
+                   {
+                       "sha256":  "99b81afa6b102a5e905dd7c14a43c7740c2519823e72e0dd03e772d4d0e6aa04",
+                       "path":  "src/ui/mod.rs"
+                   },
+                   {
+                       "sha256":  "12b1931aaff1c749bac36752e4f22a09dfeecd3b0e473c1da4cb014e8091a22f",
+                       "path":  "src/ui/motion.rs"
+                   },
+                   {
+                       "sha256":  "95629a2d9e8a88c3a4537cccdb6a68eff4efc2268b20b4e3d8503d3634404ce1",
+                       "path":  "src/ui/panels.rs"
+                   },
+                   {
+                       "sha256":  "c5fc80374aa25c97a8125313c30b5c5742fc56c00b8e58972bf259c1c8a0a572",
+                       "path":  "src/ui/theme.rs"
+                   },
+                   {
+                       "sha256":  "767c86c6fa1e9198813a29d18e7b1f84dfeb1a65ead2ec5abb2f9e9517a3f194",
+                       "path":  "src/ui/viewer.rs"
+                   },
+                   {
+                       "sha256":  "a1eac254e8bce266824a4c3337976c5aa0c07ff1cb472c5adf6eea1234206213",
+                       "path":  "src/worker.rs"
+                   }
+               ],
+    "git_commit":  "a2319575a29f1b56e6352317c3be3ea972bf870c",
+    "os":  "Microsoft Windows NT 10.0.19045.0",
+    "files":  [
+                  {
+                      "path":  "target/x86_64-pc-windows-msvc/release/examples/performance_probe.exe",
+                      "sha256":  "f3ab81d86b3d1892e421bd9acc4f0db02a2188e157fc293c65c75cdf05ba1fc2",
+                      "bytes":  11336192
+                  },
+                  {
+                      "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                      "sha256":  "fa0772c9e4d33a89523283d961a03e6350bed311cbed8b365ead9f107d0d270e",
+                      "bytes":  11390976
+                  },
+                  {
+                      "path":  "native/pdfium.dll",
+                      "sha256":  "79d4676b656cfb1abcea88f9ade3b4b0826c5200382db5f4ec72a636c598c118",
+                      "bytes":  7211520
+                  },
+                  {
+                      "path":  "artifacts/architecture-phase1/before-v2/performance.pdf",
+                      "sha256":  "74566df9bec7a9cd04bf630720eca556071e55e1fd47ea5f4f0daaa9ba338fde",
+                      "bytes":  84864
+                  },
+                  {
+                      "path":  "artifacts/format-samples/book.epub",
+                      "sha256":  "4f3f3058919076212428ff8e439c9bce7d2aadf283cd0e871cda03a20aa6a693",
+                      "bytes":  2733
+                  },
+                  {
+                      "path":  "native/format-tools/provenance.json",
+                      "sha256":  "ba4a159c013741e9d49d148832fb9347875a9a9027b697cb45ced52434f0b965",
+                      "bytes":  5312
+                  }
+              ],
+    "git_status":  [
+                       "?? examples/performance_probe.rs",
+                       "?? scripts/Measure-Architecture.ps1"
+                   ],
+    "timestamp_utc":  "2026-10-23T17:25:16.9695295Z"
+}

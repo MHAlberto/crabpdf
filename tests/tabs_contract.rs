@@ -208,17 +208,23 @@ fn duplicate_tabs_keep_reading_search_and_selection_independent_when_reordered()
     }
     tabs[0].go_to(7, true);
     tabs[0].search.query = "first".into();
-    tabs[0].selection = Some((7, 2, 12));
+    tabs[0].selection.select(7, 2, 12);
     tabs[1].search.query = "second".into();
     tabs[1].state.set_zoom(Zoom::FitPage);
     tabs.swap(0, 1);
     assert_eq!((tabs[0].id, page(&tabs[0])), (13, 0));
     assert_eq!(tabs[0].search.query, "second");
-    assert!(tabs[0].selection.is_none());
+    assert!(tabs[0].selection.range().is_none());
     assert_eq!(tabs[0].state.zoom, Zoom::FitPage);
     assert_eq!((tabs[1].id, page(&tabs[1])), (12, 7));
     assert_eq!(tabs[1].search.query, "first");
-    assert_eq!(tabs[1].selection, Some((7, 2, 12)));
+    assert_eq!(
+        tabs[1]
+            .selection
+            .range()
+            .map(|range| (range.page, range.start, range.end)),
+        Some((7, 2, 12))
+    );
     assert_eq!(tabs[1].state.zoom, Zoom::Percent(135));
     assert!(tabs[1].pending_position.is_none());
 }

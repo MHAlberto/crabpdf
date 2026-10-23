@@ -142,6 +142,7 @@ impl ReaderApp {
                             && let Some(document) = &mut tab.reader.state.document
                         {
                             document.page = displayed;
+                            tab.reader.selection.page_changed(displayed);
                         }
                         tab.view.scroll_motion = None;
                         tab.view.navigation_wait = None;
@@ -576,6 +577,7 @@ impl ReaderApp {
                         && let Some(document) = tab.reader.state.document.as_mut()
                     {
                         document.page = visible_current;
+                        tab.reader.selection.page_changed(visible_current);
                     }
                     if !waiting {
                         tab.view.displayed_page = Some(visible_current);
@@ -620,42 +622,26 @@ impl ReaderApp {
             if response.double_clicked()
                 && let Some(index) = content.nearest_glyph(x, y)
             {
-                let first = content
-                    .glyphs
-                    .iter()
-                    .position(|g| g.index == index)
-                    .unwrap_or(0);
-                let mut start = first;
-                let mut end = first;
-                let word = |index: usize| {
-                    content.glyphs[index]
-                        .text
-                        .chars()
-                        .any(char::is_alphanumeric)
-                };
-                while start > 0 && word(start - 1) {
-                    start -= 1;
-                }
-                while end + 1 < content.glyphs.len() && word(end + 1) {
-                    end += 1;
-                }
-                self.tabs[self.active].reader.selection =
-                    Some((page, content.glyphs[start].index, content.glyphs[end].index));
+                self.tabs[self.active]
+                    .reader
+                    .selection
+                    .word(page, content, index);
             } else if response.drag_started_by(egui::PointerButton::Primary) {
                 let (x, y) = normalize(ui.input(|i| i.pointer.press_origin()).unwrap_or(position));
                 if let Some(index) = content.nearest_glyph(x, y) {
-                    self.tabs[self.active].reader.selection = Some((page, index, index));
+                    self.tabs[self.active]
+                        .reader
+                        .selection
+                        .select(page, index, index);
                 }
             }
             if response.dragged_by(egui::PointerButton::Primary)
                 && let Some(index) = content.nearest_glyph(x, y)
-                && let Some((selected, _, end)) = self.tabs[self.active].reader.selection.as_mut()
-                && *selected == page
             {
-                *end = index;
+                self.tabs[self.active].reader.selection.extend(page, index);
             }
             if response.clicked() && !response.double_clicked() {
-                self.tabs[self.active].reader.selection = None;
+                self.tabs[self.active].reader.selection.clear();
                 if let Some(link) = content.links.iter().find(|link| link.bounds.contains(x, y)) {
                     match &link.target {
                         LinkTarget::Page(destination) => {
@@ -689,13 +675,13 @@ impl ReaderApp {
             );
             ui.painter().rect_filled(highlight, 0, color);
         };
-        if let Some((selected, start, end)) = self.tabs[self.active].reader.selection
-            && selected == page
+        if let Some(selection) = self.tabs[self.active].reader.selection.range()
+            && selection.page == page
         {
             for glyph in content
                 .glyphs
                 .iter()
-                .filter(|g| g.index >= start.min(end) && g.index <= start.max(end))
+                .filter(|g| selection.contains(g.index))
             {
                 if let Some(bounds) = glyph.bounds {
                     paint_bounds(bounds, Color32::from_rgba_unmultiplied(76, 136, 230, 85));

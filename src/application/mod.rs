@@ -2,4 +2,5 @@
 pub mod favorites;
 pub mod profile;
 pub mod search;
+pub mod selection;
 pub mod tabs;

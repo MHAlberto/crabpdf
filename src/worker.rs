@@ -68,6 +68,7 @@ struct Pending {
     renders: VecDeque<RenderKey>,
     prefetch: VecDeque<RenderKey>,
     search: Option<(SearchRequest, usize, usize)>,
+    cancelled_searches: HashMap<DocumentId, u64>,
     stop: bool,
     importing: HashMap<DocumentId, Arc<AtomicBool>>,
 }
@@ -221,6 +222,7 @@ impl PdfWorker {
                             }
                         }
                         Command::Close(id) => {
+                            background.forget_search(id);
                             documents.remove(&id);
                             page_counts.remove(&id);
                             rasters.retain(|k| k.document_id != id);
@@ -618,6 +620,15 @@ impl PdfWorker {
     }
     pub fn stop_search(&self, id: DocumentId, generation: u64) -> Result<(), ReaderError> {
         let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
+        pending
+            .cancelled_searches
+            .entry(id)
+            .and_modify(|cancelled| *cancelled = (*cancelled).max(generation))
+            .or_insert(generation);
+        pending.control.retain(|command| {
+            !matches!(command, Command::Search(request)
+                if request.document_id == id && request.generation == generation)
+        });
         if pending
             .search
             .as_ref()
@@ -710,8 +721,24 @@ impl Mailbox {
         }
     }
     fn start_search(&self, request: SearchRequest, total: usize) {
-        if let Ok(mut p) = self.pending.lock() {
+        if let Ok(mut p) = self.pending.lock()
+            && p.cancelled_searches
+                .get(&request.document_id)
+                .is_none_or(|generation| request.generation > *generation)
+        {
             p.search = Some((request, 0, total));
+        }
+    }
+    fn forget_search(&self, id: DocumentId) {
+        if let Ok(mut pending) = self.pending.lock() {
+            pending.cancelled_searches.remove(&id);
+            if pending
+                .search
+                .as_ref()
+                .is_some_and(|(request, _, _)| request.document_id == id)
+            {
+                pending.search = None;
+            }
         }
     }
     fn cancel_search(&self) {
@@ -751,6 +778,71 @@ fn worker_error() -> ReaderError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn cancelling_search_covers_queued_active_and_dequeued_requests_without_touching_other_tabs() {
+        let mailbox = Arc::new(Mailbox {
+            pending: Mutex::new(Pending::default()),
+            wake: Condvar::new(),
+        });
+        let (_, events) = mpsc::sync_channel(2);
+        let worker = PdfWorker {
+            mailbox: Arc::clone(&mailbox),
+            events,
+            imports: mpsc::sync_channel(1).0,
+            shutdown: Arc::new(AtomicBool::new(false)),
+            import_thread: None,
+        };
+        let request = |document_id, generation| SearchRequest {
+            document_id,
+            generation,
+            query: "reader".into(),
+            match_case: false,
+            whole_word: false,
+        };
+        worker.search(request(1, 10)).unwrap();
+        worker.stop_search(2, 10).unwrap();
+        assert!(matches!(
+            mailbox.pending.lock().unwrap().control.front(),
+            Some(Command::Search(_))
+        ));
+        worker.stop_search(1, 10).unwrap();
+        assert!(mailbox.pending.lock().unwrap().control.is_empty());
+
+        // A popped request cannot become an active search after it was cancelled.
+        mailbox.start_search(request(1, 10), 20);
+        assert!(mailbox.pending.lock().unwrap().search.is_none());
+        mailbox.start_search(request(1, 11), 20);
+        worker.stop_search(1, 10).unwrap();
+        assert!(mailbox.pending.lock().unwrap().search.is_some());
+        worker.stop_search(1, 11).unwrap();
+        assert!(mailbox.pending.lock().unwrap().search.is_none());
+        mailbox.start_search(request(3, 11), 20);
+        worker.stop_search(1, 99).unwrap();
+        assert_eq!(
+            mailbox
+                .pending
+                .lock()
+                .unwrap()
+                .search
+                .as_ref()
+                .unwrap()
+                .0
+                .document_id,
+            3
+        );
+        mailbox.forget_search(1);
+        assert!(
+            !mailbox
+                .pending
+                .lock()
+                .unwrap()
+                .cancelled_searches
+                .contains_key(&1)
+        );
+        mailbox.forget_search(3);
+        assert!(mailbox.pending.lock().unwrap().search.is_none());
+    }
+
     #[test]
     fn visible_render_overtakes_prefetch_and_close_cancels_both() {
         let mailbox = Arc::new(Mailbox {

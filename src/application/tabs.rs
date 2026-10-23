@@ -1,7 +1,8 @@
 //! Logical state of an open tab. No GUI objects, file I/O or native handles.
 use super::{
     profile::{LibraryEntry, StoredDocument},
-    search::SearchSession,
+    search::{SearchIdentity, SearchSession},
+    selection::SelectionState,
 };
 use crate::{
     document::{DocumentDetails, DocumentId, DocumentInfo, ErrorKind, ReaderError, Zoom},
@@ -46,10 +47,9 @@ pub struct ReadingTab {
     pub path: PathBuf,
     pub state: AppState,
     pub search: SearchSession,
-    pub selection: Option<(usize, usize, usize)>,
+    pub selection: SelectionState,
     pub local_marks: usize,
     pub marking: bool,
-    pub select_all_pending: bool,
     pub password_needed: bool,
     pub restore: Option<StoredDocument>,
     pub startup: Option<InitialView>,
@@ -67,10 +67,9 @@ impl ReadingTab {
             state,
             restore,
             search: SearchSession::default(),
-            selection: None,
+            selection: SelectionState::default(),
             local_marks: 0,
             marking: false,
-            select_all_pending: false,
             password_needed: false,
             startup: None,
             pending_position: None,
@@ -158,7 +157,33 @@ impl ReadingTab {
 
     pub fn go_to(&mut self, page: usize, remember: bool) {
         self.pending_position = None;
+        self.selection.cancel_pending();
         self.state.go_to(page, remember);
+    }
+
+    pub fn restart_search(&mut self, generation: u64) -> Option<SearchIdentity> {
+        let total = self
+            .state
+            .document
+            .as_ref()
+            .map_or(0, |d| d.info.page_count);
+        self.search.restart(self.id, generation, total)
+    }
+
+    pub fn request_select_all(&mut self) -> Option<usize> {
+        let page = self.state.document.as_ref()?.page;
+        self.selection.request_all(self.id, page);
+        Some(page)
+    }
+
+    pub fn accept_content(
+        &mut self,
+        id: DocumentId,
+        page: usize,
+        content: &crate::document::PageContent,
+    ) {
+        let current = self.state.document.as_ref().map(|d| d.page);
+        self.selection.accept_content(id, page, current, content);
     }
 
     /// The view supplies a captured normalized position, never screen coordinates.

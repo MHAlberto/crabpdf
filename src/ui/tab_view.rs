@@ -48,6 +48,13 @@ impl Tab {
         self.view.scroll_motion = None;
         self.view.navigation_wait = None;
     }
+    pub(super) fn reveal_search(
+        &mut self,
+        destination: crate::application::search::SearchDestination,
+    ) {
+        self.go_to(destination.page, true);
+        self.view.reveal = destination.bounds.map(|bounds| (destination.page, bounds));
+    }
     pub(super) fn supports_password(&self) -> bool {
         matches!(
             crate::formats::Format::detect(&self.reader.path),

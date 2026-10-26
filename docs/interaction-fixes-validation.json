@@ -1,0 +1,750 @@
+﻿{
+    "schema":  1,
+    "date":  "2026-10-26",
+    "source_commit":  "96e6ed0848171108b046ed11ab4793a74d84afcc",
+    "platform":  "Windows x64",
+    "rust":  "1.96.0",
+    "pdfium_build":  "7881",
+    "sources":  [
+                    {
+                        "path":  "Cargo.lock",
+                        "bytes":  86946,
+                        "sha256":  "6c6b515c64e98cba78974431c997b5006cb995dca7ccdb1904452fb24c91b4ff"
+                    },
+                    {
+                        "path":  "Cargo.toml",
+                        "bytes":  887,
+                        "sha256":  "4abe23596d8c78db4e1c8221692a393a6d4d5b3c4071826c98b4981077db3df4"
+                    },
+                    {
+                        "path":  "examples/cli_smoke.rs",
+                        "bytes":  3559,
+                        "sha256":  "0ab6c624f57db7237d7b24d0d76da07fa5f9b684332b265dd2ecb0add2634f49"
+                    },
+                    {
+                        "path":  "examples/command_inventory.rs",
+                        "bytes":  1184,
+                        "sha256":  "0393243a6b2ca416c8dff85bc24d80a5ec2905a6eae2d0df8197d21c455cd298"
+                    },
+                    {
+                        "path":  "examples/document_chrome_smoke.rs",
+                        "bytes":  18511,
+                        "sha256":  "4197a73e92bae52cac63ac4e92f8189454bf97761b9be92073c2401c5948c0aa"
+                    },
+                    {
+                        "path":  "examples/formats_smoke.rs",
+                        "bytes":  10393,
+                        "sha256":  "4871e6757079ee9df677acc2aedf6d4d9a4bbbe07956084f66ae78a249cbb86f"
+                    },
+                    {
+                        "path":  "examples/interaction_smoke.rs",
+                        "bytes":  15007,
+                        "sha256":  "89eb5c075e2c2623881b769e87f252f565069f6b259c9aacd9ba8ce85728106f"
+                    },
+                    {
+                        "path":  "examples/performance_probe.rs",
+                        "bytes":  9014,
+                        "sha256":  "d18c47076298f5e28d1d8e7deabebb4f529178cd3b008b75c67d2e59bc908101"
+                    },
+                    {
+                        "path":  "examples/reading_session_smoke.rs",
+                        "bytes":  9368,
+                        "sha256":  "caf3118e2e84ab5898e5a4e4aafe63eac4479741d0559a5ce549a81bde58dd43"
+                    },
+                    {
+                        "path":  "examples/refinement_smoke.rs",
+                        "bytes":  19291,
+                        "sha256":  "ac07abe57b02eb813a8c164405bb4c64e83915a30c84d9d9447274c3f894ccac"
+                    },
+                    {
+                        "path":  "examples/search_smoke.rs",
+                        "bytes":  6806,
+                        "sha256":  "e47163ae2894ac78b6d524811d642bcdb9887a0a12123ee668eec940645c445e"
+                    },
+                    {
+                        "path":  "examples/transition_smoke.rs",
+                        "bytes":  14328,
+                        "sha256":  "6c09f6f14d81a94629a1f916727ed5ff1b1bf82684a170c1a8778d18c31473e9"
+                    },
+                    {
+                        "path":  "examples/visual_smoke.rs",
+                        "bytes":  10496,
+                        "sha256":  "484e69bab5a9af78faa35fa27a4d2484b77a3041777fe229b84bdb79187dfa90"
+                    },
+                    {
+                        "path":  "scripts/Pack-Portable.ps1",
+                        "bytes":  7552,
+                        "sha256":  "288d94dcf26aa38dfcd040a4acd9fdc490d39c51cf22b5c0a40c836ff88e36e2"
+                    },
+                    {
+                        "path":  "src/annotations.rs",
+                        "bytes":  4740,
+                        "sha256":  "f0763252697833ba67cda6ba74c038463796c72d084b38c65ab5ca6df0def63f"
+                    },
+                    {
+                        "path":  "src/app_paths.rs",
+                        "bytes":  1494,
+                        "sha256":  "bb392a9e7f21e00ab9617a72d1054aa744f5043905ab0d224b9850be4f4fef6a"
+                    },
+                    {
+                        "path":  "src/application/favorites.rs",
+                        "bytes":  5631,
+                        "sha256":  "605e971a99717ded5bb551af360c7e58300ca5d7b471282cf952c5a3338ba339"
+                    },
+                    {
+                        "path":  "src/application/mod.rs",
+                        "bytes":  184,
+                        "sha256":  "5e23b9ff5f0168bae086e100720970531df9c9da084ad5e016e34f1170a4672b"
+                    },
+                    {
+                        "path":  "src/application/profile.rs",
+                        "bytes":  795,
+                        "sha256":  "3cd033ac57cf7c0b245b29ccbc7cd1214b09a802b34f9efec5c8f78e37bedeea"
+                    },
+                    {
+                        "path":  "src/application/protocol.rs",
+                        "bytes":  1774,
+                        "sha256":  "f35388116c05814c59824ac87d443384be2c91bc7c22a8089b575f82b7129567"
+                    },
+                    {
+                        "path":  "src/application/search.rs",
+                        "bytes":  4699,
+                        "sha256":  "a7e30e29629b2aa927d61f99155e3979944cd4a6054593302e0674eb0482a8d0"
+                    },
+                    {
+                        "path":  "src/application/selection.rs",
+                        "bytes":  3145,
+                        "sha256":  "8ea3bbe5a3e61bb0244b48fa3c737c653b164fd3c88a343d047943c78f839db8"
+                    },
+                    {
+                        "path":  "src/application/tabs.rs",
+                        "bytes":  10323,
+                        "sha256":  "0f983b136b8ed4b16074d346f6aac384ff50a6f47515242315c339480dcc7ab3"
+                    },
+                    {
+                        "path":  "src/branding.rs",
+                        "bytes":  767,
+                        "sha256":  "490a3fdc8335fdf52297b0346ee78cb2135e70abea65ad65b580627a6b4a6f09"
+                    },
+                    {
+                        "path":  "src/cache.rs",
+                        "bytes":  3453,
+                        "sha256":  "03cb61a4d1e8083d5f4782524dc44ec90642f40b2a8a53ad2388ad7413ac2788"
+                    },
+                    {
+                        "path":  "src/cli.rs",
+                        "bytes":  8431,
+                        "sha256":  "0c8ce591de541729913d53a91cfdf98956185dec8a2ad3b2ceee4d45843e1c85"
+                    },
+                    {
+                        "path":  "src/commands.rs",
+                        "bytes":  10731,
+                        "sha256":  "bc939679e68124565fc649f7cd2abe50b133cc0bbcd12411701421a40d41ccdb"
+                    },
+                    {
+                        "path":  "src/config.rs",
+                        "bytes":  15055,
+                        "sha256":  "c7b6cf164806b4784f2c32fefb55e67dd27fd4b3cb748462ba039feb053ed474"
+                    },
+                    {
+                        "path":  "src/djvu_text.rs",
+                        "bytes":  3030,
+                        "sha256":  "b48cb4b0a445b4c73edd0fbe07556dc6e069fb954a3d1961fc763464f56846e5"
+                    },
+                    {
+                        "path":  "src/document.rs",
+                        "bytes":  7864,
+                        "sha256":  "21c7760863d53cca336154bd0e8ade85f0636dd400bd9fbb7617edf6d45dd8f4"
+                    },
+                    {
+                        "path":  "src/engine.rs",
+                        "bytes":  37539,
+                        "sha256":  "0934c2b5d29fea8db474beb2d99f2eaf8d3e392797787b040fc8258d95f9040d"
+                    },
+                    {
+                        "path":  "src/fileops.rs",
+                        "bytes":  2605,
+                        "sha256":  "797716ccf283ebf293abb165d8c8bc1a84d8305528281795d32e1bf0083d0c7a"
+                    },
+                    {
+                        "path":  "src/formats.rs",
+                        "bytes":  53492,
+                        "sha256":  "2fcabaa7559f9ecbcd902043c6cd2574caa9ee8ae4f69fe4204a14c40a06c0ee"
+                    },
+                    {
+                        "path":  "src/layout.rs",
+                        "bytes":  10563,
+                        "sha256":  "6d6ee129795baaaf04f9b4fe501d2df750d869ccb6e14a2c1577b4570cfe4250"
+                    },
+                    {
+                        "path":  "src/lib.rs",
+                        "bytes":  348,
+                        "sha256":  "80a5fc0dbe5946c50b40f490ad61dd60da6c4cdf14eb52a0913125fdfae207bc"
+                    },
+                    {
+                        "path":  "src/library.rs",
+                        "bytes":  4969,
+                        "sha256":  "88b2e118ac4c59645ce6360ebb7240e29819cf1958cb85176057f938f7f88dd6"
+                    },
+                    {
+                        "path":  "src/main.rs",
+                        "bytes":  1779,
+                        "sha256":  "96c8b65b50bf53e0b54ea46b8dc718f8a516b4271c6eab1c7ecd237c42625ab4"
+                    },
+                    {
+                        "path":  "src/platform.rs",
+                        "bytes":  9346,
+                        "sha256":  "005c929d0231636783df4de75e40466f04baea585d2ccada644b18c269409f45"
+                    },
+                    {
+                        "path":  "src/reading_position.rs",
+                        "bytes":  3081,
+                        "sha256":  "66554e398392548007523c5e272677d026f0398a578f3c332fb8ed7ea5c43036"
+                    },
+                    {
+                        "path":  "src/state.rs",
+                        "bytes":  9461,
+                        "sha256":  "1f6008e7d841af43c6e532c680e69f38ef932ad313f6437f01680fb8fdc742d1"
+                    },
+                    {
+                        "path":  "src/ui/chrome.rs",
+                        "bytes":  19620,
+                        "sha256":  "08a7ea4f9edf4d9d0aa55935f6ace2c05ff89c88a4f3c56e63e9c907c930d851"
+                    },
+                    {
+                        "path":  "src/ui/home.rs",
+                        "bytes":  7065,
+                        "sha256":  "f9b66365f0b19657dd0fa2715ec0ecbebae42933c6414ef35812af5dd576ae21"
+                    },
+                    {
+                        "path":  "src/ui/icons.rs",
+                        "bytes":  7004,
+                        "sha256":  "216d60886f5674d28c7024b7de06a7a19a746e36c8396815e3e95abb5340abb9"
+                    },
+                    {
+                        "path":  "src/ui/key_scroll.rs",
+                        "bytes":  4165,
+                        "sha256":  "9b1791435065ca2104cd5193e04dffb8ebe4065af7bc526d97aebc7627977ef8"
+                    },
+                    {
+                        "path":  "src/ui/mod.rs",
+                        "bytes":  79571,
+                        "sha256":  "da413288c07b46062e3eaec52314a1ce3edf0b34f70db69fa55f834e7be10c7a"
+                    },
+                    {
+                        "path":  "src/ui/motion.rs",
+                        "bytes":  2726,
+                        "sha256":  "12b1931aaff1c749bac36752e4f22a09dfeecd3b0e473c1da4cb014e8091a22f"
+                    },
+                    {
+                        "path":  "src/ui/panels.rs",
+                        "bytes":  50346,
+                        "sha256":  "8f44a66bc03f6611b5e49462c0e866ec429edf85e4be51ce64572b3350129d35"
+                    },
+                    {
+                        "path":  "src/ui/raster.rs",
+                        "bytes":  4728,
+                        "sha256":  "9770d71665d6d23bc71d685d2c9c38f00373401d7dd7f324e6fa343c9992a044"
+                    },
+                    {
+                        "path":  "src/ui/selection_geometry.rs",
+                        "bytes":  3136,
+                        "sha256":  "28c55db60b7c2b8af059d95a1b47ba9173f475613da3080994218ce8b5e0861c"
+                    },
+                    {
+                        "path":  "src/ui/tab_view.rs",
+                        "bytes":  8635,
+                        "sha256":  "05fa260e5b723eb955a2324aff5f5a9c9d43695ff52801abbb1a028f387cbe5e"
+                    },
+                    {
+                        "path":  "src/ui/theme.rs",
+                        "bytes":  2416,
+                        "sha256":  "c5fc80374aa25c97a8125313c30b5c5742fc56c00b8e58972bf259c1c8a0a572"
+                    },
+                    {
+                        "path":  "src/ui/viewer.rs",
+                        "bytes":  35424,
+                        "sha256":  "067a4290688ae570f1b03392fec821e777a6ded83b9666a20714b8d23227f3a6"
+                    },
+                    {
+                        "path":  "src/worker.rs",
+                        "bytes":  36704,
+                        "sha256":  "9221acf0ae2f327c293e3910937d389198859cf45bf9ad6a7a739a0df1e2e71a"
+                    },
+                    {
+                        "path":  "tests/annotation_sync.rs",
+                        "bytes":  2929,
+                        "sha256":  "4cd430028430328a5acf28d214b545b790209a919109b82cb7cbf5dfb0d65e8d"
+                    },
+                    {
+                        "path":  "tests/favorites_contract.rs",
+                        "bytes":  2009,
+                        "sha256":  "b15763e471b63bdbb28d9f199823725e293cdb63662ce6366bd55e79a87039cc"
+                    },
+                    {
+                        "path":  "tests/formats_and_marks.rs",
+                        "bytes":  16925,
+                        "sha256":  "c47b79b3db0d645f5d651d9b4e0f107c545dfc4cb7e1d5afe2ea3c27f331c40d"
+                    },
+                    {
+                        "path":  "tests/import_recovery.rs",
+                        "bytes":  2166,
+                        "sha256":  "dc116f38b1919b4841c4f46e07e3fc4146eb1be6e35047b29cc791043eaa4404"
+                    },
+                    {
+                        "path":  "tests/native_pdf.rs",
+                        "bytes":  15905,
+                        "sha256":  "9397b8297d964d328fd687d023926581b338e65507c3f5a75b51fff44b450de2"
+                    },
+                    {
+                        "path":  "tests/profile_sessions.rs",
+                        "bytes":  2147,
+                        "sha256":  "9e4af46790e14751c68ba1b9b64e948e5a86f96454eb8d1f78b521d6ec368839"
+                    },
+                    {
+                        "path":  "tests/protocol_contract.rs",
+                        "bytes":  6349,
+                        "sha256":  "6fc472063f73da24b4a5d9332d8a06a90c422f2298303783eda522d91d4a003f"
+                    },
+                    {
+                        "path":  "tests/reading_session.rs",
+                        "bytes":  5613,
+                        "sha256":  "1e6d24a2453ac44488208f3f36f427da8d86afc04795d708a029c2052b9ea28b"
+                    },
+                    {
+                        "path":  "tests/search_selection_contract.rs",
+                        "bytes":  11083,
+                        "sha256":  "168d1362318674ce8bbd0c7b765d4558694c9a3823b1bbf772b8a65affaee399"
+                    },
+                    {
+                        "path":  "tests/tabs_contract.rs",
+                        "bytes":  8641,
+                        "sha256":  "37b47d4604fcc2ef65d6c7c9549690999efc046b3ecf268cbda3050f2f0ecb0e"
+                    },
+                    {
+                        "path":  "tests/text_hit_contract.rs",
+                        "bytes":  2395,
+                        "sha256":  "b403731a25beb7d1ef43c9abe6bfb2b4ab686c7ca066ae51b6bf5178fdc6aaef"
+                    }
+                ],
+    "checks":  {
+                   "fmt":  "passed",
+                   "clippy":  "passed, --all-targets -D warnings",
+                   "unique_tests":  96,
+                   "unit_tests":  43,
+                   "integration_tests":  {
+                                             "annotation_sync":  2,
+                                             "favorites_contract":  1,
+                                             "formats_and_marks":  7,
+                                             "import_recovery":  1,
+                                             "native_pdf":  8,
+                                             "profile_sessions":  2,
+                                             "protocol_contract":  6,
+                                             "reading_session":  4,
+                                             "search_selection_contract":  13,
+                                             "tabs_contract":  7,
+                                             "text_hit_contract":  2
+                                         },
+                   "normally_ignored_native_tests":  "included",
+                   "test_threads":  1,
+                   "optimized_main":  "passed",
+                   "optimized_interaction_smoke":  "passed",
+                   "chrome_custom_and_native":  "passed",
+                   "formats_smoke":  "passed",
+                   "refinement_smoke":  "passed, 46 scenes"
+               },
+    "interaction":  {
+                        "profile":  "release, opt-level=3, ThinLTO",
+                        "word_selection_ms":  9.468499999999999,
+                        "current_render":  [
+                                               {
+                                                   "current_render_ms":  37.7223,
+                                                   "phase":  2
+                                               },
+                                               {
+                                                   "current_render_ms":  20.1746,
+                                                   "phase":  3
+                                               },
+                                               {
+                                                   "current_render_ms":  23.4161,
+                                                   "phase":  4
+                                               }
+                                           ],
+                        "baseline_text_edge_pixels":  2986,
+                        "minimum_marking_text_edge_pixels":  2688,
+                        "key_runs":  [
+                                         {
+                                             "phase":  6,
+                                             "direction":  "down",
+                                             "ui_calls":  917,
+                                             "first_y":  0.0,
+                                             "last_y":  407.42364501953125,
+                                             "max_ui_interval_ms":  2.15100000000001,
+                                             "median_ui_ms":  0.1486,
+                                             "max_ui_ms":  0.2816,
+                                             "os_repeat_events":  0
+                                         },
+                                         {
+                                             "phase":  8,
+                                             "direction":  "up",
+                                             "ui_calls":  1014,
+                                             "first_y":  430.37872314453125,
+                                             "last_y":  23.09092140197754,
+                                             "max_ui_interval_ms":  1.5058,
+                                             "median_ui_ms":  0.1315,
+                                             "max_ui_ms":  0.2853,
+                                             "os_repeat_events":  0
+                                         }
+                                     ],
+                        "raw_report":  {
+                                           "path":  "artifacts/interaction-fixes/native-controlled/interaction-report.json",
+                                           "bytes":  301229,
+                                           "sha256":  "2f7d812f4edd6dd38ab57e001f976c9cb5449beddd21a2ee1d58ff2b2f1dfb89"
+                                       }
+                    },
+    "hit_testing":  {
+                        "profile":  "release",
+                        "glyphs":  6000,
+                        "queries_per_round":  512,
+                        "alternating_rounds":  8,
+                        "reference_median_us":  32.824218750,
+                        "single_pass_median_us":  8.1808593750,
+                        "rounds":  [
+                                       {
+                                           "reference_us_per_query":  32.95703125,
+                                           "single_pass_us_per_query":  8.2671875
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.805078125,
+                                           "single_pass_us_per_query":  8.26484375
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.9345703125,
+                                           "single_pass_us_per_query":  8.2330078125
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.8673828125,
+                                           "single_pass_us_per_query":  8.2740234375
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.843359375,
+                                           "single_pass_us_per_query":  8.018359375000001
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.634765625,
+                                           "single_pass_us_per_query":  8.02109375
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.2052734375,
+                                           "single_pass_us_per_query":  8.1287109375
+                                       },
+                                       {
+                                           "reference_us_per_query":  32.7078125,
+                                           "single_pass_us_per_query":  7.9958984375
+                                       }
+                                   ],
+                        "raw_report":  {
+                                           "path":  "artifacts/interaction-fixes/native-controlled/hit-benchmark.json",
+                                           "bytes":  1031,
+                                           "sha256":  "376594a994c3c4a8ce7147119a9f0670c7e2e728d5565d5329c43cc92201e579"
+                                       }
+                    },
+    "captures":  {
+                     "interaction":  123,
+                     "chrome_custom":  26,
+                     "chrome_native":  26,
+                     "formats":  16,
+                     "refinement":  46
+                 },
+    "fullscreen_samples":  [
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  false,
+                                   "phase":  18,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               },
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  false,
+                                   "phase":  19,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               },
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  false,
+                                   "phase":  22,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               },
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  true,
+                                   "phase":  18,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               },
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  true,
+                                   "phase":  19,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               },
+                               {
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               },
+                                   "outer":  {
+                                                 "Left":  0,
+                                                 "Top":  0,
+                                                 "Right":  1920,
+                                                 "Bottom":  1080
+                                             },
+                                   "native":  true,
+                                   "phase":  22,
+                                   "fullscreen":  true,
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              }
+                               }
+                           ],
+    "detached_windows":  [
+                             {
+                                 "pid":  12440,
+                                 "document_fixture":  "examples/reading-sample.pdf",
+                                 "page":  1,
+                                 "zoom":  {
+                                              "Percent":  125
+                                          },
+                                 "anchor":  [
+                                                0.3082500100135803,
+                                                0.3720000088214874
+                                            ]
+                             },
+                             {
+                                 "pid":  26424,
+                                 "document_fixture":  "examples/reading-sample.pdf",
+                                 "page":  1,
+                                 "zoom":  {
+                                              "Percent":  125
+                                          },
+                                 "anchor":  [
+                                                0.3022499978542328,
+                                                0.34860000014305115
+                                            ]
+                             }
+                         ],
+    "executables":  [
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                            "bytes":  11432448,
+                            "sha256":  "7c1d0be736e4d7544cfd52dd90ce2e8aa661d12c502239b37ebc75c76fdf2c36"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/examples/interaction_smoke.exe",
+                            "bytes":  11492864,
+                            "sha256":  "6c21e803630aa4d38f6a8f3fe7ad56e83c6207bd8ed5af00081cf88e7fc90c85"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/document_chrome_smoke.exe",
+                            "bytes":  40515584,
+                            "sha256":  "ddf151cf14d8347dbe3d3c9b63b2a917032491e2a7720377863ebcb5c1a68d18"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/formats_smoke.exe",
+                            "bytes":  40301056,
+                            "sha256":  "0d3a609d3093d816238615c23fd21751a58d4eb223b37d32be43b101060a4164"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/refinement_smoke.exe",
+                            "bytes":  40311296,
+                            "sha256":  "6cec3b5a82fd6fcc58d7e7968e264f7fe4281bf8f81d3def7051837b768fd718"
+                        }
+                    ],
+    "portable_package":  {
+                             "artifact":  {
+                                              "path":  "artifacts/interaction-fixes/packages/crabpdf-0.3.6-win-x64.zip",
+                                              "bytes":  43600665,
+                                              "sha256":  "b547fdeec69d6b212f2f2487e128fd516e33d857b21b744dd887eadb21df8d9c"
+                                          },
+                             "target":  "x86_64-pc-windows-msvc",
+                             "version":  "0.3.6 development snapshot",
+                             "verified_manifest_files":  607,
+                             "public_release":  false
+                         },
+    "limits":  [
+                   "Only native-controlled supplies final interaction observations; earlier runner attempts remain in artifacts.",
+                   "Native GUI rendering uses isolated synthetic keyboard/pointer input with focused RawInput; it does not automate the physical OS keyboard or measure monitor/compositor presentation.",
+                   "The text-region contrast check covers the fixture region, not every document or physical compositor frame.",
+                   "Word/mark timings are individual local observations with capture overhead, not latency guarantees.",
+                   "Hit benchmark covers synthetic character hit testing only, not whole-app speed.",
+                   "Chrome, refinement and formats GUI use dev; main and interaction smoke use release.",
+                   "Only Windows has local native GUI evidence; CI platform checks have a different scope."
+               ],
+    "reproduction":  {
+                         "tests":  "cargo test --locked --offline --target x86_64-pc-windows-msvc --lib --tests -- --include-ignored --test-threads=1",
+                         "interaction":  "target/x86_64-pc-windows-msvc/release/examples/interaction_smoke.exe \u003cnew-output-directory\u003e",
+                         "chrome":  "./scripts/Test-WindowGeometry.ps1 -Executable target/x86_64-pc-windows-msvc/debug/examples/document_chrome_smoke.exe -ReportRoot \u003cnew-output-directory\u003e [-Native]",
+                         "package":  "./scripts/Pack-Portable.ps1 -Architecture x64 -SkipBuild -Destination artifacts/interaction-fixes/packages",
+                         "environment":  "RUST_READER_PDFIUM points to native/pdfium.dll; CRABPDF_DATA_DIR and RUST_READER_CONFIG point to isolated artifact directories."
+                     },
+    "ci":  {
+               "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963",
+               "source_commit":  "ca0c08e77ddd9b84f4f279abca42a165dc20a0a6",
+               "status":  "in_progress",
+               "retry":  {
+                             "job_id":  121660972539,
+                             "reason":  "External tool download connection timeout in Get-FormatTools.ps1, after Rust and PDFium tests passed.",
+                             "retry_requested":  true
+                         },
+               "conclusion":  null,
+               "run_attempt":  2,
+               "observed_utc":  "2026-10-26T15:41:40.8947691Z",
+               "jobs":  [
+                            {
+                                "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)",
+                                "status":  "in_progress",
+                                "conclusion":  null,
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963/job/121668370460"
+                            },
+                            {
+                                "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963/job/121668372231"
+                            },
+                            {
+                                "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963/job/121668373527"
+                            },
+                            {
+                                "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963/job/121668423168"
+                            },
+                            {
+                                "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40348264963/job/121668443316"
+                            }
+                        ]
+           },
+    "application_commit":  "ca0c08e77ddd9b84f4f279abca42a165dc20a0a6",
+    "source_scope":  "Application code is unchanged since application_commit. The runner commit only isolates simulated GUI focus/input; these runner changes passed local fmt, all-target Clippy and all five native scenarios."
+}

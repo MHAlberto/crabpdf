@@ -26,13 +26,13 @@ Para continuar el desarrollo: [pantalla completa, favoritos y arrastre en 0.3.6]
 - Lectura de una página, páginas enfrentadas, libro, continuo y orden manga.
 - Modo vertical ajustado al ancho, precarga de páginas vecinas y vista temporal mientras llegan los tiles nítidos.
 - Primera/última página, salto por número e historial de navegación.
-- Transiciones breves al navegar con flechas, viewport estable sin pie inferior y opción Reducir movimiento.
+- Desplazamiento continuo al mantener las flechas, marcado sin vaciar la página, viewport estable sin pie inferior y opción Reducir movimiento. [Correcciones y mediciones](docs/INTERACTION_FIXES.md).
 - Marcas con muestras compactas de color y cruces vectoriales de ventana/pestañas con áreas de clic mayores.
 - Zoom de 8–6400 %, personalizado, tamaño real y ajuste a página, ancho o alto.
 - Ctrl+rueda y conservación de la región al hacer zoom; bitmaps alineados con píxeles físicos.
 - Rotación, pan, desplazamiento por teclado y renderizado HiDPI por regiones visibles.
 - Miniaturas reales, índice PDF y favoritos del libro abierto, ordenados por página, con guardar/quitar y eliminación individual sin mezclar otros documentos.
-- Arrastrar una pestaña fuera de la barra y soltar duplica el documento conservando página, zoom y punto de lectura; volver a la barra o Escape cancela.
+- Arrastrar una pestaña fuera de la barra y soltar abre el libro en otra ventana, conservando página, zoom y punto de lectura; volver a la barra o Escape cancela.
 - Selección de texto con ratón, doble clic, seleccionar página y copiar cuando los permisos PDF lo permiten.
 - Resaltado y subrayado con amarillo, verde, azul, rosa, naranja, rojo o un color personalizado; persistencia local, deshacer y exportación de anotaciones reales a PDF.
 - Búsqueda progresiva, mayúsculas/palabra completa, resaltado y desplazamiento al resultado.

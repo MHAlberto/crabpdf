@@ -53,7 +53,8 @@ flowchart LR
 | `ui/chrome.rs` | Pestañas integradas, operaciones nativas de ventana y controles flotantes de pantalla completa. |
 | `ui/home.rs`, `library.rs` | Biblioteca, tarjetas, portadas diferidas y caché PNG limitada. |
 | `ui/viewer.rs` | Viewport, regiones visibles, selección, enlaces y resaltados. |
-| `ui/motion.rs` | Desplazamiento programático breve, interrumpible y entradas sin mezclar documentos. |
+| `ui/motion.rs`, `ui/key_scroll.rs` | Saltos programáticos, entradas y desplazamiento por fotograma al mantener flechas; movimiento interrumpible. |
+| `ui/raster.rs`, `ui/selection_geometry.rs` | Instantáneas de presentación durante cambios de marcas y geometría de selección reutilizable por línea. |
 | `ui/theme.rs`, `ui/icons.rs` | Estilos e iconos vectoriales propios. |
 | `state.rs` | Estado de documento, historial, modos, zoom y rotación. |
 | `layout.rs` | Geometría, spreads y planificación de tiles. |
@@ -91,7 +92,7 @@ Estos son presupuestos de caché, **no** un límite de memoria del proceso: conv
 
 Las operaciones de control tienen prioridad; los rasters visibles preceden a extracción de texto y búsqueda. Una búsqueda trabaja por página y cede a la lectura entre páginas. La UI solicita repaint al recibir un evento; no mantiene un temporizador de render en reposo. El canal contiene como máximo dos resultados y la cola de render tiene un límite.
 
-La UI elimina renders que dejaron de ser visibles. Una llamada nativa ya iniciada termina normalmente; la cancelación no interrumpe PDFium a mitad de una operación. Las claves incluyen documento, revisión del contenido, página, zoom, viewport, densidad, rotación, colores y región. Una marca nueva o un refresco externo cambia esa revisión e invalida rasters CPU/GPU del documento. Resultados de revisiones anteriores y pestañas cerradas se descartan.
+La UI cancela solicitudes de render que dejaron de ser visibles. Una llamada nativa ya iniciada termina normalmente; la cancelación no interrumpe PDFium a mitad de una operación. Las claves incluyen documento, revisión del contenido, página, zoom, viewport, densidad, rotación, colores y región. Una marca nueva o un refresco externo cambia esa revisión e invalida los rasters del motor. La caché visual conserva instantáneas anteriores dentro del mismo presupuesto hasta recibir un reemplazo compatible; no las considera renders actuales. Resultados tardíos de revisiones anteriores y pestañas cerradas se descartan.
 
 ## Texto y búsquedas
 
@@ -115,14 +116,16 @@ PDFium sigue siendo el motor de páginas. `formats.rs` prepara los formatos bás
 
 La selección sigue limitada a una página. Impresión, edición general, formularios y los restantes formatos/servicios de referencia requieren componentes adicionales. [Formatos, almacenamiento y límites](FORMATS_AND_ANNOTATIONS.md).
 
-## Transiciones y viewport en 0.3.5
+## Transiciones y viewport
 
 `ui/motion.rs` anima únicamente el desplazamiento y la entrada del contenido actual. El lienzo permanece opaco; no hay una textura duplicada ni mezcla de dos documentos. Los saltos cercanos se limitan a 160 ms, con cancelación por interacción y ajuste de ambos extremos cuando llega geometría real. Se elimina el objetivo cinético anterior de egui al aplicar un salto programático.
 
-El visor mantiene barras flotantes sin degradado y sin reserva variable de ancho. La vista previa debe coincidir en documento, revisión, página, giro y colores. La navegación a un destino frío espera como máximo 200 ms y la precarga vecina sigue dentro de los presupuestos existentes. Los avisos de éxito flotan sin alterar el viewport. `reduce_motion` es una preferencia TOML con valor por defecto compatible. [Regresiones y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
+El visor mantiene barras flotantes sin degradado y sin reserva variable de ancho. La vista previa coincide en documento, página, giro y colores, prefiriendo la revisión más reciente hasta la actual. Los mosaicos de una revisión anterior sólo se dibujan si coinciden en geometría y no cubren una vista previa más nueva. La navegación a un destino frío espera como máximo 200 ms y la precarga vecina sigue dentro de los presupuestos existentes. Los avisos de éxito flotan sin alterar el viewport. `reduce_motion` es una preferencia TOML con valor por defecto compatible. [Regresiones y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
 
 ## Ventana y documento en 0.3.6
 
 `ReaderApp::sync_fullscreen` centraliza F11, Escape, presentación y arranque CLI. En Windows retira temporalmente el estado maximizado antes de entrar, para evitar que `WM_NCCALCSIZE` limite el cliente al área de trabajo del monitor. Reaplica decoraciones tras el cambio para actualizar la sombra del marco sin decorar y restaura el estado maximizado al salir. No introduce FFI en el lector.
 
-`Preferences::favorites_for` filtra por ruta de origen y ordena por página; quitar una entrada usa ruta y página. El almacén TOML conserva su formato y los favoritos de otros libros. El panel navega directamente en la pestaña activa. `ui/chrome.rs` sigue el ID estable de la pestaña durante el arrastre y reutiliza la acción de duplicado al soltar fuera; el estado guardado proporciona el ancla de lectura.
+`Preferences::favorites_for` filtra por ruta de origen y ordena por página; quitar una entrada usa ruta y página. El almacén TOML conserva su formato y los favoritos de otros libros. El panel navega directamente en la pestaña activa. `ui/chrome.rs` sigue el ID estable de la pestaña durante el arrastre y ejecuta `DuplicateWindow` al soltar fuera. `platform` transfiere la vista y el ancla normalizada por argumentos estructurados a otro proceso, conservando la pestaña original.
+
+`ui/key_scroll.rs` integra el desplazamiento vertical en cada fotograma con un destino suave; las repeticiones del teclado no reinician una animación. Respeta los campos de texto, foco, cancelación, límites y reducción de movimiento. El hit test recorre una vez cada carácter hasta encontrar texto bajo el cursor y `selection_geometry` reutiliza la geometría mientras no cambia el rango. [Correcciones y evidencia](INTERACTION_FIXES.md).

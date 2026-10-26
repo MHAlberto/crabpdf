@@ -37,7 +37,6 @@ use std::time::{Duration, Instant};
 struct DisplayPage {
     texture: egui::TextureHandle,
     size: Vec2,
-    zoom: f32,
     limited: bool,
 }
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -828,7 +827,6 @@ impl ReaderApp {
                             let display = Arc::new(DisplayPage {
                                 texture,
                                 size: egui::vec2(page.logical_width, page.logical_height),
-                                zoom: page.zoom_percent,
                                 limited: page.resolution_limited,
                             });
                             self.pages.insert(key, display, page.rgba.len());
@@ -1468,15 +1466,14 @@ impl ReaderApp {
         self.schedule_save();
         ctx.request_repaint();
     }
-    fn effective_zoom(&mut self) -> f32 {
-        match self.state().zoom {
-            Zoom::Percent(p) => f32::from(p),
-            _ => self
-                .state()
-                .requested
-                .and_then(|key| self.pages.get(&key))
-                .map_or(100.0, |page| page.zoom),
+    fn effective_zoom(&self) -> f32 {
+        if self.home {
+            return 100.0;
         }
+        self.tabs
+            .get(self.active)
+            .and_then(Tab::effective_zoom)
+            .unwrap_or(100.0)
     }
     fn leave_presentation(&mut self, ctx: &egui::Context) {
         self.presentation = false;

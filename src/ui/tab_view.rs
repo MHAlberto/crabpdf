@@ -58,6 +58,47 @@ impl Tab {
         self.go_to(destination.page, true);
         self.view.reveal = destination.bounds.map(|bounds| (destination.page, bounds));
     }
+    /// Fit zoom describes page geometry, independent of annotation textures.
+    pub(super) fn effective_zoom(&self) -> Option<f32> {
+        if let Zoom::Percent(percent) = self.reader.state.zoom {
+            return Some(f32::from(percent));
+        }
+        let document = self.reader.state.document.as_ref()?;
+        let mut spec = self.view.view_layout.as_ref()?.0;
+        spec.mode = self.reader.state.layout;
+        let (width, height) = spec.cell_size();
+        let size = self
+            .reader
+            .state
+            .page_sizes
+            .get(document.page)
+            .copied()
+            .flatten()
+            .or_else(|| {
+                self.reader
+                    .state
+                    .details
+                    .as_ref()
+                    .map(|details| details.first_page_size)
+            })?;
+        let base = if self.reader.state.rotation.is_multiple_of(2) {
+            size.width
+        } else {
+            size.height
+        };
+        if !base.is_finite() || base <= 0.0 {
+            return None;
+        }
+        let logical = crate::layout::logical_page_size(
+            size,
+            self.reader.state.rotation,
+            self.reader.state.zoom,
+            f64::from(width),
+            f64::from(height),
+        )
+        .0;
+        Some((logical / (f64::from(base) * 96.0 / 72.0) * 100.0) as f32)
+    }
     pub(super) fn supports_password(&self) -> bool {
         matches!(
             crate::formats::Format::detect(&self.reader.path),
@@ -137,5 +178,63 @@ impl Tab {
         if self.view.zoom_anchor.is_some() {
             self.reader.state.scroll_to_page = false;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        document::{DocumentInfo, PageSize},
+        layout::LayoutMode,
+    };
+    #[test]
+    fn fit_zoom_is_stable_while_marking_renders_and_rotated_views_are_pending() {
+        let mut tab = Tab::new(1, "book.pdf".into(), None);
+        tab.reader.finish_open(
+            1,
+            Ok(DocumentInfo {
+                path: "book.pdf".into(),
+                page_count: 1,
+            }),
+            true,
+        );
+        let size = PageSize {
+            width: 600.0,
+            height: 800.0,
+        };
+        tab.reader.state.page_sizes[0] = Some(size);
+        for rotation in 0..4 {
+            for zoom in [Zoom::FitWidth, Zoom::FitHeight, Zoom::FitPage] {
+                tab.reader.state.zoom = zoom;
+                tab.reader.state.rotation = rotation;
+                let spec = LayoutSpec {
+                    width: 1080,
+                    height: 780,
+                    zoom,
+                    mode: LayoutMode::Single,
+                    continuous: true,
+                    current: 0,
+                    rotation,
+                    manga: false,
+                    compact: false,
+                    revision: 0,
+                };
+                tab.view.view_layout =
+                    Some((spec, Arc::new(PageLayout::build(&[Some(size)], size, spec))));
+                let expected = tab.effective_zoom().unwrap();
+                let (w, h) = spec.cell_size();
+                let key = tab.reader.state.render_key_for(0, w, h, 1.0, 8192).unwrap();
+                tab.reader.state.requested = Some(key);
+                assert_eq!(tab.effective_zoom(), Some(expected));
+                tab.reader.state.content_revision += 1;
+                tab.reader.state.requested = None;
+                tab.reader.state.rendering = true;
+                assert_eq!(tab.effective_zoom(), Some(expected));
+                assert!((expected - 100.0).abs() > 0.1);
+            }
+        }
+        tab.reader.state.zoom = Zoom::Percent(175);
+        assert_eq!(tab.effective_zoom(), Some(175.0));
     }
 }

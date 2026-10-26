@@ -4,9 +4,11 @@ Lector local de documentos desarrollado en Rust con egui/eframe y PDFium. Tiene 
 
 El icono nativo procede de `crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
 
-La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.3.6 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
+La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.0 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
 Descargas de Windows y Ubuntu/Linux: [publicaciones de CrabPDF en GitHub](https://github.com/MHAlberto/crabpdf/releases).
+
+La entrega [0.4.0](docs/RELEASE_0_4_0.md) reúne la migración modular, las mejoras de lectura y los instaladores Windows. [Notas de la versión](docs/releases/v0.4.0.md).
 
 Para continuar el desarrollo: [pantalla completa, favoritos y arrastre en 0.3.6](docs/IMPLEMENTATION_PROGRESS_0_3_6.md), [navegación e interfaz en 0.3.5](docs/IMPLEMENTATION_PROGRESS_0_3_5.md), [punto de lectura y manga en 0.3.4](docs/IMPLEMENTATION_PROGRESS_0_3_4.md), [pantalla completa y teclado en 0.3.3](docs/IMPLEMENTATION_PROGRESS_0_3_3.md), [avance de 0.3.2](docs/IMPLEMENTATION_PROGRESS_0_3_2.md), [recuperación de caché en 0.3.1](docs/IMPLEMENTATION_PROGRESS_0_3_1.md), [entrega 0.3.0](docs/IMPLEMENTATION_PROGRESS.md), [auditoría de la base 0.2](docs/AUDIT_V1.md), [rutas y criterios para 1.0](docs/V1_PLAN.md), [backlog con dependencias](docs/V1_BACKLOG.csv) y [guía de agentes](AGENTS.md).
 
@@ -80,9 +82,9 @@ Se han probado Windows 10 x64 y un proceso x86 bajo WOW64 en ese mismo sistema. 
 
 ## Ubuntu y Linux
 
-La edición Linux x86_64 de **0.3.6** se compiló con Rust 1.96 sobre Debian Bookworm y se ejecutó en Ubuntu 24.04 dentro de Docker. Los paquetes locales están en `artifacts/packages/`: `.deb` para Ubuntu 24.04 y `.tar.gz` para Linux x86_64 compatible con glibc 2.36 o posterior. Mint 22 puede usar el `.deb` si dispone de las dependencias declaradas, pero no se ha probado. La ejecución en un escritorio físico, las demás distribuciones y la accesibilidad siguen pendientes.
+La edición Linux x86_64 de **0.4.0** se compiló con Rust 1.96 sobre Debian Bookworm y se ejecutó en Ubuntu 24.04 dentro de Docker. Los paquetes locales están en `artifacts/packages/`: `.deb` para Ubuntu 24.04 y `.tar.gz` para Linux x86_64 compatible con glibc 2.36 o posterior. Mint 22 puede usar el `.deb` si dispone de las dependencias declaradas, pero no se ha probado. La ejecución en un escritorio físico, las demás distribuciones y la accesibilidad siguen pendientes.
 
-En Ubuntu, instalar el `.deb` con `sudo apt install ./crabpdf-0.3.6-ubuntu24.04-amd64.deb`. Incluye `libpdfium.so`, MuPDF, libmobi, icono, licencias y manifiesto; APT instala DjVuLibre, 7-Zip y las bibliotecas gráficas. El tar contiene el mismo lector y sus herramientas propias, y su `INSTALL-LINUX.md` explica los requisitos del sistema. Ambos paquetes son de desarrollo, sin firma.
+En Ubuntu, instalar el `.deb` con `sudo apt install ./crabpdf-0.4.0-ubuntu24.04-amd64.deb`. Incluye `libpdfium.so`, MuPDF, libmobi, icono, licencias y manifiesto; APT instala DjVuLibre, 7-Zip y las bibliotecas gráficas. El tar contiene el mismo lector y sus herramientas propias, y su `INSTALL-LINUX.md` explica los requisitos del sistema. Ambos paquetes son de desarrollo, sin firma.
 
 Para compilar desde la fuente en Ubuntu/Debian se necesitan Rust 1.96.0, PDFium build 7881 y las bibliotecas de compilación:
 

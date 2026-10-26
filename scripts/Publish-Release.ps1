@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Version = '0.3.6', [switch]$RequireSignedInstaller)
+param([string]$Version = '0.4.0', [switch]$RequireSignedInstaller)
 $ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repo = 'MHAlberto/crabpdf'
@@ -14,7 +14,7 @@ $assets = @(
     "artifacts/packages/crabpdf-$Version-win-x86-setup.exe.json",
     "artifacts/packages/crabpdf-$Version-ubuntu24.04-amd64.deb",
     "artifacts/packages/crabpdf-$Version-linux-x64.tar.gz",
-    'artifacts/packages/crabpdf-0.2.0-format-tools-sources.zip'
+    "artifacts/packages/crabpdf-$Version-format-tools-sources.zip"
 )
 Push-Location -LiteralPath $workspace
 try {
@@ -26,7 +26,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "No existe la etiqueta $tag." }
     # A later correction to this upload helper may publish the existing tag, but
     # the application and build/packaging inputs must still match that tag.
-    $sourceChanges = @(git diff --name-only $releaseCommit HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs crabpdf-logo.svg src scripts/Build-LinuxFormatTools.sh scripts/Pack-Linux.sh scripts/Export-RustLicenses.py scripts/Pack-Portable.ps1 scripts/Export-Licenses.ps1 scripts/Build-Installer.ps1 scripts/Get-NSIS.ps1 scripts/Sign-Windows.ps1 scripts/Get-FormatTools.ps1 installer docs/THIRD_PARTY_NOTICES.md)
+    $sourceChanges = @(git diff --name-only $releaseCommit HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs crabpdf-logo.svg src scripts/Build-LinuxFormatTools.sh scripts/Pack-Linux.sh scripts/Export-RustLicenses.py scripts/Pack-Portable.ps1 scripts/Export-Licenses.ps1 scripts/Build-Installer.ps1 scripts/Get-NSIS.ps1 scripts/Sign-Windows.ps1 scripts/Get-FormatTools.ps1 scripts/Pack-FormatSources.ps1 installer docs/THIRD_PARTY_NOTICES.md)
     if ($LASTEXITCODE -ne 0 -or $sourceChanges.Count -gt 0) { throw "Las fuentes o entradas de empaquetado difieren de $tag." }
     if ((git ls-remote --tags origin "refs/tags/$tag") -notmatch 'refs/tags/') {
         throw "La etiqueta $tag aún no está en GitHub."
@@ -75,6 +75,9 @@ try {
         'User-Agent' = 'CrabPDF-release-script'
     }
     $api = "https://api.github.com/repos/$repo"
+    $runs = Invoke-RestMethod -Uri "$api/actions/workflows/ci.yml/runs?head_sha=$releaseCommit&per_page=30" -Headers $headers
+    $successful = @($runs.workflow_runs | Where-Object { $_.head_sha -eq $releaseCommit -and $_.status -eq 'completed' -and $_.conclusion -eq 'success' })
+    if (!$successful.Count) { throw "La revision etiquetada $tag aun no tiene una CI completa aprobada." }
     $existing = @(Invoke-RestMethod -Uri "$api/releases?per_page=100" -Headers $headers) |
         Where-Object { $_.tag_name -eq $tag } | Select-Object -First 1
     if ($existing) {

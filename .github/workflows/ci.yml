@@ -2,6 +2,7 @@ name: CrabPDF CI
 
 on:
   push:
+    tags-ignore: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -51,7 +52,12 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: ./scripts/Get-Pdfium.ps1 -Platform '${{ matrix.platform }}' -Architecture '${{ matrix.architecture }}'
+        run: |
+          $destination = if ('${{ matrix.platform }}' -eq 'win' -and '${{ matrix.architecture }}' -eq 'x86') { 'native/win-x86' } else { 'native' }
+          ./scripts/Get-Pdfium.ps1 -Platform '${{ matrix.platform }}' -Architecture '${{ matrix.architecture }}' -Destination $destination
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo preparar PDFium.' }
+          $library = if ('${{ matrix.platform }}' -eq 'win') { 'pdfium.dll' } elseif ('${{ matrix.platform }}' -eq 'mac') { 'libpdfium.dylib' } else { 'libpdfium.so' }
+          "RUST_READER_PDFIUM=$((Resolve-Path (Join-Path $destination $library)).Path)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Functional engine tests (no window)
         run: cargo test --locked --target '${{ matrix.target }}' --test native_pdf -- --ignored --test-threads=1
       - name: Prepare Windows format decoders and samples

@@ -35,5 +35,15 @@ Los avisos y fuentes de NSIS se identifican en installer-licenses/ dentro de la 
 "@ | Set-Content -LiteralPath (Join-Path $folder 'LEEME.txt') -Encoding UTF8
 $records=Get-ChildItem -LiteralPath $folder -File | Where-Object Name -ne 'manifest.json' | ForEach-Object {@{path=$_.Name;bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()}}
 @{version=$version;files=@($records)} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding UTF8
-Compress-Archive -LiteralPath $folder -DestinationPath "$folder.zip" -Force
+# ZIP paths use '/' so the same source bundle extracts correctly on Linux.
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$stream = [IO.File]::Create("$folder.zip")
+$zip = [IO.Compression.ZipArchive]::new($stream, [IO.Compression.ZipArchiveMode]::Create, $false)
+try {
+    foreach ($file in (Get-ChildItem -LiteralPath $folder -File | Sort-Object Name)) {
+        $entryName = [IO.Path]::GetFileName($folder) + '/' + $file.Name
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entryName, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+} finally { $zip.Dispose(); $stream.Dispose() }
 Write-Output "Fuentes: $folder.zip"

@@ -1,0 +1,194 @@
+{
+    "version":  "0.4.0",
+    "application_source_commit":  "5165a09613589ce8734c70e50d451e61c3aa6eb9",
+    "upgrade_from_0_3_6":  {
+                               "before":  "0.3.6",
+                               "preserves_unrelated_file":  true,
+                               "uninstall":  true,
+                               "after":  "0.4.0"
+                           },
+    "release_gate":  "Publish-Release.ps1 requires successful CI for the exact tagged revision, clean source and matching installer hashes/signature reports.",
+    "assets":  [
+                   {
+                       "sha256":  "d2887978c1cbd8b1d44b05fe40a6c2025cca70b78f12e6eb9a0169e88b5532c1",
+                       "name":  "crabpdf-0.4.0-format-tools-sources.zip",
+                       "bytes":  82302008
+                   },
+                   {
+                       "sha256":  "a1d0ba79551ddd54d0cc131b70c85326fbb39ed4cad4b1041d0df395da5b07ed",
+                       "name":  "crabpdf-0.4.0-linux-x64.tar.gz",
+                       "bytes":  40618728
+                   },
+                   {
+                       "sha256":  "4c95a58a2d61befd297b07ebd7de8adfb1b9423dbcbba27ccdd50bb83b32c7af",
+                       "name":  "crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                       "bytes":  30637504
+                   },
+                   {
+                       "sha256":  "6e6667690f204ea14ed2a1a689f2120ef6530c42cd93f30fe9e03f408b891278",
+                       "name":  "crabpdf-0.4.0-win-x64.zip",
+                       "bytes":  43604106
+                   },
+                   {
+                       "sha256":  "e1a51f45fa07fdb277f8cbffd74a73eba2035e6e1bf924897ef9d11bc25292d2",
+                       "name":  "crabpdf-0.4.0-win-x64-setup.exe",
+                       "bytes":  31921766
+                   },
+                   {
+                       "sha256":  "76c3ed7b363e3810e5c3ac7b29267799c46260faad35e252235e741ad1dc741f",
+                       "name":  "crabpdf-0.4.0-win-x64-setup.exe.json",
+                       "bytes":  653
+                   },
+                   {
+                       "sha256":  "25413d4c0eef2b5414c4d1d55d7499b997487d4b2b436096a56cab736037f00d",
+                       "name":  "crabpdf-0.4.0-win-x86.zip",
+                       "bytes":  43267071
+                   },
+                   {
+                       "sha256":  "562c1b262e561d7c0f44a58a155b82a681ad2747631abdc4ca52c7bce8eb723e",
+                       "name":  "crabpdf-0.4.0-win-x86-setup.exe",
+                       "bytes":  31703907
+                   },
+                   {
+                       "sha256":  "002f3c091657e93f54e1e50f756cd1e818db787bfb77546846c45079f9f65803",
+                       "name":  "crabpdf-0.4.0-win-x86-setup.exe.json",
+                       "bytes":  651
+                   }
+               ],
+    "inputs":  [
+                   {
+                       "sha256":  "572fd7b27b049b0625fc9a35ea97cb388028d1c7e4942bf0e5f8a0a71d87cac9",
+                       "path":  "Cargo.toml"
+                   },
+                   {
+                       "sha256":  "f9cb76778e0af07ddc04e99d1b4c7e9d75e0f668a159a259a9410fe624b5a927",
+                       "path":  "Cargo.lock"
+                   },
+                   {
+                       "sha256":  "8856d0361024c98842cb144b2a4d008c2e2815b491763da8984da82f6e348f08",
+                       "path":  "build.rs"
+                   },
+                   {
+                       "sha256":  "75039403a60f66a5a4c065906c2732b46b2635b8d94a9e29704654eff2569c8d",
+                       "path":  "crabpdf-logo.svg"
+                   },
+                   {
+                       "sha256":  "e34133ed7af9d3977b05bda12702a911136727f84a99628cfc5418b4eeb809c5",
+                       "path":  "scripts/Pack-FormatSources.ps1"
+                   },
+                   {
+                       "sha256":  "addc8fbf6cce256f1e79a95c3dabcb1ec1c668e993f0ba802c08505a8a177b1e",
+                       "path":  "scripts/Build-Installer.ps1"
+                   },
+                   {
+                       "sha256":  "3a270e99128be3cac65e92a95dadc1b8651678cbf31aca6a436d12b69950db0b",
+                       "path":  "scripts/Pack-Portable.ps1"
+                   },
+                   {
+                       "sha256":  "05dc5517763a56fc034e6547defb3db177f6cbd21be4615f418a9490e1a26228",
+                       "path":  "scripts/Pack-Linux.sh"
+                   },
+                   {
+                       "sha256":  "f5f3812d59683f79072a68c108094b72e94583384812ce805992a6bde9c7e04d",
+                       "path":  "scripts/Publish-Release.ps1"
+                   }
+               ],
+    "limitations":  [
+                        "Unsigned Windows installers; no real code-signing certificate or independent security certification",
+                        "Installer silent paths tested, interactive pages/DPI/optional shortcuts pending",
+                        "Windows x86 under WOW64; native 32-bit OS and Windows 11 pending",
+                        "Linux virtual X11 desktop; physical desktops, Wayland and other distros pending",
+                        "macOS CI successful, no macOS release package",
+                        "A00 performance campaign, complete SumatraPDF parity and version 1.0 remain open"
+                    ],
+    "installers":  [
+                       {
+                           "installation":  true,
+                           "gui_reviewed":  false,
+                           "payload_files":  609,
+                           "registry_removed":  true,
+                           "installer_sha256":  "e1a51f45fa07fdb277f8cbffd74a73eba2035e6e1bf924897ef9d11bc25292d2",
+                           "preserves_unrelated_files":  true,
+                           "architecture":  "x64",
+                           "uninstall":  true,
+                           "upgrade":  true,
+                           "rejects_locked_executable":  true,
+                           "manifest_verified":  true,
+                           "uninstaller_authenticode":  "NotSigned",
+                           "rejects_unrelated_directory":  true
+                       },
+                       {
+                           "installation":  true,
+                           "gui_reviewed":  false,
+                           "payload_files":  609,
+                           "registry_removed":  true,
+                           "installer_sha256":  "562c1b262e561d7c0f44a58a155b82a681ad2747631abdc4ca52c7bce8eb723e",
+                           "preserves_unrelated_files":  true,
+                           "architecture":  "x86",
+                           "uninstall":  true,
+                           "upgrade":  true,
+                           "rejects_locked_executable":  true,
+                           "manifest_verified":  true,
+                           "uninstaller_authenticode":  "NotSigned",
+                           "rejects_unrelated_directory":  true
+                       }
+                   ],
+    "rust":  "1.96.0",
+    "native_ui":  {
+                      "windows_interaction_png":  16,
+                      "installed_ubuntu_screenshot":  "artifacts/release-0.4.0/ubuntu-installed.png",
+                      "windows_formats_png":  16,
+                      "ubuntu_display":  "Xvfb/Mesa software; Openbox for installed executable",
+                      "ubuntu_formats_png":  16,
+                      "ubuntu_interaction_png":  52,
+                      "input":  "simulated RawInput, real application/PDFium"
+                  },
+    "pdfium":  "7881",
+    "ci_candidate":  {
+                         "conclusion":  "success",
+                         "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061",
+                         "jobs":  [
+                                      {
+                                          "conclusion":  "success",
+                                          "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061/job/121716229498",
+                                          "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)"
+                                      },
+                                      {
+                                          "conclusion":  "success",
+                                          "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061/job/121716229644",
+                                          "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)"
+                                      },
+                                      {
+                                          "conclusion":  "success",
+                                          "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061/job/121716229648",
+                                          "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)"
+                                      },
+                                      {
+                                          "conclusion":  "success",
+                                          "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061/job/121716229760",
+                                          "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)"
+                                      },
+                                      {
+                                          "conclusion":  "success",
+                                          "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40363886061/job/121716229978",
+                                          "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)"
+                                      }
+                                  ]
+                     },
+    "date":  "2026-10-26",
+    "application_src_tree":  "56a1eae654ea71efce1c39e177692d2e2337354f",
+    "checks":  {
+                   "format_sources_files":  13,
+                   "windows_portable_files_each":  607,
+                   "windows_x64_unique_tests":  101,
+                   "windows_x64_integration":  53,
+                   "ubuntu_formats_tests":  7,
+                   "ubuntu_native_tests":  8,
+                   "linux_package_files_each":  408,
+                   "fmt":  "passed",
+                   "zip_paths_portable":  true,
+                   "ubuntu_installed_files":  408,
+                   "clippy_x64":  "passed",
+                   "windows_x64_unit":  48
+               }
+}

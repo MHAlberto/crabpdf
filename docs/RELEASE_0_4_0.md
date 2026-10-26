@@ -10,7 +10,7 @@ No cambia las versiones de dependencias ni los esquemas de perfiles y marcas. La
 
 Se corrige una discrepancia de empaquetado en la CI x86: PDFium se prepara en `native/win-x86` y su ruta absoluta se entrega a las pruebas. Antes se descargaba en `native`, lo que permitía ejecutar los contratos pero impedía encontrar la DLL al generar el instalador.
 
-Los paquetes de fuentes de formatos pasan a tener la versión de la entrega e incluyen el script Linux y la referencia correcta al repositorio. Los archivos fuente originales y sus hashes se conservan.
+Los paquetes de fuentes de formatos pasan a tener la versión de la entrega e incluyen el script Linux y la referencia correcta al repositorio. Sus rutas ZIP usan separadores estándar para extracción en Windows y Linux. Los archivos fuente originales y sus hashes se conservan.
 
 ## Distribución
 
@@ -22,9 +22,20 @@ La entrega sigue sin firma digital porque aún no existe certificado. Los hashes
 
 ## Validación de cierre
 
-Registro en preparación en `artifacts/release-0.4.0/`. La publicación requiere verificar los paquetes definitivos y la CI de la revisión etiquetada. El informe final se registra en `docs/releases/v0.4.0-validation.json`.
+Resultados locales y de la CI del candidato, registrados en [v0.4.0-validation.json](releases/v0.4.0-validation.json):
 
-Se conservarán por separado pruebas de motor, regresión gráfica, instalación/actualización/desinstalación, manifiestos, arquitecturas y limitaciones. Una compilación o captura de egui no se presentará como prueba de un escritorio físico.
+- Windows x64: formato, Clippy y 101 pruebas únicas, incluidas las nativas normalmente ignoradas. Los helpers de procesos hijos pertenecen a sus contratos.
+- Instaladores x64/x86: instalación, 609 archivos del manifiesto, actualización, rechazo de carpetas ajenas/ejecutable bloqueado, desinstalación y conservación de un archivo ajeno.
+- Actualización real del instalador x64 de 0.3.6 a 0.4.0: versión del ejecutable comprobada y archivo ajeno conservado.
+- Portables Windows: 607 archivos verificados en cada ZIP. Fuentes de formatos: 13 archivos verificados también desde Linux, con rutas ZIP estándar.
+- Debian Bookworm: compilación optimizada Linux con Rust 1.96.0. TAR y DEB: 408 hashes internos comprobados por paquete.
+- Ubuntu 24.04: instalación del DEB, versión 0.4.0, 408 archivos instalados verificados, ocho pruebas PDF y siete de formatos/marcas con los conversores empaquetados.
+- Interfaz real con entrada simulada: 32 capturas Windows y 68 Ubuntu durante selección, resaltado, subrayado, deshacer, desplazamiento y apertura de formatos. Además se inició el ejecutable instalado en Ubuntu y se capturó su ventana.
+- La [CI del código candidato 5165a09](https://github.com/MHAlberto/crabpdf/actions/runs/40363886061) aprobó Windows x64/x86, Ubuntu x64 y macOS Intel/ARM. El publicador exige además una ejecución completa aprobada para la revisión etiquetada.
+
+Se revisaron las capturas de lectura del DEB instalado y de resaltado Windows. Los recorridos Ubuntu usan Xvfb, Mesa por software y Openbox para la ventana instalada. No equivalen a escritorios físicos ni a pruebas en Wayland. La revisión interactiva de las páginas/DPI del asistente sigue pendiente.
+
+Los logs, capturas y ejecutables de prueba se conservan localmente en `artifacts/release-0.4.0/`. No se deduce una mejora global de latencia de esta campaña de regresión ni se incorporan los artefactos de pruebas a los instaladores.
 
 ## Pendientes
 

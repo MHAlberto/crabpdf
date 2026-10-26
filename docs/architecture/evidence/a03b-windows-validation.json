@@ -1,0 +1,139 @@
+{
+    "checks":  {
+                   "native_interaction_captures":  16,
+                   "portable_manifest_files_each":  607,
+                   "integration_contracts_each":  53,
+                   "unit_tests_each":  48,
+                   "fmt":  "passed",
+                   "clippy_x64_all_targets":  "passed",
+                   "require_signature_without_certificate":  "rejected",
+                   "download_failure_and_bad_checksum":  "passed",
+                   "tests_x86_unique":  101,
+                   "gnu_mirror_sha256":  "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+                   "tests_x64_unique":  101,
+                   "native_search":  "passed"
+               },
+    "rust":  "1.96.0",
+    "pdfium":  "7881",
+    "version":  "0.3.6 development",
+    "sources":  [
+                    {
+                        "sha256":  "20e5054898c752a709a809c80dcd051f7140235f5563b37a6e8b9eb4a8a3e732",
+                        "path":  "src/worker.rs"
+                    },
+                    {
+                        "sha256":  "d7f877de4b6eabfb1eeecf650c37cabb1297f5b76931d04471c0f2320b076804",
+                        "path":  "src/worker/scheduler.rs"
+                    },
+                    {
+                        "sha256":  "8856d0361024c98842cb144b2a4d008c2e2815b491763da8984da82f6e348f08",
+                        "path":  "build.rs"
+                    },
+                    {
+                        "sha256":  "ff14eeae13f976bc19443b7ce5418fc95b533cfe165f1724d44d37c4037c2969",
+                        "path":  "installer/windows/crabpdf.nsi"
+                    },
+                    {
+                        "sha256":  "58a789f9f5be983fcde45b7b932a9365da05865c9a293e1301045aa650dd2d4f",
+                        "path":  "scripts/Build-Installer.ps1"
+                    },
+                    {
+                        "sha256":  "dd36b818e86fe45ee98422c2a102935a1a6bcb64ccba1326424075d4701ccc7b",
+                        "path":  "scripts/Get-NSIS.ps1"
+                    },
+                    {
+                        "sha256":  "5660549c42638843f87f1802e7795ad5849c1352f91b4ae9d388be4ffed01bda",
+                        "path":  "scripts/Sign-Windows.ps1"
+                    },
+                    {
+                        "sha256":  "9a9687759314c16144f7b0969a8670a4ae87b19ec9fd907b71fae144e8dfeee8",
+                        "path":  "scripts/Test-Installer.ps1"
+                    },
+                    {
+                        "sha256":  "435d0714cb3fc5ff5d4fb0fece2cc04acdad6b83ec928f8ec5a7d0cb2a6645ed",
+                        "path":  "scripts/Get-FormatTools.ps1"
+                    },
+                    {
+                        "sha256":  "fd4829cbc0d819616fed25b1ed25349fa17d7e3beab1a180d630b2847ba5660e",
+                        "path":  ".github/workflows/ci.yml"
+                    }
+                ],
+    "installers":  [
+                       {
+                           "path":  "artifacts/installer-a03b/packages/crabpdf-0.3.6-win-x64-setup.exe",
+                           "sha256":  "35c22ff724b6d372fb2c3fa27ff821ba188a3dd2b4eeb57e3a48694230dff97e",
+                           "authenticode":  "NotSigned",
+                           "bytes":  31914307,
+                           "validation":  {
+                                              "installation":  true,
+                                              "gui_reviewed":  false,
+                                              "payload_files":  607,
+                                              "registry_removed":  true,
+                                              "installer_sha256":  "35c22ff724b6d372fb2c3fa27ff821ba188a3dd2b4eeb57e3a48694230dff97e",
+                                              "preserves_unrelated_files":  true,
+                                              "architecture":  "x64",
+                                              "uninstall":  true,
+                                              "upgrade":  true,
+                                              "rejects_locked_executable":  true,
+                                              "manifest_verified":  true,
+                                              "uninstaller_authenticode":  "NotSigned",
+                                              "rejects_unrelated_directory":  true
+                                          }
+                       },
+                       {
+                           "path":  "artifacts/installer-a03b/packages/crabpdf-0.3.6-win-x86-setup.exe",
+                           "sha256":  "90ffec332fffc99db7930cbac248da1ad1d6017fb1b512350a55ce477612355f",
+                           "authenticode":  "NotSigned",
+                           "bytes":  31703865,
+                           "validation":  {
+                                              "installation":  true,
+                                              "gui_reviewed":  false,
+                                              "payload_files":  607,
+                                              "registry_removed":  true,
+                                              "installer_sha256":  "90ffec332fffc99db7930cbac248da1ad1d6017fb1b512350a55ce477612355f",
+                                              "preserves_unrelated_files":  true,
+                                              "architecture":  "x86",
+                                              "uninstall":  true,
+                                              "upgrade":  true,
+                                              "rejects_locked_executable":  true,
+                                              "manifest_verified":  true,
+                                              "uninstaller_authenticode":  "NotSigned",
+                                              "rejects_unrelated_directory":  true
+                                          }
+                       }
+                   ],
+    "date":  "2026-10-26",
+    "ci":  {
+               "platforms":  [
+                                 "Windows x64",
+                                 "Windows x86",
+                                 "Ubuntu x64",
+                                 "macOS Intel",
+                                 "macOS ARM"
+                             ],
+               "status":  "pending push"
+           },
+    "base_commit":  "bdf8239344b1d6d1be34a8a786862e20fc654a34",
+    "executables":  [
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                            "sha256":  "1bf54ea586fd653f050247481364f35e24fed71de1701929ce70c32910e1e9da",
+                            "bytes":  11473920
+                        },
+                        {
+                            "path":  "target/i686-pc-windows-msvc/release/crabpdf.exe",
+                            "sha256":  "239429f9eec2f5e8fe82577acfb05276ee181e8ce5d18023d30d44625c2a1215",
+                            "bytes":  9963520
+                        }
+                    ],
+    "limits":  [
+                   "Windows x86 executed under WOW64, not native 32-bit OS",
+                   "No interactive installer/DPI/optional-shortcut review: node_repl unavailable",
+                   "No production signing certificate; Authenticode path not executed",
+                   "No independent security certification",
+                   "Native UI regression uses simulated RawInput",
+                   "A00 performance campaign and fairness under sustained load remain open",
+                   "Linux/macOS graphical validation remains separate",
+                   "Existing public 0.3.6 release was not replaced"
+               ]
+}

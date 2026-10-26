@@ -1,61 +1,17 @@
 use crate::cache::ByteCache;
 use crate::document::{DocumentId, ErrorKind, ReaderError, RenderKey, SearchRequest, TextMarkup};
 use crate::engine::{PdfEngine, PdfiumEngine, bind_pdfium};
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Condvar, Mutex, mpsc};
+use std::sync::{Arc, mpsc};
 use std::thread;
 
 pub use crate::application::protocol::WorkerEvent;
 
-enum Command {
-    Cover(PathBuf, Option<PathBuf>, Result<PathBuf, ReaderError>),
-    Open(
-        DocumentId,
-        PathBuf,
-        Option<String>,
-        Option<Result<PathBuf, ReaderError>>,
-        bool,
-    ),
-    Close(DocumentId),
-    Render(RenderKey),
-    Content(DocumentId, usize),
-    Search(SearchRequest),
-    SearchPage(SearchRequest, usize),
-    Save(DocumentId, PathBuf),
-    Mark(DocumentId, TextMarkup),
-    UndoMark(DocumentId),
-}
-impl Command {
-    fn document_id(&self) -> DocumentId {
-        match self {
-            Self::Cover(..) => 0,
-            Self::Open(id, ..)
-            | Self::Close(id)
-            | Self::Content(id, ..)
-            | Self::Save(id, ..)
-            | Self::Mark(id, ..)
-            | Self::UndoMark(id) => *id,
-            Self::Render(key) => key.document_id,
-            Self::Search(request) | Self::SearchPage(request, _) => request.document_id,
-        }
-    }
-}
-#[derive(Default)]
-struct Pending {
-    control: VecDeque<Command>,
-    renders: VecDeque<RenderKey>,
-    prefetch: VecDeque<RenderKey>,
-    search: Option<(SearchRequest, usize, usize)>,
-    cancelled_searches: HashMap<DocumentId, u64>,
-    stop: bool,
-    importing: HashMap<DocumentId, Arc<AtomicBool>>,
-}
-struct Mailbox {
-    pending: Mutex<Pending>,
-    wake: Condvar,
-}
+mod scheduler;
+use scheduler::{Command, Mailbox};
+
 enum ImportRequest {
     Open(DocumentId, PathBuf, Option<String>, Arc<AtomicBool>),
     Repair(
@@ -92,10 +48,7 @@ impl PdfWorker {
         let shutdown = Arc::new(AtomicBool::new(false));
         let render_data = paths.data.clone();
         let import_data = paths.data;
-        let mailbox = Arc::new(Mailbox {
-            pending: Mutex::new(Pending::default()),
-            wake: Condvar::new(),
-        });
+        let mailbox = Arc::new(Mailbox::default());
         let (sender, events) = mpsc::sync_channel(2);
         let (imports, import_requests) = mpsc::sync_channel::<ImportRequest>(16);
         let repair_sender = imports.clone();
@@ -159,24 +112,12 @@ impl PdfWorker {
                                     crate::formats::cached_pdf_identity(&prepared)
                             {
                                 let cancelled = Arc::new(AtomicBool::new(false));
-                                if let Ok(mut pending) = background.pending.lock()
-                                    && !pending.stop
-                                {
-                                    pending.importing.insert(id, Arc::clone(&cancelled));
-                                    if repair_sender
-                                        .try_send(ImportRequest::Repair(
-                                            id,
-                                            path.clone(),
-                                            password.clone(),
-                                            prepared,
-                                            identity,
-                                            cancelled,
-                                        ))
-                                        .is_ok()
-                                    {
-                                        continue;
-                                    }
-                                    pending.importing.remove(&id);
+                                if background.submit_import(id, Arc::clone(&cancelled), || {
+                                    repair_sender.try_send(ImportRequest::Repair(
+                                        id, path.clone(), password.clone(), prepared, identity, cancelled,
+                                    )).is_ok()
+                                }) {
+                                    continue;
                                 }
                             }
                             // Passwords are never persisted; drop the request after loading.
@@ -377,9 +318,7 @@ impl PdfWorker {
                 while let Ok(request) = import_requests.recv() {
                     match request {
                         ImportRequest::Open(id, path, password, cancelled) => {
-                            if !import_mailbox.pending.lock().is_ok_and(|pending| {
-                                !pending.stop && pending.importing.contains_key(&id)
-                            }) {
+                            if !import_mailbox.is_import_pending(id) {
                                 continue;
                             }
                             let result = crate::formats::prepare_cancellable_in(
@@ -388,19 +327,13 @@ impl PdfWorker {
                                 cancelled,
                                 Arc::clone(&import_shutdown),
                             );
-                            if let Ok(mut pending) = import_mailbox.pending.lock()
-                                && !pending.stop
-                                && pending.importing.remove(&id).is_some()
-                            {
-                                pending.control.push_back(Command::Open(
-                                    id,
-                                    path,
-                                    password,
-                                    Some(result),
-                                    false,
-                                ));
-                                import_mailbox.wake.notify_one();
-                            }
+                            import_mailbox.finish_import(Command::Open(
+                                id,
+                                path,
+                                password,
+                                Some(result),
+                                false,
+                            ));
                         }
                         ImportRequest::Repair(
                             id,
@@ -410,9 +343,7 @@ impl PdfWorker {
                             identity,
                             cancelled,
                         ) => {
-                            if !import_mailbox.pending.lock().is_ok_and(|pending| {
-                                !pending.stop && pending.importing.contains_key(&id)
-                            }) {
+                            if !import_mailbox.is_import_pending(id) {
                                 continue;
                             }
                             let result = crate::formats::repair_cancellable_in(
@@ -423,19 +354,13 @@ impl PdfWorker {
                                 cancelled,
                                 Arc::clone(&import_shutdown),
                             );
-                            if let Ok(mut pending) = import_mailbox.pending.lock()
-                                && !pending.stop
-                                && pending.importing.remove(&id).is_some()
-                            {
-                                pending.control.push_back(Command::Open(
-                                    id,
-                                    path,
-                                    password,
-                                    Some(result),
-                                    true,
-                                ));
-                                import_mailbox.wake.notify_one();
-                            }
+                            import_mailbox.finish_import(Command::Open(
+                                id,
+                                path,
+                                password,
+                                Some(result),
+                                true,
+                            ));
                         }
                         ImportRequest::Cover(path, cache) => {
                             if let Some(cover) = crate::library::cached(&path, cache.as_deref()) {
@@ -454,14 +379,7 @@ impl PdfWorker {
                                 Arc::new(AtomicBool::new(false)),
                                 Arc::clone(&import_shutdown),
                             );
-                            if let Ok(mut pending) = import_mailbox.pending.lock()
-                                && !pending.stop
-                            {
-                                pending
-                                    .control
-                                    .push_back(Command::Cover(path, cache, prepared));
-                                import_mailbox.wake.notify_one();
-                            }
+                            import_mailbox.finish_cover(Command::Cover(path, cache, prepared));
                         }
                     }
                 }
@@ -493,23 +411,11 @@ impl PdfWorker {
         if matches!(crate::formats::Format::detect(&path), Ok(format) if format!=crate::formats::Format::Pdf)
         {
             let cancelled = Arc::new(AtomicBool::new(false));
-            self.mailbox
-                .pending
-                .lock()
-                .map_err(|_| worker_error())?
-                .importing
-                .insert(id, Arc::clone(&cancelled));
-            if self
-                .imports
-                .try_send(ImportRequest::Open(id, path, password, cancelled))
-                .is_err()
-            {
-                self.mailbox
-                    .pending
-                    .lock()
-                    .map_err(|_| worker_error())?
-                    .importing
-                    .remove(&id);
+            if !self.mailbox.submit_import(id, Arc::clone(&cancelled), || {
+                self.imports
+                    .try_send(ImportRequest::Open(id, path, password, cancelled))
+                    .is_ok()
+            }) {
                 return Err(ReaderError::new(
                     ErrorKind::Worker,
                     "Hay demasiados documentos pendientes de apertura. Espera a que terminen.",
@@ -521,53 +427,17 @@ impl PdfWorker {
         }
     }
     pub fn close(&self, id: DocumentId) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        if let Some(cancelled) = pending.importing.remove(&id) {
-            cancelled.store(true, Ordering::Relaxed);
-        }
-        pending.control.retain(|c| c.document_id() != id);
-        pending.renders.retain(|k| k.document_id != id);
-        pending.prefetch.retain(|k| k.document_id != id);
-        if pending
-            .search
-            .as_ref()
-            .is_some_and(|(r, _, _)| r.document_id == id)
-        {
-            pending.search = None;
-        }
-        pending.control.push_back(Command::Close(id));
-        self.mailbox.wake.notify_one();
-        Ok(())
+        self.mailbox.close(id)
     }
     pub fn render(&self, key: RenderKey) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        pending.prefetch.retain(|queued| *queued != key);
-        if !pending.renders.contains(&key) {
-            pending.renders.push_back(key);
-        }
-        while pending.renders.len() > 96 {
-            pending.renders.pop_front();
-        }
-        self.mailbox.wake.notify_one();
-        Ok(())
+        self.mailbox.render(key)
     }
     /// Speculative work never delays a requested visible page.
     pub fn prefetch(&self, key: RenderKey) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        if !pending.renders.contains(&key) && !pending.prefetch.contains(&key) {
-            pending.prefetch.push_back(key);
-        }
-        while pending.prefetch.len() > 24 {
-            pending.prefetch.pop_front();
-        }
-        self.mailbox.wake.notify_one();
-        Ok(())
+        self.mailbox.prefetch(key)
     }
     pub fn retain_renders(&self, keys: &[RenderKey]) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        pending.renders.retain(|key| keys.contains(key));
-        pending.prefetch.retain(|key| keys.contains(key));
-        Ok(())
+        self.mailbox.retain_renders(keys)
     }
     pub fn content(&self, id: DocumentId, page: usize) -> Result<(), ReaderError> {
         self.enqueue(Command::Content(id, page))
@@ -586,24 +456,7 @@ impl PdfWorker {
         self.enqueue(Command::Search(request))
     }
     pub fn stop_search(&self, id: DocumentId, generation: u64) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        pending
-            .cancelled_searches
-            .entry(id)
-            .and_modify(|cancelled| *cancelled = (*cancelled).max(generation))
-            .or_insert(generation);
-        pending.control.retain(|command| {
-            !matches!(command, Command::Search(request)
-                if request.document_id == id && request.generation == generation)
-        });
-        if pending
-            .search
-            .as_ref()
-            .is_some_and(|(r, _, _)| r.document_id == id && r.generation == generation)
-        {
-            pending.search = None;
-        }
-        Ok(())
+        self.mailbox.stop_search(id, generation)
     }
     pub fn save(&self, id: DocumentId, path: PathBuf) -> Result<(), ReaderError> {
         self.enqueue(Command::Save(id, path))
@@ -615,115 +468,13 @@ impl PdfWorker {
         self.enqueue(Command::UndoMark(id))
     }
     fn enqueue(&self, command: Command) -> Result<(), ReaderError> {
-        let mut pending = self.mailbox.pending.lock().map_err(|_| worker_error())?;
-        match &command {
-            Command::Open(id, ..) => pending
-                .control
-                .retain(|c| !matches!(c,Command::Open(old,..)if old==id)),
-            Command::Content(id, page) => {
-                if pending
-                    .control
-                    .iter()
-                    .any(|c| matches!(c,Command::Content(doc,p)if doc==id&&p==page))
-                {
-                    return Ok(());
-                }
-            }
-            Command::Search(_) => {
-                pending.search = None;
-                pending.control.retain(|c| !matches!(c, Command::Search(_)));
-            }
-            Command::Cover(path, _, _)
-                if pending.control.iter().any(
-                    |command| matches!(command, Command::Cover(queued, _, _) if queued == path),
-                ) =>
-            {
-                return Ok(());
-            }
-            _ => {}
-        }
-        pending.control.push_back(command);
-        self.mailbox.wake.notify_one();
-        Ok(())
-    }
-}
-impl Mailbox {
-    fn next(&self) -> Option<Command> {
-        let mut pending = self.pending.lock().ok()?;
-        loop {
-            if pending.stop {
-                return None;
-            }
-            if let Some(index) = pending
-                .control
-                .iter()
-                .position(|command| !matches!(command, Command::Content(..) | Command::Cover(..)))
-            {
-                return pending.control.remove(index);
-            }
-            if let Some(key) = pending.renders.pop_front() {
-                return Some(Command::Render(key));
-            }
-            if let Some(index) = pending
-                .control
-                .iter()
-                .position(|command| matches!(command, Command::Content(..)))
-            {
-                return pending.control.remove(index);
-            }
-            if let Some(key) = pending.prefetch.pop_front() {
-                return Some(Command::Render(key));
-            }
-            if let Some(command) = pending.control.pop_front() {
-                return Some(command);
-            }
-            if let Some((request, next, total)) = pending.search.as_mut()
-                && *next < *total
-            {
-                let page = *next;
-                *next += 1;
-                return Some(Command::SearchPage(request.clone(), page));
-            }
-            pending = self.wake.wait(pending).ok()?;
-        }
-    }
-    fn start_search(&self, request: SearchRequest, total: usize) {
-        if let Ok(mut p) = self.pending.lock()
-            && p.cancelled_searches
-                .get(&request.document_id)
-                .is_none_or(|generation| request.generation > *generation)
-        {
-            p.search = Some((request, 0, total));
-        }
-    }
-    fn forget_search(&self, id: DocumentId) {
-        if let Ok(mut pending) = self.pending.lock() {
-            pending.cancelled_searches.remove(&id);
-            if pending
-                .search
-                .as_ref()
-                .is_some_and(|(request, _, _)| request.document_id == id)
-            {
-                pending.search = None;
-            }
-        }
-    }
-    fn cancel_search(&self) {
-        if let Ok(mut p) = self.pending.lock() {
-            p.search = None;
-        }
+        self.mailbox.enqueue(command)
     }
 }
 impl Drop for PdfWorker {
     fn drop(&mut self) {
         self.shutdown.store(true, Ordering::Relaxed);
-        if let Ok(mut pending) = self.mailbox.pending.lock() {
-            for cancelled in pending.importing.values() {
-                cancelled.store(true, Ordering::Relaxed);
-            }
-            pending.stop = true;
-            self.mailbox.wake.notify_one();
-        }
+        self.mailbox.stop();
         let (replacement, receiver) = mpsc::sync_channel(0);
         drop(receiver);
         drop(std::mem::replace(&mut self.imports, replacement));
@@ -746,121 +497,34 @@ fn worker_error() -> ReaderError {
 mod tests {
     use super::*;
     #[test]
-    fn cancelling_search_covers_queued_active_and_dequeued_requests_without_touching_other_tabs() {
-        let mailbox = Arc::new(Mailbox {
-            pending: Mutex::new(Pending::default()),
-            wake: Condvar::new(),
+    fn dropping_worker_disconnects_full_events_before_joining_import_thread() {
+        let mailbox = Arc::new(Mailbox::default());
+        let (sender, events) = mpsc::sync_channel(2);
+        let event = || WorkerEvent::Unavailable(worker_error());
+        sender.send(event()).unwrap();
+        sender.send(event()).unwrap();
+        let (ready, started) = mpsc::channel();
+        let (done, completed) = mpsc::channel();
+        let import_thread = thread::spawn(move || {
+            ready.send(()).unwrap();
+            assert!(sender.send(event()).is_err());
         });
-        let (_, events) = mpsc::sync_channel(2);
+        started
+            .recv_timeout(std::time::Duration::from_secs(2))
+            .unwrap();
         let worker = PdfWorker {
-            mailbox: Arc::clone(&mailbox),
+            mailbox,
             events,
             imports: mpsc::sync_channel(1).0,
             shutdown: Arc::new(AtomicBool::new(false)),
-            import_thread: None,
+            import_thread: Some(import_thread),
         };
-        let request = |document_id, generation| SearchRequest {
-            document_id,
-            generation,
-            query: "reader".into(),
-            match_case: false,
-            whole_word: false,
-        };
-        worker.search(request(1, 10)).unwrap();
-        worker.stop_search(2, 10).unwrap();
-        assert!(matches!(
-            mailbox.pending.lock().unwrap().control.front(),
-            Some(Command::Search(_))
-        ));
-        worker.stop_search(1, 10).unwrap();
-        assert!(mailbox.pending.lock().unwrap().control.is_empty());
-
-        // A popped request cannot become an active search after it was cancelled.
-        mailbox.start_search(request(1, 10), 20);
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
-        mailbox.start_search(request(1, 11), 20);
-        worker.stop_search(1, 10).unwrap();
-        assert!(mailbox.pending.lock().unwrap().search.is_some());
-        worker.stop_search(1, 11).unwrap();
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
-        mailbox.start_search(request(3, 11), 20);
-        worker.stop_search(1, 99).unwrap();
-        assert_eq!(
-            mailbox
-                .pending
-                .lock()
-                .unwrap()
-                .search
-                .as_ref()
-                .unwrap()
-                .0
-                .document_id,
-            3
-        );
-        mailbox.forget_search(1);
-        assert!(
-            !mailbox
-                .pending
-                .lock()
-                .unwrap()
-                .cancelled_searches
-                .contains_key(&1)
-        );
-        mailbox.forget_search(3);
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
-    }
-
-    #[test]
-    fn visible_render_overtakes_prefetch_and_close_cancels_both() {
-        let mailbox = Arc::new(Mailbox {
-            pending: Mutex::new(Pending::default()),
-            wake: Condvar::new(),
+        thread::spawn(move || {
+            drop(worker);
+            done.send(()).unwrap();
         });
-        let (_, events) = mpsc::sync_channel(2);
-        let worker = PdfWorker {
-            mailbox: Arc::clone(&mailbox),
-            events,
-            imports: mpsc::sync_channel(1).0,
-            shutdown: Arc::new(AtomicBool::new(false)),
-            import_thread: None,
-        };
-        let key = RenderKey {
-            document_id: 1,
-            revision: 0,
-            page: 0,
-            zoom: crate::document::Zoom::FitWidth,
-            viewport_width: 600,
-            viewport_height: 700,
-            density_milli: 1000,
-            bitmap_side_limit: 8192,
-            rotation: 0,
-            colors: crate::document::PageColors::Original,
-            region: None,
-        };
-        worker.prefetch(RenderKey { page: 1, ..key }).unwrap();
-        worker.render(key).unwrap();
-        assert!(matches!(mailbox.next(),Some(Command::Render(visible)) if visible.page==0));
-        worker.close(1).unwrap();
-        assert!(mailbox.pending.lock().unwrap().prefetch.is_empty());
-        assert!(matches!(mailbox.next(), Some(Command::Close(1))));
-    }
-    #[test]
-    fn closed_documents_leave_no_pending_open_requests() {
-        let mailbox = Arc::new(Mailbox {
-            pending: Mutex::new(Pending::default()),
-            wake: Condvar::new(),
-        });
-        let (_, events) = mpsc::sync_channel(2);
-        let worker = PdfWorker {
-            mailbox: Arc::clone(&mailbox),
-            events,
-            imports: mpsc::sync_channel(1).0,
-            shutdown: Arc::new(AtomicBool::new(false)),
-            import_thread: None,
-        };
-        worker.open(1, PathBuf::from("one.pdf")).unwrap();
-        worker.close(1).unwrap();
-        assert!(matches!(mailbox.next(), Some(Command::Close(1))));
-        assert!(mailbox.pending.lock().unwrap().control.is_empty());
+        completed
+            .recv_timeout(std::time::Duration::from_secs(2))
+            .expect("Worker shutdown blocked on a full event channel");
     }
 }

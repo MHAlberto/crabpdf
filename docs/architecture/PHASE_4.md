@@ -65,4 +65,4 @@ La aplicación conserva la versión de desarrollo 0.3.6. Este corte no publica i
 
 A03a cierra la extracción del protocolo de resultados y el tratamiento de errores de búsqueda con generación. El hito A03 completo permanece abierto.
 
-A03b separará el mailbox/planificador de `worker.rs`, conservando prioridades, deduplicación, cancelación por identidad, precarga y orden de escrituras. Debe caracterizar la equidad de búsqueda frente a lectura y el cierre con canales llenos antes de cambiar el ciclo de vida de los hilos. Después se extraerán almacenamiento, importación y adaptación de PDFium por responsabilidad, conforme al plan A03–A05.
+La extracción del mailbox/planificador se implementó en [A03b](PHASE_5.md), con prioridades, deduplicación, cancelación, precarga y contratos de cierre. Después se extraerán almacenamiento, importación y adaptación de PDFium por responsabilidad, conforme al plan A03–A05.

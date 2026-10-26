@@ -27,7 +27,10 @@ foreach ($package in $packages) {
             try {$digest=[BitConverter]::ToString($hash.ComputeHash($stream)).Replace('-','').ToLowerInvariant()} finally {$stream.Dispose()}
             if ($digest -ne $file.sha256) {throw "SHA-256 incorrecto: $($file.path)"}
         }
-        $currentVersion=(& cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json).packages[0].version
+        $metadata = & cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
+        $rootPackages = @($metadata.packages | Where-Object { $_.name -eq 'crabpdf' })
+        if ($LASTEXITCODE -ne 0 -or $rootPackages.Count -ne 1) { throw 'No se encontro exactamente el paquete crabpdf.' }
+        $currentVersion = $rootPackages[0].version
         if($manifest.target -and $manifest.version -eq $currentVersion){
             $exeHash=(Get-FileHash -LiteralPath (Join-Path $workspace "target/$($manifest.target)/release/crabpdf.exe") -Algorithm SHA256).Hash
             if ($exeHash -ne ($manifest.files | Where-Object path -eq 'crabpdf.exe').sha256) {throw 'El paquete no contiene el ultimo ejecutable compilado.'}

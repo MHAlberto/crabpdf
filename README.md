@@ -53,6 +53,8 @@ Los paquetes de Windows incluyen `format-tools/`: conserva esa carpeta y `pdfium
 
 ## Ejecutar en Windows
 
+El nuevo [instalador nativo de Windows](docs/WINDOWS_INSTALLER.md) incluye nuestro logo, instalación por usuario, formatos y desinstalador. Se construye para x64 y x86 con `scripts/Build-Installer.ps1`. Las compilaciones actuales no tienen firma digital; falta un certificado real.
+
 Los paquetes portables generados localmente están en `artifacts/packages/`. Mantener `pdfium.dll` junto a `crabpdf.exe`.
 
 Para desarrollar se necesitan Rust **1.96.0**, MSVC/Windows SDK y un controlador OpenGL. El toolchain y las versiones de bibliotecas están fijados.

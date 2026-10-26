@@ -32,6 +32,16 @@ fn main() {
         for image in images {
             ico.extend_from_slice(&image);
         }
+        for (name, width, height, sidebar) in [
+            ("installer-header.bmp", 150, 57, false),
+            ("installer-sidebar.bmp", 164, 314, true),
+        ] {
+            fs::write(
+                output.join(name),
+                installer_bitmap(&tree, width, height, sidebar),
+            )
+            .expect("Cannot write installer branding");
+        }
         let icon_path = output.join("crabpdf.ico");
         fs::write(&icon_path, ico).expect("Cannot write the Windows icon");
         let icon_path = icon_path.to_string_lossy().replace('\\', "/");
@@ -92,4 +102,70 @@ fn render_icon(tree: &usvg::Tree, size: u32) -> Vec<u8> {
     );
     resvg::render(tree, transform, &mut pixmap.as_mut());
     pixmap.encode_png().expect("Cannot encode the CrabPDF icon")
+}
+
+fn installer_bitmap(tree: &usvg::Tree, width: u32, height: u32, sidebar: bool) -> Vec<u8> {
+    let mut pixmap = tiny_skia::Pixmap::new(width, height).expect("Invalid installer dimensions");
+    for (index, pixel) in pixmap.pixels_mut().iter_mut().enumerate() {
+        let x = (index as u32 % width) as f32 / width as f32;
+        let y = (index as u32 / width) as f32 / height as f32;
+        let glow = ((1.0 - x) * y * 22.0) as u8;
+        *pixel = if sidebar {
+            tiny_skia::PremultipliedColorU8::from_rgba(23 + glow, 31 + glow / 2, 43, 255).unwrap()
+        } else {
+            tiny_skia::PremultipliedColorU8::from_rgba(255, 255, 255, 255).unwrap()
+        };
+    }
+    if sidebar {
+        let mut path = tiny_skia::PathBuilder::new();
+        for line in 0..7 {
+            let y = 222.0 + line as f32 * 10.0;
+            path.move_to(30.0, y);
+            path.line_to(if line == 6 { 101.0 } else { 132.0 }, y);
+        }
+        let mut paint = tiny_skia::Paint::default();
+        paint.set_color_rgba8(98, 118, 140, 75);
+        pixmap.stroke_path(
+            &path.finish().unwrap(),
+            &paint,
+            &tiny_skia::Stroke {
+                width: 2.0,
+                ..Default::default()
+            },
+            tiny_skia::Transform::identity(),
+            None,
+        );
+    }
+    let size = if sidebar { 138.0 } else { 55.0 };
+    let scale = size / tree.size().width().max(tree.size().height());
+    resvg::render(
+        tree,
+        tiny_skia::Transform::from_scale(scale, scale).post_translate(
+            if sidebar { 13.0 } else { 89.0 },
+            if sidebar { 42.0 } else { 1.0 },
+        ),
+        &mut pixmap.as_mut(),
+    );
+    // Uncompressed 24-bit BMP is supported by the native NSIS UI, no image plugin.
+    let stride = (width * 3 + 3) & !3;
+    let image_bytes = stride * height;
+    let mut bmp = Vec::with_capacity((54 + image_bytes) as usize);
+    bmp.extend_from_slice(b"BM");
+    bmp.extend_from_slice(&(54 + image_bytes).to_le_bytes());
+    bmp.extend_from_slice(&[0; 4]);
+    bmp.extend_from_slice(&54_u32.to_le_bytes());
+    bmp.extend_from_slice(&40_u32.to_le_bytes());
+    bmp.extend_from_slice(&width.to_le_bytes());
+    bmp.extend_from_slice(&height.to_le_bytes());
+    bmp.extend_from_slice(&1_u16.to_le_bytes());
+    bmp.extend_from_slice(&24_u16.to_le_bytes());
+    bmp.extend_from_slice(&[0; 24]);
+    for y in (0..height).rev() {
+        for x in 0..width {
+            let pixel = pixmap.pixel(x, y).unwrap();
+            bmp.extend_from_slice(&[pixel.blue(), pixel.green(), pixel.red()]);
+        }
+        bmp.resize(bmp.len() + (stride - width * 3) as usize, 0);
+    }
+    bmp
 }

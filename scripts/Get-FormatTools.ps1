@@ -5,17 +5,35 @@ $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $downloads=Join-Path $workspace 'native/format-downloads'
 $tools=Join-Path $workspace 'native/format-tools'
 New-Item -ItemType Directory -Path $downloads,$tools -Force | Out-Null
-function Get-Verified([string]$Name,[string]$Uri,[string]$Hash) {
+function Get-Verified([string]$Name,[string]$Uri,[string]$Hash,[string[]]$Mirrors=@()) {
     $path=Join-Path $downloads $Name
     if(-not (Test-Path -LiteralPath $path)) {
-        $response=Invoke-WebRequest -UseBasicParsing -Uri $Uri
-        if($response.Headers['Content-Type'] -like '*text/html*') {
-            $match=[regex]::Match($response.Content,'<meta http-equiv="refresh" content="5; url=([^"]+)')
-            if(-not $match.Success){throw "No se recibió el archivo $Name"}
-            $redirect=[Uri][Net.WebUtility]::HtmlDecode($match.Groups[1].Value)
-            if(-not $redirect.Host.EndsWith('.sourceforge.net')){throw 'Redirección de descarga no autorizada.'}
-            Invoke-WebRequest -UseBasicParsing -Uri $redirect -OutFile $path
-        }else{[IO.File]::WriteAllBytes($path,$response.RawContentStream.ToArray())}
+        $partial="$path.download"
+        $downloaded=$false
+        foreach($source in (@($Uri)+$Mirrors)) {
+            for($attempt=1;$attempt -le 3;$attempt++) {
+                try {
+                    Write-Host "Descargando $Name (intento $attempt): $source"
+                    $response=Invoke-WebRequest -UseBasicParsing -Uri $source -TimeoutSec 60
+                    if($response.Headers['Content-Type'] -like '*text/html*') {
+                        $match=[regex]::Match($response.Content,'<meta http-equiv="refresh" content="5; url=([^"]+)')
+                        if(-not $match.Success){throw "No se recibio el archivo $Name"}
+                        $redirect=[Uri][Net.WebUtility]::HtmlDecode($match.Groups[1].Value)
+                        if($redirect.Scheme -ne 'https' -or -not $redirect.Host.EndsWith('.sourceforge.net')){throw 'Redireccion de descarga no autorizada.'}
+                        Invoke-WebRequest -UseBasicParsing -Uri $redirect -OutFile $partial -TimeoutSec 60
+                    }else{[IO.File]::WriteAllBytes($partial,$response.RawContentStream.ToArray())}
+                    $downloaded=$true
+                    break
+                } catch {
+                    Write-Warning "$Name : $($_.Exception.Message)"
+                }
+            }
+            if($downloaded){break}
+        }
+        if(-not $downloaded){throw "No se pudo descargar $Name tras reintentos limitados."}
+        # Never promote or execute an unverified download, including a mirror.
+        if((Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash -ne $Hash){throw "Hash incorrecto: $Name"}
+        Move-Item -LiteralPath $partial -Destination $path
     }
     if((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $Hash){throw "Hash incorrecto: $Name"}
     return $path
@@ -69,7 +87,7 @@ if(-not $SkipBuild) {
 }
 Copy-Item -LiteralPath (Join-Path $workspace 'native/format-sources/mupdf/COPYING') -Destination (Join-Path $tools 'MuPDF-COPYING.txt') -Force
 Copy-Item -LiteralPath (Join-Path $workspace 'native/format-sources/libmobi/COPYING') -Destination (Join-Path $tools 'Libmobi-COPYING.LESSER.txt') -Force
-$gpl=Get-Verified 'GPL-3.0.txt' 'https://www.gnu.org/licenses/gpl-3.0.txt' '3972DC9744F6499F0F9B2DBF76696F2AE7AD8AF9B23DDE66D6AF86C9DFB36986'
+$gpl=Get-Verified 'GPL-3.0.txt' 'https://www.gnu.org/licenses/gpl-3.0.txt' '3972DC9744F6499F0F9B2DBF76696F2AE7AD8AF9B23DDE66D6AF86C9DFB36986' @('https://ftp.gnu.org/gnu/Licenses/gpl-3.0.txt')
 Copy-Item -LiteralPath $gpl -Destination (Join-Path $tools 'Libmobi-COPYING.txt') -Force
 $licenseSources=Join-Path $workspace 'native/format-sources/licenses'
 New-Item -ItemType Directory -Path $licenseSources -Force | Out-Null

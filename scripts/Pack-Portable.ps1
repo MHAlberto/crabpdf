@@ -37,7 +37,10 @@ try {
     $bundle = Join-Path $nativeDir "pdfium-7881-win-$Architecture"
     $bundledDll = Join-Path $bundle 'bin/pdfium.dll'
     if ((Get-FileHash -LiteralPath $bundledDll -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash) { throw 'La DLL no coincide con el paquete verificado.' }
-    $version = (& cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json).packages[0].version
+    $metadata = & cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
+    $packages = @($metadata.packages | Where-Object { $_.name -eq 'crabpdf' })
+    if ($LASTEXITCODE -ne 0 -or $packages.Count -ne 1) { throw 'No se encontro exactamente el paquete crabpdf.' }
+    $version = $packages[0].version
     $package = Join-Path $destinationPath "crabpdf-$version-win-$Architecture"
     New-Item -ItemType Directory -Path $package -Force | Out-Null
     Copy-Item -LiteralPath $exe -Destination (Join-Path $package 'crabpdf.exe') -Force

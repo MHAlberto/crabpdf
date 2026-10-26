@@ -63,4 +63,27 @@ jobs:
         env:
           CRABPDF_DATA_DIR: ${{ github.workspace }}/artifacts/ci-reader-data
         run: cargo test --locked --target '${{ matrix.target }}' --test formats_and_marks -- --ignored --test-threads=1
-      - run: cargo build --locked --release --target '${{ matrix.target }}'
+      - run: cargo build --locked --release -p crabpdf --bin crabpdf --target '${{ matrix.target }}'
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/Build-Installer.ps1 -Architecture '${{ matrix.architecture }}' -SkipBuild
+      - name: Verify Windows installation, upgrade and uninstall
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $metadata = cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
+          $version = ($metadata.packages | Where-Object name -eq 'crabpdf').version
+          ./scripts/Test-Installer.ps1 -Architecture '${{ matrix.architecture }}' -Installer "artifacts/packages/crabpdf-$version-win-${{ matrix.architecture }}-setup.exe"
+      - name: Upload Windows packages and installer evidence
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: crabpdf-windows-${{ matrix.architecture }}
+          path: |
+            artifacts/packages/*-setup.exe
+            artifacts/packages/*-setup.exe.json
+            artifacts/packages/*-setup.exe.sha256
+            artifacts/packages/*.zip
+            artifacts/installer-tests/**/validation.json
+          if-no-files-found: error

@@ -5,11 +5,7 @@ use pdfium_render::prelude::Pdfium;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-pub struct Cover {
-    pub width: usize,
-    pub height: usize,
-    pub rgba: Vec<u8>,
-}
+pub use crate::document::Cover;
 
 /// Synchronous helper retained for callers outside the render worker.
 pub fn load(pdfium: &Pdfium, path: &Path, cache: Option<&Path>) -> Result<Arc<Cover>, ReaderError> {

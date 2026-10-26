@@ -467,7 +467,7 @@ impl ReaderApp {
                     action = Some(Action::FindNext);
                 }
                 if tab.reader.search.limited { ui.label("Límite de 10 000 coincidencias").on_hover_text("Refina la búsqueda para consultar otros resultados. El límite controla la memoria de documentos extensos."); }
-                if !tab.reader.search.limited && tab.reader.search.scanned < tab.reader.search.total && !tab.reader.search.query.is_empty() {
+                if tab.reader.search.is_scanning() {
                     ui.spinner();
                     ui.label(format!(
                         "{}/{} páginas",
@@ -721,7 +721,9 @@ impl ReaderApp {
     }
 
     pub(super) fn notices(&mut self, ui: &mut egui::Ui) {
-        if let Some(error) = self.state().error.clone() {
+        let document_error = self.state().error.clone();
+        let search_error = document_error.is_none();
+        if let Some(error) = document_error.or_else(|| self.search_error().cloned()) {
             egui::Panel::top("error")
                 .frame(
                     egui::Frame::NONE
@@ -738,13 +740,21 @@ impl ReaderApp {
                         });
                     }
                     ui.horizontal(|ui| {
-                        if self.password_retry_available()
+                        if !search_error
+                            && self.password_retry_available()
                             && ui.button("Introducir contraseña").clicked()
                             && let Some(tab) = self.tabs.get_mut(self.active)
                         {
                             tab.reader.password_needed = true;
                         }
-                        if error.kind == ErrorKind::Render
+                        if search_error && ui.button("Reintentar búsqueda").clicked() {
+                            self.start_search();
+                            if let Some(tab) = self.tabs.get_mut(self.active) {
+                                tab.view.search.open = true;
+                            }
+                        }
+                        if !search_error
+                            && error.kind == ErrorKind::Render
                             && ui.button("Reintentar").clicked()
                             && let Some(tab) = self.tabs.get_mut(self.active)
                         {
@@ -753,7 +763,11 @@ impl ReaderApp {
                         }
                         if self.worker.is_some() && ui.small_button("Cerrar aviso").clicked() {
                             if let Some(tab) = self.tabs.get_mut(self.active) {
-                                tab.reader.state.error = None;
+                                if search_error {
+                                    tab.reader.search.dismiss_error();
+                                } else {
+                                    tab.reader.state.error = None;
+                                }
                             } else {
                                 self.empty.error = None;
                             }

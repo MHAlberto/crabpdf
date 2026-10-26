@@ -28,6 +28,7 @@ pub struct SearchSession {
     pub scanned: usize,
     pub total: usize,
     pub limited: bool,
+    pub error: Option<crate::document::ReaderError>,
     document_id: Option<DocumentId>,
 }
 impl SearchSession {
@@ -49,6 +50,7 @@ impl SearchSession {
         self.scanned = 0;
         self.total = total;
         self.limited = false;
+        self.error = None;
         if !self.query.is_empty() && total > 0 {
             self.document_id = Some(document_id);
         }
@@ -56,6 +58,26 @@ impl SearchSession {
     }
     pub fn is_active(&self) -> bool {
         self.document_id.is_some()
+    }
+    pub fn is_scanning(&self) -> bool {
+        self.is_active() && self.scanned < self.total
+    }
+    /// Accept only a failure from the current, unfinished search.
+    pub fn fail(
+        &mut self,
+        id: DocumentId,
+        generation: u64,
+        error: crate::document::ReaderError,
+    ) -> bool {
+        if self.document_id != Some(id) || self.generation != generation || !self.is_scanning() {
+            return false;
+        }
+        self.document_id = None;
+        self.error = Some(error);
+        true
+    }
+    pub fn dismiss_error(&mut self) {
+        self.error = None;
     }
     /// A single request snapshot, created after the adapter's debounce expires.
     pub fn request(&self) -> Option<SearchRequest> {

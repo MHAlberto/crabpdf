@@ -11,6 +11,7 @@ use tab_view::Tab;
 
 use crate::app_paths::AppPaths;
 use crate::application::favorites::{self, FavoriteAction, FavoriteEffect};
+use crate::application::protocol::WorkerEvent;
 use crate::cache::ByteCache;
 use crate::commands::Action;
 use crate::config::{Favorite, PreferenceWriter, Preferences, StoredDocument, Theme};
@@ -20,7 +21,7 @@ use crate::document::{
 use crate::layout::LayoutMode;
 use crate::platform;
 use crate::state::AppState;
-use crate::worker::{PdfWorker, WorkerEvent};
+use crate::worker::PdfWorker;
 use eframe::egui::{self, Vec2};
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
@@ -451,6 +452,12 @@ impl ReaderApp {
     pub fn search_query(&self) -> Option<&str> {
         Some(&self.tabs.get(self.active)?.reader.search.query)
     }
+    pub fn search_error(&self) -> Option<&ReaderError> {
+        if self.home {
+            return None;
+        }
+        self.tabs.get(self.active)?.reader.search.error.as_ref()
+    }
     pub fn search_progress(&self) -> (usize, usize, usize) {
         self.tabs.get(self.active).map_or((0, 0, 0), |tab| {
             (
@@ -878,6 +885,15 @@ impl ReaderApp {
                         if let Some(destination) = update.destination {
                             tab.reveal_search(destination);
                         }
+                    }
+                }
+                WorkerEvent::SearchFailed {
+                    id,
+                    generation,
+                    error,
+                } => {
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
+                        tab.reader.search.fail(id, generation, error);
                     }
                 }
                 WorkerEvent::Changed(id, state) => {

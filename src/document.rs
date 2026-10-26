@@ -131,6 +131,13 @@ impl Default for PageSize {
     }
 }
 
+/// Pixels for a library cover, independent of its cache, decoder and GUI texture.
+pub struct Cover {
+    pub width: usize,
+    pub height: usize,
+    pub rgba: Vec<u8>,
+}
+
 /// Coordinates use the unrotated displayed PDF page, normalized, origin at top-left.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Bounds {

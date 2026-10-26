@@ -1,8 +1,5 @@
 use crate::cache::ByteCache;
-use crate::document::{
-    DocumentDetails, DocumentId, DocumentInfo, ErrorKind, PageContent, PageRaster, ReaderError,
-    RenderKey, SearchHit, SearchRequest, TextMarkup,
-};
+use crate::document::{DocumentId, ErrorKind, ReaderError, RenderKey, SearchRequest, TextMarkup};
 use crate::engine::{PdfEngine, PdfiumEngine, bind_pdfium};
 use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
@@ -10,24 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex, mpsc};
 use std::thread;
 
-pub enum WorkerEvent {
-    Changed(DocumentId, crate::document::AnnotationState),
-    Cover(PathBuf, Result<Arc<crate::library::Cover>, ReaderError>),
-    Opened(DocumentId, Result<DocumentInfo, ReaderError>),
-    Details(DocumentId, Result<DocumentDetails, ReaderError>),
-    Rendered(RenderKey, Result<Arc<PageRaster>, ReaderError>),
-    Content(DocumentId, usize, Result<Arc<PageContent>, ReaderError>),
-    Searched {
-        id: DocumentId,
-        generation: u64,
-        hits: Vec<SearchHit>,
-        scanned: usize,
-        total: usize,
-    },
-    Saved(DocumentId, PathBuf, Result<(), ReaderError>),
-    Marked(DocumentId, Result<(usize, usize), ReaderError>),
-    Unavailable(ReaderError),
-}
+pub use crate::application::protocol::WorkerEvent;
 
 enum Command {
     Cover(PathBuf, Option<PathBuf>, Result<PathBuf, ReaderError>),
@@ -279,25 +259,12 @@ impl PdfWorker {
                                 continue;
                             };
                             let total = page_counts.get(&request.document_id).copied().unwrap_or(0);
-                            match engine.search_page(page, &request) {
-                                Ok(hits) => {
-                                    if !send(WorkerEvent::Searched {
-                                        id: request.document_id,
-                                        generation: request.generation,
-                                        hits,
-                                        scanned: page + 1,
-                                        total,
-                                    }) {
-                                        break;
-                                    }
-                                }
-                                Err(error) => {
-                                    background.cancel_search();
-                                    if !send(WorkerEvent::Details(request.document_id, Err(error)))
-                                    {
-                                        break;
-                                    }
-                                }
+                            let result = engine.search_page(page, &request);
+                            if result.is_err() {
+                                background.cancel_search();
+                            }
+                            if !send(WorkerEvent::search_result(&request, page + 1, total, result)) {
+                                break;
                             }
                         }
                         Command::Save(id, path) => {

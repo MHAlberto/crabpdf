@@ -58,7 +58,13 @@ impl eframe::App for SearchSmoke {
             self.finish(ctx, Err(format!("Timeout search phase {}", self.phase)));
             return;
         }
-        if let Some(error) = &self.app.state().error {
+        if let Some(error) = self
+            .app
+            .state()
+            .error
+            .as_ref()
+            .or_else(|| self.app.search_error())
+        {
             self.finish(ctx, Err(error.to_string()));
             return;
         }

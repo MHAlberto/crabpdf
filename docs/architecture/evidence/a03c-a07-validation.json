@@ -1,0 +1,761 @@
+{
+    "schema":  1,
+    "recorded_utc":  "2026-10-26T20:37:40.2493630Z",
+    "application_version":  "0.4.0",
+    "base_commit":  "c957bba",
+    "source_commit":  "52dc9be2b8c7a3ed1873dffc19879a376a713f20",
+    "publication":  "Existing public 0.4.0 release and tag unchanged; packages in artifacts/migration are validation artifacts only.",
+    "workspace":  [
+                      {
+                          "path":  "crates/core",
+                          "production_dependencies":  [
+                                                          "serde"
+                                                      ],
+                          "name":  "crabpdf-core"
+                      },
+                      {
+                          "path":  "crates/application",
+                          "production_dependencies":  [
+                                                          "crabpdf-core",
+                                                          "serde"
+                                                      ],
+                          "name":  "crabpdf-application"
+                      },
+                      {
+                          "path":  "crates/runtime",
+                          "name":  "crabpdf-runtime",
+                          "ui_dependencies":  [
+
+                                              ]
+                      },
+                      {
+                          "path":  ".",
+                          "name":  "crabpdf",
+                          "purpose":  "Desktop composition and UI"
+                      }
+                  ],
+    "ci":  {
+               "status":  "completed",
+               "conclusion":  "success",
+               "jobs":  [
+                            {
+                                "conclusion":  "success",
+                                "completed_at":  "2026-10-26T20:13:00Z",
+                                "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)",
+                                "id":  121817908521,
+                                "started_at":  "2026-10-26T20:07:23Z"
+                            },
+                            {
+                                "conclusion":  "success",
+                                "completed_at":  "2026-10-26T20:20:23Z",
+                                "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)",
+                                "id":  121817908839,
+                                "started_at":  "2026-10-26T20:07:23Z"
+                            },
+                            {
+                                "conclusion":  "success",
+                                "completed_at":  "2026-10-26T20:09:57Z",
+                                "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)",
+                                "id":  121817908883,
+                                "started_at":  "2026-10-26T20:07:23Z"
+                            },
+                            {
+                                "conclusion":  "success",
+                                "completed_at":  "2026-10-26T20:21:03Z",
+                                "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)",
+                                "id":  121817908913,
+                                "started_at":  "2026-10-26T20:07:23Z"
+                            },
+                            {
+                                "conclusion":  "success",
+                                "completed_at":  "2026-10-26T20:14:30Z",
+                                "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)",
+                                "id":  121817908952,
+                                "started_at":  "2026-10-26T20:07:24Z"
+                            }
+                        ],
+               "head_sha":  "52dc9be2b8c7a3ed1873dffc19879a376a713f20",
+               "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40392802482",
+               "run_id":  40392802482
+           },
+    "windows_x64":  {
+                        "screenshots":  {
+                                            "custom_chrome":  26,
+                                            "interaction":  16,
+                                            "native_chrome":  26,
+                                            "formats":  16
+                                        },
+                        "installer_payload_note":  "609 manifest entries; manifest.json itself makes 610 payload files. Installer GUI was not manually reviewed.",
+                        "portable_payload_files":  607,
+                        "all_tests_passed":  true,
+                        "native_fullscreen_measurements":  {
+                                                               "custom_chrome":  3,
+                                                               "native_chrome":  3
+                                                           },
+                        "native_tests":  {
+                                             "unique_executed_cases":  105,
+                                             "ignored_without_child_execution":  0,
+                                             "unique_named_cases":  105,
+                                             "include_ignored":  true,
+                                             "note":  "Parent-process test output can interleave with child harness output; same-line matches alone can omit successful parent cases. Child helpers are not counted twice.",
+                                             "passed_on_same_line":  103,
+                                             "log":  {
+                                                         "path":  "artifacts/migration/tests-x64.log",
+                                                         "sha256":  "2dbe1ab31097f9e5bbcdefac1bc7e658fd18a47c2bd161d9151772f320e57519",
+                                                         "bytes":  26558
+                                                     }
+                                         },
+                        "release_executable":  {
+                                                   "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                                                   "sha256":  "54694a26912eddb43c22ad150fa070aa9629cccfcd79bb6d0991d8729f9ab432",
+                                                   "bytes":  11400192
+                                               },
+                        "ui_build_profile":  "dev; real eframe/PDFium and original fixtures; simulated RawInput",
+                        "clippy":  "workspace/all-targets/-D warnings passed",
+                        "installer":  {
+                                          "installation":  true,
+                                          "gui_reviewed":  false,
+                                          "payload_files":  609,
+                                          "registry_removed":  true,
+                                          "installer_sha256":  "8a71aec7d460881b3d4651f3c004158f4f582179b2b14871e1bf8c40f25ac187",
+                                          "preserves_unrelated_files":  true,
+                                          "architecture":  "x64",
+                                          "uninstall":  true,
+                                          "upgrade":  true,
+                                          "rejects_locked_executable":  true,
+                                          "manifest_verified":  true,
+                                          "uninstaller_authenticode":  "NotSigned",
+                                          "rejects_unrelated_directory":  true
+                                      },
+                        "independent_core_application_cases":  10
+                    },
+    "windows_x86":  {
+                        "scope":  "Successful Windows 2022 CI: workspace lint/tests, native PDF and format tests, release build, installer upgrade/uninstall checks",
+                        "local_gui_repeated":  false,
+                        "native_32_bit_os_tested":  false
+                    },
+    "linux":  {
+                  "packages":  {
+                                   "tar_verified_files":  408,
+                                   "deb_verified_files":  408
+                               },
+                  "extra_native_tests":  {
+                                             "import_recovery":  1,
+                                             "passed":  true,
+                                             "profile":  "dev",
+                                             "annotation_sync":  2,
+                                             "os":  "Debian Bookworm"
+                                         },
+                  "combined_unique_cases_with_ubuntu_native_tests":  104,
+                  "clippy":  "Passed in Ubuntu CI; cached local container has no cargo-clippy component",
+                  "builder":  "rust:1.96.0-bookworm; glibc 2.36",
+                  "workspace_tests":  {
+                                          "unique_executed_cases":  86,
+                                          "ignored_without_child_execution":  18,
+                                          "unique_named_cases":  104,
+                                          "include_ignored":  false,
+                                          "note":  "Parent-process test output can interleave with child harness output; same-line matches alone can omit successful parent cases. Child helpers are not counted twice.",
+                                          "passed_on_same_line":  86,
+                                          "log":  {
+                                                      "path":  "artifacts/migration/linux-tests.log",
+                                                      "sha256":  "4c6c78c9ee6e17d368c3f5ffdae951dd5712d27107cc3f7590281dcabcfc8883",
+                                                      "bytes":  19260
+                                                  }
+                                      },
+                  "independent_core_application_cases":  10
+              },
+    "ubuntu_24_04":  {
+                         "screenshots":  {
+                                             "interaction":  45,
+                                             "installed_application":  1,
+                                             "formats":  16
+                                         },
+                         "ui_build_profile":  "release",
+                         "native_pdf_passed":  8,
+                         "installed_deb":  "artifacts/migration/packages/crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                         "installed_manifest_verified_files":  408,
+                         "graphics":  "Xvfb X11, Mesa software renderer; installed application also checked with Openbox",
+                         "native_test_build_profile":  "release",
+                         "formats_and_marks_passed":  7
+                     },
+    "metrics":  {
+                    "windows_release_size_before":  {
+                                                        "path":  "artifacts/migration/before/crabpdf.exe",
+                                                        "sha256":  "727b17e95506a62ce004a752e5ad510f9c4568c18d1c4c07eb69f1eb7f9c2e94",
+                                                        "bytes":  11473920
+                                                    },
+                    "baseline_failure_log":  {
+                                                 "path":  "artifacts/migration/performance-before.log",
+                                                 "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                                 "bytes":  0
+                                             },
+                    "release_size_change_percent":  -0.642570281124498,
+                    "package_size_comparison":  [
+                                                    {
+                                                        "before_bytes":  40618728,
+                                                        "change_percent":  0.0798498662981273,
+                                                        "name":  "crabpdf-0.4.0-linux-x64.tar.gz",
+                                                        "after_bytes":  40651162
+                                                    },
+                                                    {
+                                                        "before_bytes":  30637504,
+                                                        "change_percent":  -0.05227579896847994,
+                                                        "name":  "crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                                                        "after_bytes":  30621488
+                                                    },
+                                                    {
+                                                        "before_bytes":  43604106,
+                                                        "change_percent":  0.017475418484672062,
+                                                        "name":  "crabpdf-0.4.0-win-x64.zip",
+                                                        "after_bytes":  43611726
+                                                    },
+                                                    {
+                                                        "before_bytes":  31921766,
+                                                        "change_percent":  -0.039151969223757861,
+                                                        "name":  "crabpdf-0.4.0-win-x64-setup.exe",
+                                                        "after_bytes":  31909268
+                                                    }
+                                                ],
+                    "windows_release_size_after":  {
+                                                       "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                                                       "sha256":  "54694a26912eddb43c22ad150fa070aa9629cccfcd79bb6d0991d8729f9ab432",
+                                                       "bytes":  11400192
+                                                   },
+                    "latency_comparison":  "Not accepted: baseline observer timed out in idle phase 9 without timings.json. No latency improvement inferred."
+                },
+    "status":  {
+                   "A06":  "desktop composition/dialogs/profile lifecycle migrated",
+                   "A05":  "application/runtime packages extracted",
+                   "A04":  "core workspace extraction and distribution updates complete",
+                   "R09":  "architecture extraction completed; other V1 routes remain open",
+                   "A03":  "code extraction and functional contracts complete",
+                   "A07":  "functional/dependency/package review passed; quantitative latency/resource acceptance remains open with A00"
+               },
+    "remaining_native_components":  [
+                                        "PDFium",
+                                        "MuPDF",
+                                        "libmobi",
+                                        "DjVuLibre",
+                                        "7-Zip",
+                                        "Small mutool-run JavaScript metadata/outline bridge"
+                                    ],
+    "limits":  [
+                   "No pure-Rust PDF engine or decoder replacement is claimed.",
+                   "No general performance gain is claimed; cold/warm timings, converter RSS/CPU and compositor latency remain unaccepted.",
+                   "macOS passed CI compilation and native engine tests; no physical Mac GUI review or installer package.",
+                   "Windows x86 CI runs on a 64-bit OS; no native 32-bit Windows or Windows 11 validation in this migration.",
+                   "Ubuntu container validation is not all Linux distributions, Wayland or physical GPU testing.",
+                   "Windows installer remains unsigned and its GUI manual/DPI review remains pending."
+               ],
+    "packages":  [
+                     {
+                         "path":  "artifacts/migration/packages/crabpdf-0.4.0-linux-x64.tar.gz",
+                         "sha256":  "84b7dd35dccbc73f4b16b4e7d70f25ce780cce8cb748a1754cf8ff262fc2922e",
+                         "bytes":  40651162
+                     },
+                     {
+                         "path":  "artifacts/migration/packages/crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                         "sha256":  "4f52ae7d087c50839c8128122fec7b86af5de25e70bbf1dcb45723ea63d3b154",
+                         "bytes":  30621488
+                     },
+                     {
+                         "path":  "artifacts/migration/packages/crabpdf-0.4.0-win-x64.zip",
+                         "sha256":  "e6d04cdaaa5582d3dea92579d91e3ca46de478d15cb878675455692ab85453ad",
+                         "bytes":  43611726
+                     },
+                     {
+                         "path":  "artifacts/migration/packages/crabpdf-0.4.0-win-x64-setup.exe",
+                         "sha256":  "8a71aec7d460881b3d4651f3c004158f4f582179b2b14871e1bf8c40f25ac187",
+                         "bytes":  31909268
+                     }
+                 ],
+    "logs":  [
+                 {
+                     "path":  "artifacts/migration/inner-tests.log",
+                     "sha256":  "a25bc8ac70a5898af829c19eb485ba3ee279980fe2857b6016d23676dec3006b",
+                     "bytes":  4834
+                 },
+                 {
+                     "path":  "artifacts/migration/clippy-x64.log",
+                     "sha256":  "f00c75fa395b2a916e1e07ce2186654b21a3318ce6643dd54dba3aea934547ba",
+                     "bytes":  962
+                 },
+                 {
+                     "path":  "artifacts/migration/windows-verify.log",
+                     "sha256":  "9e34e80a12395f1f1b88205b775aa6df97dacf1f28b201ba6c6b1e2bc8619e17",
+                     "bytes":  204
+                 },
+                 {
+                     "path":  "artifacts/migration/windows-install-test.log",
+                     "sha256":  "d48fd1209370fe38c3c994326083ee83484db0a31e409a2d8f6d660829ec5b89",
+                     "bytes":  274
+                 },
+                 {
+                     "path":  "artifacts/migration/windows-geometry-custom/native-geometry.json",
+                     "sha256":  "0f11b5721da77ffcc41da53ab086de28918b8ed53e069cdcb11d1936ac4b5d86",
+                     "bytes":  21542
+                 },
+                 {
+                     "path":  "artifacts/migration/windows-geometry-native/native-geometry.json",
+                     "sha256":  "b26b1be7132b1b84e3ccf0ce9c86bdd62767b86c8286a4b866310efe2c2ce0d9",
+                     "bytes":  23934
+                 },
+                 {
+                     "path":  "artifacts/migration/windows-interaction/interaction-report.json",
+                     "sha256":  "ee7aaf3d35d8a325b713c0d66a5f2f579841b6ad79c3a1ce7df1ca50d3d89585",
+                     "bytes":  43751
+                 },
+                 {
+                     "path":  "artifacts/migration/linux-inner.log",
+                     "sha256":  "b30ff57b89755ca83529cb545baae17b476f5159fd3a0a8fad5993491c22ef6a",
+                     "bytes":  1605
+                 },
+                 {
+                     "path":  "artifacts/migration/linux-verify.log",
+                     "sha256":  "ed924ceb0df111824235dcb2fabb0881bf079152e78d8219cf7b508f123c6c55",
+                     "bytes":  633
+                 },
+                 {
+                     "path":  "artifacts/migration/linux-extra-tests.log",
+                     "sha256":  "65fb00e32c9a74104da65fe5dd89e0875f4cfb67192e662b0ccbebd2c0567420",
+                     "bytes":  795
+                 },
+                 {
+                     "path":  "artifacts/migration/ubuntu-native.log",
+                     "sha256":  "856365268c70994eb26a60d6e99b8273a49952125e864cf50bf4aeacaf3542ac",
+                     "bytes":  641
+                 },
+                 {
+                     "path":  "artifacts/migration/ubuntu-formats.log",
+                     "sha256":  "6238d880e341cf6956a45b1b43ab6565c83e359ada857a471b5f7eaa24cf3064",
+                     "bytes":  600
+                 },
+                 {
+                     "path":  "artifacts/migration/ubuntu-interaction/interaction-report.json",
+                     "sha256":  "c593d8cfde8ab031d7bd8b137f6aa3bb2006a00c3ebd795b1927641e83b666ab",
+                     "bytes":  23021
+                 },
+                 {
+                     "path":  "artifacts/migration/ubuntu-install.log",
+                     "sha256":  "fdd556094212360b0085ef7a72c8636e591d650badbe2b4272a58d611f60545f",
+                     "bytes":  266
+                 },
+                 {
+                     "path":  "artifacts/migration/ubuntu-installed-hashes.log",
+                     "sha256":  "b2fcee32c4d8682ade1ef45483d72c87e93f82550b588e89d312a8ee23bf9b4e",
+                     "bytes":  20368
+                 }
+             ],
+    "source_inputs":  [
+                          {
+                              "path":  ".cargo/config.toml",
+                              "sha256":  "fda9a354808773bae6cf072911a5bf21cd32a49f12c6b18914c750a2adb3ccd3",
+                              "bytes":  209
+                          },
+                          {
+                              "path":  "assets/crabpdf-logo.svg",
+                              "sha256":  "75039403a60f66a5a4c065906c2732b46b2635b8d94a9e29704654eff2569c8d",
+                              "bytes":  10857
+                          },
+                          {
+                              "path":  "build.rs",
+                              "sha256":  "54853c1fb64374454ece0726e36ed5fa35f07ef7a25884bb0532713293063d3f",
+                              "bytes":  6829
+                          },
+                          {
+                              "path":  "Cargo.lock",
+                              "sha256":  "c7ed1605b1f3ebc0a72e0289662c7b1c5cd0947f0d719e04f11b2854d3a18643",
+                              "bytes":  87387
+                          },
+                          {
+                              "path":  "Cargo.toml",
+                              "sha256":  "cf8cee76e7788387dc9908cb1473ab87f2a2b0e84ee4085c4af5aafe6a23ec6a",
+                              "bytes":  1165
+                          },
+                          {
+                              "path":  "crates/application/Cargo.toml",
+                              "sha256":  "52ff72a36921253c2fdc64368f37fcbc8bee7f95c93c9b933b422cd39d4d753b",
+                              "bytes":  257
+                          },
+                          {
+                              "path":  "crates/application/src/commands.rs",
+                              "sha256":  "d315c7d049116b647df23ff6abe95ec0c30feebb5918c192201646ce3ba2ac99",
+                              "bytes":  4017
+                          },
+                          {
+                              "path":  "crates/application/src/favorites.rs",
+                              "sha256":  "605e971a99717ded5bb551af360c7e58300ca5d7b471282cf952c5a3338ba339",
+                              "bytes":  5631
+                          },
+                          {
+                              "path":  "crates/application/src/formats.rs",
+                              "sha256":  "b38d93ddf8ab241ede516ef3ee76342928b9e147e6c85f388ba1fd8af5d7ee46",
+                              "bytes":  2908
+                          },
+                          {
+                              "path":  "crates/application/src/lib.rs",
+                              "sha256":  "5a3ffff619fc98969264ca37f2d841c9e579a82eeb089495866189589d5d38ea",
+                              "bytes":  287
+                          },
+                          {
+                              "path":  "crates/application/src/preferences.rs",
+                              "sha256":  "fe583668e2b8999f31df91d60c73282e49b0570fc9cde4bb418685817f76039d",
+                              "bytes":  4307
+                          },
+                          {
+                              "path":  "crates/application/src/profile.rs",
+                              "sha256":  "3cd033ac57cf7c0b245b29ccbc7cd1214b09a802b34f9efec5c8f78e37bedeea",
+                              "bytes":  795
+                          },
+                          {
+                              "path":  "crates/application/src/protocol.rs",
+                              "sha256":  "f35388116c05814c59824ac87d443384be2c91bc7c22a8089b575f82b7129567",
+                              "bytes":  1774
+                          },
+                          {
+                              "path":  "crates/application/src/search.rs",
+                              "sha256":  "a7e30e29629b2aa927d61f99155e3979944cd4a6054593302e0674eb0482a8d0",
+                              "bytes":  4699
+                          },
+                          {
+                              "path":  "crates/application/src/selection.rs",
+                              "sha256":  "8ea3bbe5a3e61bb0244b48fa3c737c653b164fd3c88a343d047943c78f839db8",
+                              "bytes":  3145
+                          },
+                          {
+                              "path":  "crates/application/src/state.rs",
+                              "sha256":  "1f6008e7d841af43c6e532c680e69f38ef932ad313f6437f01680fb8fdc742d1",
+                              "bytes":  9461
+                          },
+                          {
+                              "path":  "crates/application/src/tabs.rs",
+                              "sha256":  "15f6b621a886741c392b74455fbd8754acaa85d42f7809d6403155d05b1e078e",
+                              "bytes":  10310
+                          },
+                          {
+                              "path":  "crates/core/Cargo.toml",
+                              "sha256":  "37241faf647519f189a7e4886f6b6d6d987b86a102943d873d80fc0f26164fef",
+                              "bytes":  214
+                          },
+                          {
+                              "path":  "crates/core/src/document.rs",
+                              "sha256":  "21c7760863d53cca336154bd0e8ade85f0636dd400bd9fbb7617edf6d45dd8f4",
+                              "bytes":  7864
+                          },
+                          {
+                              "path":  "crates/core/src/layout.rs",
+                              "sha256":  "6d6ee129795baaaf04f9b4fe501d2df750d869ccb6e14a2c1577b4570cfe4250",
+                              "bytes":  10563
+                          },
+                          {
+                              "path":  "crates/core/src/lib.rs",
+                              "sha256":  "dd5104d1bf35349cb1cc99537acea2d7c3a26ee4edb70d2830f44090d2369084",
+                              "bytes":  249
+                          },
+                          {
+                              "path":  "crates/core/src/reading_position.rs",
+                              "sha256":  "66554e398392548007523c5e272677d026f0398a578f3c332fb8ed7ea5c43036",
+                              "bytes":  3081
+                          },
+                          {
+                              "path":  "crates/runtime/Cargo.toml",
+                              "sha256":  "2afa5827c1a1576cc3d8f207e84396fecc5ddadc84a0d95ed3f04c783bd44dfa",
+                              "bytes":  584
+                          },
+                          {
+                              "path":  "crates/runtime/src/cache.rs",
+                              "sha256":  "03cb61a4d1e8083d5f4782524dc44ec90642f40b2a8a53ad2388ad7413ac2788",
+                              "bytes":  3453
+                          },
+                          {
+                              "path":  "crates/runtime/src/covers.rs",
+                              "sha256":  "88b2e118ac4c59645ce6360ebb7240e29819cf1958cb85176057f938f7f88dd6",
+                              "bytes":  4969
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/archive.rs",
+                              "sha256":  "5b910348b87b9ef3200487d7d7afbdc2cd1b4ec0d1c6abba8fbcb02b613146cb",
+                              "bytes":  4272
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/cache.rs",
+                              "sha256":  "065ad35a4e00b8d203959a05f09d6bf964c3a00b2da987e6355928fd34c80c44",
+                              "bytes":  8163
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/comic.rs",
+                              "sha256":  "df331ce6ec8f30031d92f0e558f77e07e6de2e1df855480c77c3601605c9ede1",
+                              "bytes":  4047
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/djvu_text.rs",
+                              "sha256":  "b48cb4b0a445b4c73edd0fbe07556dc6e069fb954a3d1961fc763464f56846e5",
+                              "bytes":  3030
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/ebook.rs",
+                              "sha256":  "edddb45a4ba48c644cafd12dfa93c897b48c7510edb851a8a6ecf114e9eb0017",
+                              "bytes":  6013
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/limits.rs",
+                              "sha256":  "dcfddfc2b4ff86a55f89cd90c65bfe2b345d6d4063f1253189cebc51e1094262",
+                              "bytes":  3162
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/mod.rs",
+                              "sha256":  "8a8e78d76502efe6a04df9914c956725d1410c519206a172b10d7159c6bbd2c1",
+                              "bytes":  19596
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/mupdf/import_info.js",
+                              "sha256":  "bf96de1b35ade92b341dfa8b11cf386f95352d92373749329d357f38dac66249",
+                              "bytes":  1056
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/mupdf/mod.rs",
+                              "sha256":  "37a57c83e66c3ec01336e5e7b4e3a694a49a7c5aade5d98edc6e645bd888f664",
+                              "bytes":  3334
+                          },
+                          {
+                              "path":  "crates/runtime/src/formats/process.rs",
+                              "sha256":  "e5903e39fde9bd7c921a205f087d30204be43d4b5ba911f006b89c81b4f88ece",
+                              "bytes":  4978
+                          },
+                          {
+                              "path":  "crates/runtime/src/lib.rs",
+                              "sha256":  "295cad023dd6e398f60f7c59d92547ac059594f99953df29b13bff613bb425b8",
+                              "bytes":  418
+                          },
+                          {
+                              "path":  "crates/runtime/src/paths.rs",
+                              "sha256":  "17432460430e5a7c43898ec1cf4a14aca347347d6bc29f358789009a04a6e401",
+                              "bytes":  2180
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/bindings.rs",
+                              "sha256":  "43ca7b5a1030f8ff3246d58468f7d4a5bb5b0dcbd0a2f74d4ddbaf5ca5219756",
+                              "bytes":  1337
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/discovery.rs",
+                              "sha256":  "81b6f6fd59a2f268a810c86cb0d7a91dba3c5b2307992735cf9044c4c6fc514b",
+                              "bytes":  1010
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/export.rs",
+                              "sha256":  "700de693d06f84ad86db13132bb679909cc231c0aee6db0649718eabd4f64a68",
+                              "bytes":  1262
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/geometry.rs",
+                              "sha256":  "24ef592b6d60510cf458903a7416cfa6a2e57b14b663830f44564678ceba4e3d",
+                              "bytes":  1956
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/markup.rs",
+                              "sha256":  "e9c70adb0a375267971c07f274d6e49f8ce0239515132fa03e84b0b9fac0c20c",
+                              "bytes":  10351
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/metadata.rs",
+                              "sha256":  "2417565ec518c3c6342f288d2badb0a89a10c54118f165e46d070738c3fb3b5a",
+                              "bytes":  4009
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/mod.rs",
+                              "sha256":  "71d6d7b27bb087d33b00556e3bad6871358488f552dd6665f43337a1b56d166b",
+                              "bytes":  6234
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/render.rs",
+                              "sha256":  "32e1f3a2a426521585af43886b595db5a2cc9c05b6c07d90f8f3d33477c5a89e",
+                              "bytes":  7291
+                          },
+                          {
+                              "path":  "crates/runtime/src/pdfium/text.rs",
+                              "sha256":  "36d0a59e8354ac5f1341718c4b060ee0ae253f61d446a69e45e0faf3a18aef62",
+                              "bytes":  5914
+                          },
+                          {
+                              "path":  "crates/runtime/src/source.rs",
+                              "sha256":  "caa995cccabd4df64ab979aa1a849163ac62c0ba3be2a1ff9a98678d8762dc4d",
+                              "bytes":  669
+                          },
+                          {
+                              "path":  "crates/runtime/src/storage/annotations.rs",
+                              "sha256":  "cbd6b3ec21374df00e8c582f8fe4cb51ba700797c11e669755b9c3b2cf3e331d",
+                              "bytes":  4759
+                          },
+                          {
+                              "path":  "crates/runtime/src/storage/fileops.rs",
+                              "sha256":  "523bbdffa037563149afb0faf1dfcb39bf3b306b7ea9992f026cf51ab7b618b8",
+                              "bytes":  2637
+                          },
+                          {
+                              "path":  "crates/runtime/src/storage/mod.rs",
+                              "sha256":  "5b2cb7730e78a426a573c61282a76bd3b9316b9d8445d546e9fe38336354d80a",
+                              "bytes":  55
+                          },
+                          {
+                              "path":  "crates/runtime/src/storage/profile.rs",
+                              "sha256":  "723f00d2070ede64bee9e4fe72ab8545fa89be4af998bc5ec9bd57dc7cd26123",
+                              "bytes":  13570
+                          },
+                          {
+                              "path":  "crates/runtime/src/worker/importer.rs",
+                              "sha256":  "8d15caa35058e0f7fb65a0bef0dc9aede3203663dd16a63fbdac1ffd4c69fe2a",
+                              "bytes":  2948
+                          },
+                          {
+                              "path":  "crates/runtime/src/worker/mod.rs",
+                              "sha256":  "00ced437911a367807be67bf038dbe88742d38993ba62416bf32f7aa2a2ea7b0",
+                              "bytes":  8885
+                          },
+                          {
+                              "path":  "crates/runtime/src/worker/renderer.rs",
+                              "sha256":  "af4b57b8e21e5531c90493688cc3c49c5b796181e6e553ef2625763517ca8476",
+                              "bytes":  10880
+                          },
+                          {
+                              "path":  "crates/runtime/src/worker/scheduler.rs",
+                              "sha256":  "d7f877de4b6eabfb1eeecf650c37cabb1297f5b76931d04471c0f2320b076804",
+                              "bytes":  17929
+                          },
+                          {
+                              "path":  "rust-toolchain.toml",
+                              "sha256":  "dad73043643ef4285aca2153b3f6e50dd70ebace44c4f913bcd1be2d4403717b",
+                              "bytes":  86
+                          },
+                          {
+                              "path":  "src/branding.rs",
+                              "sha256":  "2024767622fe97efc2270995b2ec8fe8db0116ba665ea42f0455a276c69d1ed2",
+                              "bytes":  781
+                          },
+                          {
+                              "path":  "src/cli.rs",
+                              "sha256":  "a44bb5bc44a49d97ab4faec6398f0b860e788b7dfeb49063bc4314d8fa9394bf",
+                              "bytes":  8474
+                          },
+                          {
+                              "path":  "src/desktop/bootstrap.rs",
+                              "sha256":  "bd409b1cd385d482e6d38e24d83a0066e64b36cd52c9e489e18b91f22a4af6d8",
+                              "bytes":  1310
+                          },
+                          {
+                              "path":  "src/desktop/command_meta.rs",
+                              "sha256":  "c9cb05339660f80659e0e5f85cf421646f034d0a58798ccec248205334c5193f",
+                              "bytes":  6964
+                          },
+                          {
+                              "path":  "src/desktop/dialogs.rs",
+                              "sha256":  "bc9ae44b83869ba8ba961b30fb148c47c655f90a4863045d57336bc1aeb145bd",
+                              "bytes":  3128
+                          },
+                          {
+                              "path":  "src/desktop/mod.rs",
+                              "sha256":  "1901538831ed8c1fe9acbc6249e0540650e12dc6bac2bfe9f169e03cef8d791c",
+                              "bytes":  147
+                          },
+                          {
+                              "path":  "src/desktop/shell.rs",
+                              "sha256":  "5d6a7cb6e0452931bbdc6c8aeefc89bad7fcea7ecf3391403426a1c9dc0c2452",
+                              "bytes":  7532
+                          },
+                          {
+                              "path":  "src/lib.rs",
+                              "sha256":  "da5d29afe4359003b09a4370ba63b41d7dea8a1bcd11f5bfe6949b07b600c42c",
+                              "bytes":  939
+                          },
+                          {
+                              "path":  "src/main.rs",
+                              "sha256":  "96c8b65b50bf53e0b54ea46b8dc718f8a516b4271c6eab1c7ecd237c42625ab4",
+                              "bytes":  1779
+                          },
+                          {
+                              "path":  "src/ui/actions.rs",
+                              "sha256":  "ed1a3acf6ab31fd43ffa50fca50c2d6756d57a9201944bac832a186ecc6e7c2a",
+                              "bytes":  18439
+                          },
+                          {
+                              "path":  "src/ui/chrome.rs",
+                              "sha256":  "e1657cc392cbb745a59c24f0e71ac222a746976405db62684185be2ab8807573",
+                              "bytes":  19670
+                          },
+                          {
+                              "path":  "src/ui/events.rs",
+                              "sha256":  "4cd8906facf67de81e6e5e65b16a4c424b2acc14e0b5ce14b44894640d0b52b1",
+                              "bytes":  13850
+                          },
+                          {
+                              "path":  "src/ui/home.rs",
+                              "sha256":  "f9b66365f0b19657dd0fa2715ec0ecbebae42933c6414ef35812af5dd576ae21",
+                              "bytes":  7065
+                          },
+                          {
+                              "path":  "src/ui/icons.rs",
+                              "sha256":  "216d60886f5674d28c7024b7de06a7a19a746e36c8396815e3e95abb5340abb9",
+                              "bytes":  7004
+                          },
+                          {
+                              "path":  "src/ui/input.rs",
+                              "sha256":  "e22a5035bf49e573bf4d8408c869c96abaf044aad2cd3cfebe7f5c29ebe6056a",
+                              "bytes":  17703
+                          },
+                          {
+                              "path":  "src/ui/key_scroll.rs",
+                              "sha256":  "9b1791435065ca2104cd5193e04dffb8ebe4065af7bc526d97aebc7627977ef8",
+                              "bytes":  4165
+                          },
+                          {
+                              "path":  "src/ui/mod.rs",
+                              "sha256":  "8c6c58f758fe38a450430c63156b7cde653a5c74c8fa7670aedac31c41ab33ad",
+                              "bytes":  21606
+                          },
+                          {
+                              "path":  "src/ui/motion.rs",
+                              "sha256":  "12b1931aaff1c749bac36752e4f22a09dfeecd3b0e473c1da4cb014e8091a22f",
+                              "bytes":  2726
+                          },
+                          {
+                              "path":  "src/ui/panels.rs",
+                              "sha256":  "1589e0a4acd2caaac4e83c857b954c28db967999afe55f6f7702ba73d0b765f8",
+                              "bytes":  50411
+                          },
+                          {
+                              "path":  "src/ui/raster.rs",
+                              "sha256":  "232ac1070c718355477a3730cf14bf01b143005633a771f36cc7a67a3f85edb5",
+                              "bytes":  4735
+                          },
+                          {
+                              "path":  "src/ui/requests.rs",
+                              "sha256":  "51b90577a5a959812c7b213a9ebd759680aed48c74f5921909120e9cf6603d0d",
+                              "bytes":  2797
+                          },
+                          {
+                              "path":  "src/ui/selection_geometry.rs",
+                              "sha256":  "79b13bff60cc4423a1f4d5e7735b08d8983fffc43303a8bbd88b64377a8f0068",
+                              "bytes":  3143
+                          },
+                          {
+                              "path":  "src/ui/session.rs",
+                              "sha256":  "3b3c6fb5bfcdd735fb05c491a8a01584365ce3d97683424e9bbe1d6cc18741a7",
+                              "bytes":  2979
+                          },
+                          {
+                              "path":  "src/ui/tab_view.rs",
+                              "sha256":  "0a45f901dda3307285a947895c9c0875d4b2dd7535e1e6e25a00e340bd97aec5",
+                              "bytes":  8692
+                          },
+                          {
+                              "path":  "src/ui/theme.rs",
+                              "sha256":  "c5fc80374aa25c97a8125313c30b5c5742fc56c00b8e58972bf259c1c8a0a572",
+                              "bytes":  2416
+                          },
+                          {
+                              "path":  "src/ui/viewer.rs",
+                              "sha256":  "578c204c4b5b2d10325a2bc60fe8d1afa54df45f4c51000463c2dc03b58a58a1",
+                              "bytes":  35480
+                          }
+                      ]
+}

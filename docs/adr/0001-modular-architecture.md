@@ -89,7 +89,7 @@ La principal mejora esperada es poder comprobar favoritos, navegación, sesiones
 
 Se añaden manifiestos y límites de API que habrá que mantener. Separar paquetes no elimina los riesgos de los conversores, no corrige automáticamente bugs y no completa la paridad V1. La mejora de rendimiento debe medirse; la prioridad es conservar comportamiento y reducir el coste de cambios futuros.
 
-La migración conserva una fachada pública de reexportaciones para consumidores del desktop; usa y cortes pequeños, con una implementación activa por funcionalidad. El enfoque gradual está respaldado por [Branch by Abstraction, Martin Fowler](https://martinfowler.com/bliki/BranchByAbstraction.html). No se duplican escrituras a perfiles o marcas para comparar implementaciones.
+La migración conserva una fachada pública de reexportaciones para consumidores del desktop y mantiene cortes pequeños, con una implementación activa por funcionalidad. El enfoque gradual está respaldado por [Branch by Abstraction, Martin Fowler](https://martinfowler.com/bliki/BranchByAbstraction.html). No se duplican escrituras a perfiles o marcas para comparar implementaciones.
 
 ## Reconsiderar esta decisión si
 

@@ -31,7 +31,7 @@ Hasta cumplir estas condiciones, conservar una versión de desarrollo. No es pos
 
 ## Principios de ejecución
 
-- Mantener egui/eframe, PDFium y la implementación independiente en Rust. Extraer responsabilidades dentro de un cambio concreto; evitar una migración global.
+- Mantener egui/eframe, PDFium y la implementación independiente en Rust. Extraer responsabilidades dentro de un cambio concreto; evitar una reescritura global.
 - Resolver primero sincronización y contratos de datos. No ampliar un modelo de marcas incompatible para luego cambiar todos sus consumidores.
 - Portar y medir desde temprano. Las rutas de plataformas y rendimiento pueden comenzar con la base actual; sus dependencias en CSV son condiciones para **cerrarlas**, no una prohibición de investigarlas antes.
 - Una entrega pequeña incluye código, regresión pertinente, documentación y evidencia; no un control vacío. Las funciones de herramientas externas se cargan bajo demanda y se activan explícitamente.

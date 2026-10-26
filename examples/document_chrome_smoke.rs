@@ -1,4 +1,4 @@
-//! Native regression for book favorites, tab drag duplication and fullscreen origins.
+//! Native regression for favorites, tab drag to another process and fullscreen origins.
 use crabpdf::{
     commands::Action,
     config::{Favorite, Preferences},
@@ -84,7 +84,8 @@ impl Smoke {
             }
             7 | 12 | 16 => self.pointer(outside, None),
             8 | 17 => self.pointer(outside, Some(false)),
-            9 | 10 => self.app.execute(Action::PreviousTab, ctx),
+            9 => self.app.execute(Action::NextTab, ctx),
+            10 => self.app.execute(Action::PreviousTab, ctx),
             13 => self.pointer(inside, None),
             14 => self.pointer(inside, Some(false)),
             18 => {
@@ -142,6 +143,30 @@ impl Smoke {
                 ));
             }
         }
+        if self.phase == 8 {
+            let result = std::fs::read(self.output.join("detached-window.json"))
+                .ok()
+                .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
+            let Some(result) = result else {
+                return Ok(false);
+            };
+            if result["pid"].as_u64() == Some(u64::from(std::process::id()))
+                || result["page"].as_u64() != Some(1)
+                || result["zoom"] != serde_json::to_value(Zoom::Percent(125)).unwrap()
+                || result["book"].as_str() != a.to_str()
+            {
+                return Err(format!("Vista incorrecta en la ventana separada: {result}"));
+            }
+            if let Some(expected) = self.source_anchor {
+                let x = result["anchor"][0].as_f64().unwrap_or(-1.0) as f32;
+                let y = result["anchor"][1].as_f64().unwrap_or(-1.0) as f32;
+                if (expected.0 - x).abs() > 0.04 || (expected.1 - y).abs() > 0.04 {
+                    return Err(format!(
+                        "La nueva ventana no conservó la posición: {expected:?} -> {x},{y}"
+                    ));
+                }
+            }
+        }
         let correct = match self.phase {
             0 => loaded,
             1 => loaded && self.app.favorite_button_rect(1).is_some(),
@@ -162,7 +187,7 @@ impl Smoke {
             6 | 7 | 11 | 12 | 13 | 15 | 16 => self.began.elapsed() > Duration::from_millis(120),
             8 => {
                 loaded
-                    && self.app.tab_count() == 3
+                    && self.app.tab_count() == 2
                     && book == Some(&a)
                     && page == Some(1)
                     && self.app.state().zoom == Zoom::Percent(125)
@@ -175,7 +200,7 @@ impl Smoke {
                     && favorites.len() == 2
                     && self.app.state().zoom == Zoom::Percent(125)
             }
-            14 | 17 => self.app.tab_count() == 3,
+            14 | 17 => self.app.tab_count() == 2,
             18 | 19 | 22 => {
                 loaded
                     && full
@@ -290,6 +315,12 @@ impl eframe::App for Smoke {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
+    if args
+        .first()
+        .is_some_and(|arg| arg == "--config" || arg == "--page")
+    {
+        return detached_window(args);
+    }
     let output = args
         .first()
         .map(PathBuf::from)
@@ -354,4 +385,93 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .take()
         .ok_or("Recorrido interrumpido")?
         .map_err(Into::into)
+}
+
+// The real drag action invokes current_exe with the production CLI. This child
+// runs that path in an actual second native window and reports its observed view.
+fn detached_window(args: Vec<std::ffi::OsString>) -> Result<(), Box<dyn std::error::Error>> {
+    let crabpdf::cli::Invocation::Run(launch) = crabpdf::cli::parse(args)? else {
+        return Err("Invalid child invocation".into());
+    };
+    let output = launch
+        .config
+        .as_ref()
+        .ok_or("Missing child profile")?
+        .parent()
+        .ok_or("Missing profile directory")?
+        .to_owned();
+    struct Child {
+        app: ReaderApp,
+        output: PathBuf,
+        started: Instant,
+        ready: Option<Instant>,
+        capture: bool,
+    }
+    impl eframe::App for Child {
+        fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+            self.app.logic(ctx, frame);
+            if self.started.elapsed() > Duration::from_secs(20) {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                return;
+            }
+            let shot = ctx.input(|input| {
+                input.events.iter().find_map(|event| {
+                    if let egui::Event::Screenshot { image, .. } = event {
+                        Some(Arc::clone(image))
+                    } else {
+                        None
+                    }
+                })
+            });
+            if let Some(image) = shot {
+                let pixels: Vec<_> = image.pixels.iter().flat_map(|p| p.to_array()).collect();
+                image::save_buffer(
+                    self.output.join("detached-window.png"),
+                    &pixels,
+                    image.width() as u32,
+                    image.height() as u32,
+                    image::ColorType::Rgba8,
+                )
+                .unwrap();
+                let document = self.app.state().document.as_ref().unwrap();
+                let bounds = self.app.current_page_viewport().unwrap();
+                let info = serde_json::json!({"pid":std::process::id(),"book":document.info.path,"page":document.page,"zoom":self.app.state().zoom,"anchor":[(bounds.left+bounds.right)*0.5,(bounds.top+bounds.bottom)*0.5]});
+                std::fs::write(self.output.join("detached-window.json"), info.to_string()).unwrap();
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+            if self.app.has_current_render()
+                && !self.capture
+                && self.ready.get_or_insert_with(Instant::now).elapsed()
+                    > Duration::from_millis(250)
+            {
+                self.capture = true;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            }
+            ctx.request_repaint_after(Duration::from_millis(20));
+        }
+        fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+            self.app.ui(ui, frame);
+        }
+        fn on_exit(&mut self, gl: Option<&eframe::glow::Context>) {
+            self.app.on_exit(gl);
+        }
+    }
+    eframe::run_native(
+        "CrabPDF detached window test",
+        eframe::NativeOptions {
+            viewport: crabpdf::branding::viewport().with_inner_size([1080.0, 780.0]),
+            renderer: eframe::Renderer::Glow,
+            ..Default::default()
+        },
+        Box::new(move |cc| {
+            Ok(Box::new(Child {
+                app: ReaderApp::with_launch(cc, launch),
+                output,
+                started: Instant::now(),
+                ready: None,
+                capture: false,
+            }))
+        }),
+    )?;
+    Ok(())
 }

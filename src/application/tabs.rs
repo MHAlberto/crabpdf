@@ -22,6 +22,8 @@ pub struct InitialView {
     pub manga: Option<bool>,
     pub rotation: Option<u8>,
     pub search: Option<String>,
+    pub colors: Option<crate::document::PageColors>,
+    pub position: Option<ReadingPosition>,
 }
 impl InitialView {
     fn overrides_position(&self) -> bool {
@@ -32,6 +34,7 @@ impl InitialView {
             || self.manga.is_some()
             || self.rotation.is_some()
             || self.search.is_some()
+            || self.position.is_some()
     }
 }
 
@@ -134,6 +137,16 @@ impl ReadingTab {
             }
             if let Some(page) = view.page {
                 self.state.go_to(page, false);
+            }
+            if let Some(colors) = view.colors {
+                self.state.colors = colors;
+            }
+            if let Some(position) = view
+                .position
+                .filter(|p| p.anchor((1.0, 1.0), count).is_some())
+            {
+                self.state.go_to(position.page(), false);
+                self.pending_position = Some(position);
             }
             if let Some(query) = view.search {
                 self.search.query = query;

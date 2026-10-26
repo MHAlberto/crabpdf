@@ -19,6 +19,7 @@ pub(super) struct SearchViewState {
 pub(super) struct TabViewState {
     pub(super) search: SearchViewState,
     pub(super) scroll: Vec2,
+    pub(super) key_scroll: super::key_scroll::KeyScroll,
     pub(super) viewport: Vec2,
     pub(super) viewport_rect: Option<egui::Rect>,
     pub(super) zoom_anchor: Option<ReadingAnchor>,
@@ -28,6 +29,7 @@ pub(super) struct TabViewState {
     pub(super) navigation_wait: Option<(usize, f64)>,
     pub(super) reveal: Option<(usize, crate::document::Bounds)>,
     pub(super) password: String,
+    pub(super) selection_geometry: super::selection_geometry::SelectionGeometry,
     pub(super) view_layout: Option<(LayoutSpec, Arc<PageLayout>)>,
 }
 
@@ -45,6 +47,7 @@ impl Tab {
     }
     pub(super) fn go_to(&mut self, page: usize, remember: bool) {
         self.reader.go_to(page, remember);
+        self.view.key_scroll.cancel();
         self.view.scroll_motion = None;
         self.view.navigation_wait = None;
     }
@@ -122,6 +125,7 @@ impl Tab {
     }
     pub(super) fn zoom_at(&mut self, zoom: Zoom, pointer: Option<egui::Pos2>) {
         self.reader.pending_position = None;
+        self.view.key_scroll.cancel();
         self.view.scroll_motion = None;
         self.view.navigation_wait = None;
         if self.reader.state.zoom == zoom {

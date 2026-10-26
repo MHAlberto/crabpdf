@@ -74,6 +74,16 @@ impl<K: Eq + Hash + Clone, V> ByteCache<K, V> {
             .map(|(key, _)| key.clone())?;
         self.get(&key)
     }
+    /// Prefer the highest matching content version, then its last use.
+    pub fn best_match(&mut self, mut score: impl FnMut(&K) -> Option<u64>) -> Option<(K, Arc<V>)> {
+        let key = self
+            .entries
+            .iter()
+            .filter_map(|(key, (_, _, age))| score(key).map(|score| (key, (score, *age))))
+            .max_by_key(|(_, rank)| *rank)
+            .map(|(key, _)| key.clone())?;
+        self.get(&key).map(|value| (key, value))
+    }
     pub fn clear(&mut self) {
         self.entries.clear();
         self.bytes = 0;

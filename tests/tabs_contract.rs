@@ -79,6 +79,7 @@ fn explicit_startup_options_override_restore_and_ask_the_adapter_to_search() {
         manga: Some(false),
         rotation: Some(1),
         search: Some("Chapter".into()),
+        ..Default::default()
     };
     tab.startup = Some(view);
     assert_eq!(

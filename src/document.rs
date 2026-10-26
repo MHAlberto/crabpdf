@@ -232,16 +232,25 @@ impl PageContent {
             .collect()
     }
     pub fn nearest_glyph(&self, x: f32, y: f32) -> Option<usize> {
-        self.glyphs
-            .iter()
-            .filter_map(|g| g.bounds.map(|b| (g.index, b)))
-            .min_by(|(_, a), (_, b)| {
-                let distance = |r: Bounds| {
-                    (x.clamp(r.left, r.right) - x).powi(2) + (y.clamp(r.top, r.bottom) - y).powi(2)
-                };
-                distance(*a).total_cmp(&distance(*b))
-            })
-            .map(|(index, _)| index)
+        let mut nearest = None;
+        let mut best = f32::INFINITY;
+        for glyph in &self.glyphs {
+            let Some(bounds) = glyph.bounds else {
+                continue;
+            };
+            let dx = x.clamp(bounds.left, bounds.right) - x;
+            let dy = y.clamp(bounds.top, bounds.bottom) - y;
+            let distance = dx * dx + dy * dy;
+            if distance < best {
+                best = distance;
+                nearest = Some(glyph.index);
+                // Text under the pointer wins; no need to scan the rest of the page.
+                if distance == 0.0 {
+                    break;
+                }
+            }
+        }
+        nearest
     }
 }
 

@@ -178,6 +178,7 @@ impl ReaderApp {
                                                         button.context_menu(|ui| {
                                                             for choice in [
                                                                 Action::DuplicateTab,
+                                                                Action::DuplicateWindow,
                                                                 Action::Close,
                                                                 Action::CloseOthers,
                                                                 Action::CloseLeft,
@@ -290,7 +291,7 @@ impl ReaderApp {
                     .fixed_pos(pos + egui::vec2(12.0, 18.0))
                     .show(ui.ctx(), |ui| {
                         egui::Frame::popup(ui.style()).show(ui, |ui| {
-                            ui.label("Soltar para duplicar pestaña");
+                            ui.label("Soltar para abrir en otra ventana");
                         });
                     });
             }
@@ -300,10 +301,9 @@ impl ReaderApp {
             && outside
             && let Some(index) = self.tabs.iter().position(|tab| tab.reader.id == id)
             && self.tabs[index].reader.state.document.is_some()
-            && self.tabs.len() < 64
         {
             activate = Some(index);
-            action = Some(Action::DuplicateTab);
+            action = Some(Action::DuplicateWindow);
         }
         if let Some(index) = activate {
             self.active = index;

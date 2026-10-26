@@ -3,7 +3,7 @@ use crate::layout::LayoutMode;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-pub const HELP: &str = "CrabPDF — lector local de documentos\n\nUso: crabpdf [opciones] [documento.pdf ...]\n\n--page N              Página inicial (desde 1)\n--zoom P              Porcentaje 8–6400, fit-page, fit-width o fit-height\n--view MODE           single, facing o book\n--continuous          Desplazamiento continuo\n--manga               Lectura de derecha a izquierda\n--rotate DEG          0, 90, 180 o 270 grados\n--search TEXT         Buscar al abrir el documento\n--fullscreen          Pantalla completa\n--presentation        Presentación\n--config PATH         Archivo de preferencias TOML\n--help                Mostrar esta ayuda\n--version             Mostrar la versión\n--                    Fin de opciones\n\nTambién se aceptan -page, -zoom, -view, -search, -fullscreen y -presentation.\nLos parámetros todavía no implementados producen un error explícito.";
+pub const HELP: &str = "CrabPDF — lector local de documentos\n\nUso: crabpdf [opciones] [documento.pdf ...]\n\n--page N              Página inicial (desde 1)\n--zoom P              Porcentaje 8–6400, fit-page, fit-width o fit-height\n--view MODE           single, facing o book\n--continuous          Desplazamiento continuo\n--manga               Lectura de derecha a izquierda\n--rotate DEG          0, 90, 180 o 270 grados\n--search TEXT         Buscar al abrir el documento\n--colors MODE         original, inverted o grayscale\n--position JSON       Ancla de lectura versionada\n--fullscreen          Pantalla completa\n--presentation        Presentación\n--config PATH         Archivo de preferencias TOML\n--help                Mostrar esta ayuda\n--version             Mostrar la versión\n--                    Fin de opciones\n\nTambién se aceptan -page, -zoom, -view, -search, -fullscreen y -presentation.\nLos parámetros todavía no implementados producen un error explícito.";
 
 pub use crate::application::tabs::InitialView;
 #[derive(Clone, Debug, Default)]
@@ -118,6 +118,23 @@ pub fn parse(args: impl IntoIterator<Item = OsString>) -> Result<Invocation, Str
                         .into_string()
                         .map_err(|_| "El texto de búsqueda no es Unicode válido.")?,
                 )
+            }
+            "colors" => {
+                options.view.colors = Some(match value()?.to_str() {
+                    Some("original") => crate::document::PageColors::Original,
+                    Some("inverted") => crate::document::PageColors::Inverted,
+                    Some("grayscale") => crate::document::PageColors::Grayscale,
+                    _ => return Err("Colores: original, inverted o grayscale.".into()),
+                });
+            }
+            "position" => {
+                let json = value()?.into_string().map_err(|_| "Posición inválida.")?;
+                let position: crate::reading_position::ReadingPosition =
+                    serde_json::from_str(&json).map_err(|_| "Posición inválida.")?;
+                if position.anchor((1.0, 1.0), usize::MAX).is_none() {
+                    return Err("Posición inválida.".into());
+                }
+                options.view.position = Some(position);
             }
             "config" => options.config = Some(value()?.into()),
             "fullscreen" => options.fullscreen = true,

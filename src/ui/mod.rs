@@ -1,8 +1,11 @@
 mod chrome;
 mod home;
 mod icons;
+mod key_scroll;
 mod motion;
 mod panels;
+mod raster;
+mod selection_geometry;
 mod tab_view;
 mod theme;
 mod viewer;
@@ -903,7 +906,8 @@ impl ReaderApp {
                             tab.reader.state.content_revision = state.revision;
                             tab.reader.state.requested = None;
                             tab.reader.state.rendering = false;
-                            self.pages.retain(|key| key.document_id != id);
+                            // Keep bounded display snapshots until a replacement arrives.
+                            // They are never accepted as a current render or engine input.
                             self.pending_pages.retain(|key| key.document_id != id);
                         }
                     }
@@ -913,16 +917,12 @@ impl ReaderApp {
                         tab.reader.marking = false;
                     }
                     match result {
-                        Ok((page, count)) => {
+                        Ok((_page, count)) => {
                             if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
                             {
                                 tab.reader.local_marks = count;
                                 tab.reader.selection.clear();
                             }
-                            self.pages
-                                .retain(|key| key.document_id != id || key.page != page);
-                            self.pending_pages
-                                .retain(|key| key.document_id != id || key.page != page);
                             self.notice = Some(
                                 "Marca conservada. Guardar una copia la incluye en el PDF.".into(),
                             );
@@ -1231,9 +1231,11 @@ impl ReaderApp {
             }
             Action::Exit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
             Action::DuplicateWindow => {
-                let path = self.tabs[self.active].reader.path.clone();
-                if let Err(e) = platform::new_window_with_paths(Some(&path), &self.app_paths) {
-                    self.error(e);
+                if let Some(saved) = self.tabs[self.active].stored()
+                    && let Err(error) =
+                        platform::document_window_with_paths(&saved, &self.app_paths)
+                {
+                    self.error(error);
                 }
             }
             Action::Reveal => {
@@ -1553,17 +1555,75 @@ impl ReaderApp {
             &mut tab.view.scroll.y
         };
         let old = *offset;
-        *offset =
-            (*offset + if forward { step } else { -step }).clamp(0.0, (content - screen).max(0.0));
-        if (*offset - old).abs() < 0.1 && (horizontal || !tab.reader.state.continuous) {
+        let delta = if forward { step } else { -step };
+        let target = (old + delta).clamp(0.0, (content - screen).max(0.0));
+        tab.view.scroll_motion = None;
+        tab.view.navigation_wait = None;
+        if !horizontal && !self.preferences.reduce_motion {
+            tab.view.key_scroll.nudge(old, delta, content - screen);
+        } else {
+            *offset = target;
+        }
+        if (target - old).abs() < 0.1 && (horizontal || !tab.reader.state.continuous) {
             self.navigate(forward);
             if !forward && !horizontal {
                 self.tabs[self.active].view.scroll_bottom = true;
             }
         }
     }
+    fn update_arrow_scroll(&mut self, ctx: &egui::Context, keyboard: bool) {
+        let Some(tab) = self.tabs.get_mut(self.active) else {
+            return;
+        };
+        let (focused, plain, direction, tap) = ctx.input(|input| {
+            let direction = i8::from(input.key_down(egui::Key::ArrowDown))
+                - i8::from(input.key_down(egui::Key::ArrowUp));
+            let tapped = |key| input.events.iter().any(|event| matches!(event,
+                egui::Event::Key { key: pressed, pressed: true, repeat: false, .. } if *pressed == key));
+            (input.focused, input.modifiers.is_none(), direction,
+             i8::from(tapped(egui::Key::ArrowDown)) - i8::from(tapped(egui::Key::ArrowUp)))
+        });
+        let max = tab.view.view_layout.as_ref().map_or(0.0, |(_, layout)| {
+            (layout.height - tab.view.viewport.y).max(0.0)
+        });
+        let intent = if direction == 0 { tap } else { direction };
+        let page_edge = !tab.reader.state.continuous
+            && intent != 0
+            && if intent > 0 {
+                tab.view.scroll.y >= max - 0.1
+            } else {
+                tab.view.scroll.y <= 0.1
+            };
+        if keyboard
+            || !focused
+            || !plain
+            || self.home
+            || self.presentation
+            || tab.reader.state.document.is_none()
+            || page_edge
+        {
+            tab.view.key_scroll.cancel();
+            return;
+        }
+        tab.view.key_scroll.input(direction, tap);
+        // Consume presses/repeats, but retain key-down state for the next frame.
+        ctx.input_mut(|input| {
+            input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown);
+            input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp);
+        });
+        if tab.view.key_scroll.active() {
+            tab.reader.pending_position = None;
+            tab.reader.state.scroll_to_page = false;
+            tab.view.scroll_motion = None;
+            tab.view.navigation_wait = None;
+            ctx.request_repaint();
+        }
+    }
     fn shortcuts(&mut self, ctx: &egui::Context) {
         if self.dialog.is_some() {
+            if let Some(tab) = self.tabs.get_mut(self.active) {
+                tab.view.key_scroll.cancel();
+            }
             return;
         }
         if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
@@ -1723,6 +1783,7 @@ impl ReaderApp {
                 self.execute(action, ctx);
             }
         }
+        self.update_arrow_scroll(ctx, keyboard);
         if keyboard {
             return;
         }

@@ -145,6 +145,7 @@ impl ReaderApp {
                             tab.reader.selection.page_changed(displayed);
                         }
                         tab.view.scroll_motion = None;
+                        tab.view.key_scroll.cancel();
                         tab.view.navigation_wait = None;
                         tab.reader.state.scroll_to_page = false;
                     }
@@ -227,6 +228,7 @@ impl ReaderApp {
                     {
                         let delta = egui::vec2(placement.left - old_left, placement.top - old_top);
                         tab.view.scroll = (tab.view.scroll + delta).max(Vec2::ZERO);
+                        tab.view.key_scroll.shift(delta.y);
                         if let Some(motion) = &mut tab.view.scroll_motion {
                             motion.shift(delta);
                         }
@@ -257,6 +259,7 @@ impl ReaderApp {
                     tab.reader.state.scroll_to_page = false;
                 }
                 if tab.reader.state.scroll_to_page {
+                    tab.view.key_scroll.cancel();
                     tab.view.zoom_anchor = None;
                     tab.view.scroll_motion = None;
                 }
@@ -264,6 +267,7 @@ impl ReaderApp {
                     && let Some((x, y)) = anchor.offset(&layout)
                 {
                     tab.view.scroll = egui::vec2(x, y);
+                    tab.view.key_scroll.cancel();
                     tab.view.scroll_motion = None;
                     tab.reader.state.scroll_to_page = false;
                     reset_scroll = true;
@@ -338,6 +342,18 @@ impl ReaderApp {
                         tab.view.scroll_motion = None;
                     }
                 }
+                if let Some(offset) = tab.view.key_scroll.advance(
+                    tab.view.scroll.y,
+                    (layout.height - height as f32).max(0.0),
+                    ui.input(|input| input.stable_dt),
+                    self.preferences.reduce_motion,
+                ) {
+                    tab.view.scroll.y = offset;
+                    reset_scroll = true;
+                    if tab.view.key_scroll.active() {
+                        ui.ctx().request_repaint();
+                    }
+                }
                 let id = tab.reader.id;
                 let scroll = tab.view.scroll;
                 if reset_scroll {
@@ -405,19 +421,20 @@ impl ReaderApp {
                                 region: None,
                                 ..key
                             };
-                            self.prefetch_page(preview_key);
                             if !relative.intersects(viewport.expand(80.0)) {
+                                self.prefetch_page(preview_key);
                                 continue;
                             }
                             ui.painter().rect_filled(rect, 0, Color32::WHITE);
-                            if let Some(preview) = self.pages.most_recent(|cached| {
-                                cached.document_id == key.document_id
-                                    && cached.revision == key.revision
-                                    && cached.page == key.page
-                                    && cached.rotation == key.rotation
-                                    && cached.colors == key.colors
-                                    && cached.region.is_none()
-                            }) {
+                            let preview = super::raster::preview(&mut self.pages, key);
+                            let preview_revision = preview.as_ref().map(|(revision, _)| *revision);
+                            if preview_revision != Some(key.revision) {
+                                // Refresh the visible overview before expensive sharp tiles.
+                                self.need_page(preview_key);
+                            } else {
+                                self.prefetch_page(preview_key);
+                            }
+                            if let Some((_, preview)) = preview {
                                 ui.painter().image(
                                     preview.texture.id(),
                                     rect,
@@ -459,7 +476,13 @@ impl ReaderApp {
                             for region in regions {
                                 let key = crate::document::RenderKey { region, ..key };
                                 displayed_keys.push(key);
-                                if let Some(display) = self.need_page(key) {
+                                if let Some(display) = self.need_page(key).or_else(|| {
+                                    super::raster::stale_tile(
+                                        &mut self.pages,
+                                        key,
+                                        preview_revision,
+                                    )
+                                }) {
                                     let target = if let Some(region) = region {
                                         let scale = egui::vec2(
                                             rect.width() / pixel_width as f32,
@@ -636,6 +659,7 @@ impl ReaderApp {
                 }
             }
             if response.dragged_by(egui::PointerButton::Primary)
+                && ui.input(|input| input.pointer.delta() != Vec2::ZERO)
                 && let Some(index) = content.nearest_glyph(x, y)
             {
                 self.tabs[self.active].reader.selection.extend(page, index);
@@ -678,14 +702,12 @@ impl ReaderApp {
         if let Some(selection) = self.tabs[self.active].reader.selection.range()
             && selection.page == page
         {
-            for glyph in content
-                .glyphs
-                .iter()
-                .filter(|g| selection.contains(g.index))
+            for bounds in self.tabs[self.active]
+                .view
+                .selection_geometry
+                .get(selection, content)
             {
-                if let Some(bounds) = glyph.bounds {
-                    paint_bounds(bounds, Color32::from_rgba_unmultiplied(76, 136, 230, 85));
-                }
+                paint_bounds(*bounds, Color32::from_rgba_unmultiplied(76, 136, 230, 85));
             }
         }
         let search = &self.tabs[self.active].reader.search;

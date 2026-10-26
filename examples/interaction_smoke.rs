@@ -107,6 +107,12 @@ impl Smoke {
 }
 impl eframe::App for Smoke {
     fn raw_input_hook(&mut self, _: &egui::Context, input: &mut egui::RawInput) {
+        // Control synthetic input independently of the desktop foreground window.
+        // Keep screenshot replies, then inject only this scenario's events.
+        input.focused = true;
+        input
+            .events
+            .retain(|event| matches!(event, egui::Event::Screenshot { .. }));
         input.events.append(&mut self.events);
     }
     fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {

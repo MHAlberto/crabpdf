@@ -1,0 +1,373 @@
+﻿{
+    "schema":  1,
+    "source_commit":  "88fbc7d8ea099112620d3c6b660c4e2f656926b3",
+    "platform":  "Windows x64",
+    "sources":  [
+                    {
+                        "path":  "src/annotations.rs",
+                        "sha256":  "f0763252697833ba67cda6ba74c038463796c72d084b38c65ab5ca6df0def63f"
+                    },
+                    {
+                        "path":  "src/app_paths.rs",
+                        "sha256":  "bb392a9e7f21e00ab9617a72d1054aa744f5043905ab0d224b9850be4f4fef6a"
+                    },
+                    {
+                        "path":  "src/application/favorites.rs",
+                        "sha256":  "605e971a99717ded5bb551af360c7e58300ca5d7b471282cf952c5a3338ba339"
+                    },
+                    {
+                        "path":  "src/application/mod.rs",
+                        "sha256":  "5e23b9ff5f0168bae086e100720970531df9c9da084ad5e016e34f1170a4672b"
+                    },
+                    {
+                        "path":  "src/application/profile.rs",
+                        "sha256":  "3cd033ac57cf7c0b245b29ccbc7cd1214b09a802b34f9efec5c8f78e37bedeea"
+                    },
+                    {
+                        "path":  "src/application/protocol.rs",
+                        "sha256":  "f35388116c05814c59824ac87d443384be2c91bc7c22a8089b575f82b7129567"
+                    },
+                    {
+                        "path":  "src/application/search.rs",
+                        "sha256":  "a7e30e29629b2aa927d61f99155e3979944cd4a6054593302e0674eb0482a8d0"
+                    },
+                    {
+                        "path":  "src/application/selection.rs",
+                        "sha256":  "8ea3bbe5a3e61bb0244b48fa3c737c653b164fd3c88a343d047943c78f839db8"
+                    },
+                    {
+                        "path":  "src/application/tabs.rs",
+                        "sha256":  "ce1b107adba94ea92ebeea6a40779899e85323bf08914578184452fe9c476f70"
+                    },
+                    {
+                        "path":  "src/branding.rs",
+                        "sha256":  "490a3fdc8335fdf52297b0346ee78cb2135e70abea65ad65b580627a6b4a6f09"
+                    },
+                    {
+                        "path":  "src/cache.rs",
+                        "sha256":  "5a1a33e96430f37ab51cff65e6f5555a9dcad8b078f5b0755e75cc31e53b0b20"
+                    },
+                    {
+                        "path":  "src/cli.rs",
+                        "sha256":  "6c385f7f94be269f32d42171e0c041b00f4a2027120d55082316bbf0ce22fa7f"
+                    },
+                    {
+                        "path":  "src/commands.rs",
+                        "sha256":  "bc939679e68124565fc649f7cd2abe50b133cc0bbcd12411701421a40d41ccdb"
+                    },
+                    {
+                        "path":  "src/config.rs",
+                        "sha256":  "c7b6cf164806b4784f2c32fefb55e67dd27fd4b3cb748462ba039feb053ed474"
+                    },
+                    {
+                        "path":  "src/djvu_text.rs",
+                        "sha256":  "b48cb4b0a445b4c73edd0fbe07556dc6e069fb954a3d1961fc763464f56846e5"
+                    },
+                    {
+                        "path":  "src/document.rs",
+                        "sha256":  "fc806a23ac6e181c18bb2c1d6cb03d6c4934a11bc0e5bab0496f6f37190d254c"
+                    },
+                    {
+                        "path":  "src/engine.rs",
+                        "sha256":  "0934c2b5d29fea8db474beb2d99f2eaf8d3e392797787b040fc8258d95f9040d"
+                    },
+                    {
+                        "path":  "src/fileops.rs",
+                        "sha256":  "797716ccf283ebf293abb165d8c8bc1a84d8305528281795d32e1bf0083d0c7a"
+                    },
+                    {
+                        "path":  "src/formats.rs",
+                        "sha256":  "2fcabaa7559f9ecbcd902043c6cd2574caa9ee8ae4f69fe4204a14c40a06c0ee"
+                    },
+                    {
+                        "path":  "src/layout.rs",
+                        "sha256":  "6d6ee129795baaaf04f9b4fe501d2df750d869ccb6e14a2c1577b4570cfe4250"
+                    },
+                    {
+                        "path":  "src/lib.rs",
+                        "sha256":  "80a5fc0dbe5946c50b40f490ad61dd60da6c4cdf14eb52a0913125fdfae207bc"
+                    },
+                    {
+                        "path":  "src/library.rs",
+                        "sha256":  "88b2e118ac4c59645ce6360ebb7240e29819cf1958cb85176057f938f7f88dd6"
+                    },
+                    {
+                        "path":  "src/main.rs",
+                        "sha256":  "96c8b65b50bf53e0b54ea46b8dc718f8a516b4271c6eab1c7ecd237c42625ab4"
+                    },
+                    {
+                        "path":  "src/platform.rs",
+                        "sha256":  "3e47329d158b81341ed1a0d021e0edb2c5b369fbaa788abe5327b66d678bfdbb"
+                    },
+                    {
+                        "path":  "src/reading_position.rs",
+                        "sha256":  "66554e398392548007523c5e272677d026f0398a578f3c332fb8ed7ea5c43036"
+                    },
+                    {
+                        "path":  "src/state.rs",
+                        "sha256":  "1f6008e7d841af43c6e532c680e69f38ef932ad313f6437f01680fb8fdc742d1"
+                    },
+                    {
+                        "path":  "src/ui/chrome.rs",
+                        "sha256":  "3c9e0393dd51c3534768d3091c46c2797b8f31bbad64f85a225e8686bff2a8d3"
+                    },
+                    {
+                        "path":  "src/ui/home.rs",
+                        "sha256":  "f9b66365f0b19657dd0fa2715ec0ecbebae42933c6414ef35812af5dd576ae21"
+                    },
+                    {
+                        "path":  "src/ui/icons.rs",
+                        "sha256":  "216d60886f5674d28c7024b7de06a7a19a746e36c8396815e3e95abb5340abb9"
+                    },
+                    {
+                        "path":  "src/ui/mod.rs",
+                        "sha256":  "14c9e755cb38e545a2417cf08fcfbfaf37856b6d0f964355ed23f3d832f88524"
+                    },
+                    {
+                        "path":  "src/ui/motion.rs",
+                        "sha256":  "12b1931aaff1c749bac36752e4f22a09dfeecd3b0e473c1da4cb014e8091a22f"
+                    },
+                    {
+                        "path":  "src/ui/panels.rs",
+                        "sha256":  "8f44a66bc03f6611b5e49462c0e866ec429edf85e4be51ce64572b3350129d35"
+                    },
+                    {
+                        "path":  "src/ui/tab_view.rs",
+                        "sha256":  "04c51e31334f82f622e4a8dfa11b4f9326609184b3f672925ebe9ef97ecefdd4"
+                    },
+                    {
+                        "path":  "src/ui/theme.rs",
+                        "sha256":  "c5fc80374aa25c97a8125313c30b5c5742fc56c00b8e58972bf259c1c8a0a572"
+                    },
+                    {
+                        "path":  "src/ui/viewer.rs",
+                        "sha256":  "ae15da382bff813bf20ad1c569a66cd82dce60e91e9b6e877dace421dd0ff8c9"
+                    },
+                    {
+                        "path":  "src/worker.rs",
+                        "sha256":  "9221acf0ae2f327c293e3910937d389198859cf45bf9ad6a7a739a0df1e2e71a"
+                    }
+                ],
+    "profiles":  {
+                     "tests_and_gui":  "dev",
+                     "application":  "release, opt-level=3, ThinLTO"
+                 },
+    "checks":  {
+                   "fmt":  "passed",
+                   "clippy":  "passed, --all-targets -D warnings",
+                   "unique_tests":  84,
+                   "unit_tests":  33,
+                   "integration_tests":  {
+                                             "annotation_sync":  2,
+                                             "favorites_contract":  1,
+                                             "formats_and_marks":  7,
+                                             "import_recovery":  1,
+                                             "native_pdf":  8,
+                                             "profile_sessions":  2,
+                                             "protocol_contract":  6,
+                                             "reading_session":  4,
+                                             "tabs_contract":  7,
+                                             "search_selection_contract":  13
+                                         }
+               },
+    "gui_checks":  [
+                       "document_chrome_smoke custom/native",
+                       "Win32 full client geometry",
+                       "search_smoke tall-page reveal, empty query, rapid replacement",
+                       "formats_smoke word selection, colored marks, persistence, EPUB/CBR/XPS/DjVu/CHM, covers and DRM error"
+                   ],
+    "captures":  66,
+    "fullscreen_samples":  [
+                               {
+                                   "frame":  "custom",
+                                   "phase":  18,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "custom",
+                                   "phase":  19,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "custom",
+                                   "phase":  22,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  18,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  19,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               },
+                               {
+                                   "frame":  "native",
+                                   "phase":  22,
+                                   "client":  {
+                                                  "Left":  0,
+                                                  "Top":  0,
+                                                  "Right":  1920,
+                                                  "Bottom":  1080
+                                              },
+                                   "origin":  {
+                                                  "X":  0,
+                                                  "Y":  0
+                                              },
+                                   "monitor":  {
+                                                   "Left":  0,
+                                                   "Top":  0,
+                                                   "Right":  1920,
+                                                   "Bottom":  1080
+                                               }
+                               }
+                           ],
+    "executables":  [
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+                            "bytes":  11412480,
+                            "sha256":  "5af1c6fb244791c2805fcb05b3bde9e8172b811e0ae494b907b6a2312fd6a187"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/search_smoke.exe",
+                            "bytes":  40251904,
+                            "sha256":  "af30d3c7be540eed52bd1dcbddede01e9e22c3a2410fc6cfbb9b106893a65782"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/document_chrome_smoke.exe",
+                            "bytes":  40356352,
+                            "sha256":  "728004ece95fc7c36a4544689b1bd37798e3e179d86e90d45b6c25d26743d7e9"
+                        },
+                        {
+                            "path":  "target/x86_64-pc-windows-msvc/debug/examples/formats_smoke.exe",
+                            "bytes":  40262144,
+                            "sha256":  "86e8fb91d26688493b4f3d98187aa1d444c7a7592982ad052d7699f90dd4ead8"
+                        }
+                    ],
+    "limits":  [
+                   "GUI exercised locally in Windows x64 dev builds; optimized application also compiled.",
+                   "Search failure generation and state transitions are exercised by protocol/application contracts, without a production fault injection API.",
+                   "No new latency/RSS campaign; A00 remains open and no speedup is claimed."
+               ],
+    "reproduction":  {
+                         "tests":  "cargo test --locked --offline --target x86_64-pc-windows-msvc --lib --tests -- --include-ignored --test-threads=1",
+                         "gui_build":  "cargo build --locked --offline --target x86_64-pc-windows-msvc --example search_smoke --example document_chrome_smoke --example formats_smoke",
+                         "gui_environment":  "RUST_READER_PDFIUM=native/pdfium.dll; CRABPDF_DATA_DIR=artifacts/architecture-phase4/ui/data; RUST_READER_CONFIG=artifacts/architecture-phase4/ui/isolated-preferences.toml"
+                     },
+    "ci":  {
+               "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506",
+               "source_commit":  "88fbc7d8ea099112620d3c6b660c4e2f656926b3",
+               "status":  "completed",
+               "conclusion":  "success",
+               "observed_utc":  "2026-10-26T14:22:19.6891645Z",
+               "jobs":  [
+                            {
+                                "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506/job/121618894910"
+                            },
+                            {
+                                "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506/job/121618895117"
+                            },
+                            {
+                                "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506/job/121618895246"
+                            },
+                            {
+                                "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506/job/121618895493"
+                            },
+                            {
+                                "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)",
+                                "status":  "completed",
+                                "conclusion":  "success",
+                                "html_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40336360506/job/121618895515"
+                            }
+                        ]
+           }
+}

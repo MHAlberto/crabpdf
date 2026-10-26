@@ -1,6 +1,6 @@
 # Arquitectura de CrabPDF
 
-El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. [A02c](architecture/PHASE_3.md) extrae búsqueda y selección, incluida la cancelación por documento/generación. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
+El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. [A02c](architecture/PHASE_3.md) extrae búsqueda y selección, incluida la cancelación por documento/generación. [A03a](architecture/PHASE_4.md) separa el protocolo de resultados y conserva la generación de los errores de búsqueda. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
 
 La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
 
@@ -24,7 +24,8 @@ flowchart LR
     Worker --> Engine[engine: adaptador PDFium]
     Engine --> PDF[PDFium: documentos nativos]
     Worker --> Cache[cache: LRU por bytes]
-    Worker -->|detalles, texto, resultados, RGBA| UI
+    Worker --> Protocol[application/protocol: eventos tipados]
+    Protocol -->|detalles, texto, RGBA y fallos con generación| UI
     Config[config: TOML] --- UI
     Paths[app_paths: perfil] --- Config
     Paths --- Formats
@@ -43,7 +44,8 @@ flowchart LR
 | `application/favorites.rs` | Modelo y reglas de favoritos por libro, acciones y resultados sin I/O; `config` conserva la fachada compatible. |
 | `application/tabs.rs` | Pestaña lógica, apertura/reintento, restauración, opciones iniciales, snapshots y navegación. |
 | `application/profile.rs` | Registros de perfil compatibles, sin I/O. |
-| `application/search.rs` | Generaciones, aceptación de resultados/progreso, límite y navegación circular; produce destinos y cancelación como datos. |
+| `application/search.rs` | Generaciones, aceptación de resultados/errores, progreso, límite y navegación circular; produce destinos y cancelación como datos. |
+| `application/protocol.rs` | Resultados del worker sin tipos gráficos/nativos; `SearchFailed` conserva documento/generación. |
 | `application/selection.rs` | Palabra, arrastre y selección completa por página/documento; descarta contenido tardío o cancelado. |
 | `ui/tab_view.rs` | Estado visual de cada pestaña: scroll, geometría, foco, entrada de contraseña y animaciones. |
 | `ui/mod.rs` | Composición de pestañas, eventos, diálogos asíncronos y coordinación. |
@@ -56,7 +58,7 @@ flowchart LR
 | `state.rs` | Estado de documento, historial, modos, zoom y rotación. |
 | `layout.rs` | Geometría, spreads y planificación de tiles. |
 | `reading_position.rs` | Ancla versionada relativa a página y viewport, sin tipos de UI/SDK. |
-| `document.rs` | Datos y claves sin dependencias de egui/PDFium. |
+| `document.rs` | Datos y claves, incluido el RGBA de portadas, sin dependencias de egui/PDFium. |
 | `engine.rs` | Carga, contraseña, metadatos, índice, texto, enlaces, búsqueda y rasterización PDF. |
 | `worker.rs` | Documentos nativos, cachés, colas y búsquedas progresivas. |
 | `formats.rs`, `import_info.js` | Despacho de extensiones, preparación mediante herramientas nativas, límites, caché y metadatos de libros. |

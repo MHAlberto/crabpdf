@@ -96,7 +96,7 @@ Las capturas, logs y reportes completos quedan en `artifacts/architecture-phase3
 
 A02 queda implementado dentro del paquete actual: favoritos (A02a), pestañas/restauración (A02b) y búsqueda/selección (A02c). Su independencia de compilación respecto a GUI/SDK sigue pendiente de A04/A05.
 
-A03 empezará por separar el protocolo de aplicación y las responsabilidades del worker, manteniendo la fachada pública, el único propietario de PDFium, los presupuestos de caché y el orden de guardado. La primera revisión del protocolo deberá asociar también los errores de búsqueda a su generación: actualmente se notifican mediante un error genérico de detalles. El payload de portadas aún depende de `library::Cover`, otro límite que debe resolverse antes de extraer los paquetes.
+La continuación de protocolo y errores por generación se implementó en [A03a](PHASE_4.md). Al cerrar A02c, se preparó el siguiente alcance de A03: separar el protocolo de aplicación y las responsabilidades del worker, manteniendo la fachada pública, el único propietario de PDFium, los presupuestos de caché y el orden de guardado. En esa revisión se identificaron dos límites: los errores de búsqueda se notificaban mediante un error genérico de detalles y el payload de portadas dependía de `library::Cover`. Ambos se resolvieron en A03a antes de la extracción de paquetes.
 
 Debe probar resultados tardíos, cancelación, equidad y cierre con canal lleno antes de modificar el ciclo de vida de los hilos. Los adaptadores de almacenamiento, importación y motor se extraerán en cortes separados.
 

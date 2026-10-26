@@ -64,6 +64,15 @@ try {
     foreach ($required in @('crabpdf.exe','pdfium.dll','LICENSE','format-tools/provenance.json')) {
         if (!$paths.Contains($required)) { throw "Falta $required en el manifiesto." }
     }
+    $compiler = & (Join-Path $PSScriptRoot 'Get-NSIS.ps1')
+    $notices = Join-Path $payload 'installer-licenses'
+    New-Item -ItemType Directory -Force -Path $notices | Out-Null
+    Copy-Item -LiteralPath (Join-Path (Split-Path -Parent $compiler) 'COPYING') -Destination (Join-Path $notices 'NSIS-COPYING.txt') -Force
+    Copy-Item -LiteralPath (Join-Path $workspace 'installer/windows/NSIS-NOTICE.txt') -Destination (Join-Path $notices 'NSIS-NOTICE.txt') -Force
+    foreach ($notice in @('installer-licenses/NSIS-COPYING.txt','installer-licenses/NSIS-NOTICE.txt')) {
+        $paths.Add($notice)
+        $bytesTotal += (Get-Item -LiteralPath (Join-Path $payload $notice)).Length
+    }
     $signScript = Join-Path $PSScriptRoot 'Sign-Windows.ps1'
     if ($CertificateThumbprint) {
         & $signScript -Path (Join-Path $payload 'crabpdf.exe') -CertificateThumbprint $CertificateThumbprint
@@ -103,7 +112,6 @@ try {
         Sort-Object { (Get-Item -LiteralPath (Join-Path $_ 'installer-sidebar.bmp')).LastWriteTimeUtc } -Descending |
         Select-Object -First 1
     if (!$branding) { throw 'Faltan los recursos del instalador. Compila la aplicacion actual sin -SkipBuild.' }
-    $compiler = & (Join-Path $PSScriptRoot 'Get-NSIS.ps1')
     $output = Join-Path $destinationPath "crabpdf-$version-win-$Architecture-setup.exe"
     $label = if ($CertificateThumbprint) { 'Authenticode' } else { 'Sin firma digital / Unsigned' }
     $arguments = @('/INPUTCHARSET','UTF8','/V2','/WX',

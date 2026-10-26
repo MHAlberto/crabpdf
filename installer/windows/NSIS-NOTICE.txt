@@ -1,0 +1,21 @@
+CrabPDF Windows installer
+
+This installer uses the unmodified NSIS 3.12 installer engine and standard
+Modern UI 2 / System / nsDialogs components. Copyright (C) 1999-2026 NSIS
+Contributors. Original terms are reproduced in NSIS-COPYING.txt.
+
+NSIS is separate from CrabPDF's Rust application. NSIS code and plugins use
+the zlib/libpng license; its LZMA compression module uses CPL 1.0 with the
+linking exception stated in NSIS-COPYING.txt. No NSIS source was modified.
+
+The exact upstream sources are available from:
+https://sourceforge.net/projects/nsis/files/NSIS%203/3.12/nsis-3.12-src.tar.bz2/download
+
+Upstream project, license and build instructions:
+https://nsis.sourceforge.io/
+https://nsis.sourceforge.io/License
+https://nsis.sourceforge.io/Building_NSIS
+
+CrabPDF's installer script and artwork generation are available from:
+https://github.com/MHAlberto/crabpdf/tree/main/installer/windows
+https://github.com/MHAlberto/crabpdf/blob/main/build.rs

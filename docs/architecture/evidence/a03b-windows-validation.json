@@ -34,7 +34,7 @@
                         "path":  "installer/windows/crabpdf.nsi"
                     },
                     {
-                        "sha256":  "58a789f9f5be983fcde45b7b932a9365da05865c9a293e1301045aa650dd2d4f",
+                        "sha256":  "addc8fbf6cce256f1e79a95c3dabcb1ec1c668e993f0ba802c08505a8a177b1e",
                         "path":  "scripts/Build-Installer.ps1"
                     },
                     {
@@ -56,20 +56,24 @@
                     {
                         "sha256":  "fd4829cbc0d819616fed25b1ed25349fa17d7e3beab1a180d630b2847ba5660e",
                         "path":  ".github/workflows/ci.yml"
+                    },
+                    {
+                        "sha256":  "7f8a94e58996181e3297da61ae5940330d396ccc775c85b68580df7024e3b09b",
+                        "path":  "installer/windows/NSIS-NOTICE.txt"
                     }
                 ],
     "installers":  [
                        {
                            "path":  "artifacts/installer-a03b/packages/crabpdf-0.3.6-win-x64-setup.exe",
-                           "sha256":  "35c22ff724b6d372fb2c3fa27ff821ba188a3dd2b4eeb57e3a48694230dff97e",
+                           "sha256":  "35e854842779ba212b690c3482dc7a9e3d11a5abd8605beed38245ff15cc366f",
                            "authenticode":  "NotSigned",
-                           "bytes":  31914307,
+                           "bytes":  31932295,
                            "validation":  {
                                               "installation":  true,
                                               "gui_reviewed":  false,
-                                              "payload_files":  607,
+                                              "payload_files":  609,
                                               "registry_removed":  true,
-                                              "installer_sha256":  "35c22ff724b6d372fb2c3fa27ff821ba188a3dd2b4eeb57e3a48694230dff97e",
+                                              "installer_sha256":  "35e854842779ba212b690c3482dc7a9e3d11a5abd8605beed38245ff15cc366f",
                                               "preserves_unrelated_files":  true,
                                               "architecture":  "x64",
                                               "uninstall":  true,
@@ -82,15 +86,15 @@
                        },
                        {
                            "path":  "artifacts/installer-a03b/packages/crabpdf-0.3.6-win-x86-setup.exe",
-                           "sha256":  "90ffec332fffc99db7930cbac248da1ad1d6017fb1b512350a55ce477612355f",
+                           "sha256":  "dec0ab025a0c4fe45bc45389145ef7a784b53476b2590af77f1047ded28d2d30",
                            "authenticode":  "NotSigned",
-                           "bytes":  31703865,
+                           "bytes":  31706931,
                            "validation":  {
                                               "installation":  true,
                                               "gui_reviewed":  false,
-                                              "payload_files":  607,
+                                              "payload_files":  609,
                                               "registry_removed":  true,
-                                              "installer_sha256":  "90ffec332fffc99db7930cbac248da1ad1d6017fb1b512350a55ce477612355f",
+                                              "installer_sha256":  "dec0ab025a0c4fe45bc45389145ef7a784b53476b2590af77f1047ded28d2d30",
                                               "preserves_unrelated_files":  true,
                                               "architecture":  "x86",
                                               "uninstall":  true,
@@ -104,14 +108,42 @@
                    ],
     "date":  "2026-10-26",
     "ci":  {
-               "platforms":  [
-                                 "Windows x64",
-                                 "Windows x86",
-                                 "Ubuntu x64",
-                                 "macOS Intel",
-                                 "macOS ARM"
-                             ],
-               "status":  "pending push"
+               "installer_notice_followup":  "pending push",
+               "status":  "in_progress",
+               "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030",
+               "jobs":  [
+                            {
+                                "status":  "in_progress",
+                                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030/job/121697143266",
+                                "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)",
+                                "conclusion":  null
+                            },
+                            {
+                                "status":  "in_progress",
+                                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030/job/121697143574",
+                                "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)",
+                                "conclusion":  null
+                            },
+                            {
+                                "status":  "completed",
+                                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030/job/121697143677",
+                                "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)",
+                                "conclusion":  "success"
+                            },
+                            {
+                                "status":  "in_progress",
+                                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030/job/121697143679",
+                                "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)",
+                                "conclusion":  null
+                            },
+                            {
+                                "status":  "completed",
+                                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030/job/121697143698",
+                                "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)",
+                                "conclusion":  "success"
+                            }
+                        ],
+               "application_commit":  "da463a1a0f880a90648dc22ab08fd4bf3ae73e2f"
            },
     "base_commit":  "bdf8239344b1d6d1be34a8a786862e20fc654a34",
     "executables":  [

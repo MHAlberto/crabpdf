@@ -8,7 +8,7 @@ El nuevo `crabpdf-<versión>-win-x64-setup.exe` usa un asistente nativo NSIS Mod
 
 Instala para el usuario actual en `%LOCALAPPDATA%/Programs/CrabPDF-x64` o `CrabPDF-x86`, con entrada en Aplicaciones instaladas. No solicita privilegios de administrador. Ofrece acceso en Inicio, escritorio opcional y una opción «Abrir con» opcional para PDF; no modifica el lector predeterminado. El lanzamiento al finalizar es opcional y empieza desmarcado.
 
-Incluye el mismo ejecutable, PDFium, conversores, manifiesto y licencias del portátil. No descarga componentes durante la instalación. Las preferencias y marcas se conservan en sus ubicaciones de datos; el desinstalador no las borra.
+Incluye el mismo ejecutable, PDFium, conversores, manifiesto y licencias del portátil, más los avisos originales de NSIS y la referencia a sus fuentes. No descarga componentes durante la instalación. Las preferencias y marcas se conservan en sus ubicaciones de datos; el desinstalador no las borra.
 
 Una carpeta existente debe tener la identificación de una instalación CrabPDF de la misma arquitectura. Las actualizaciones reemplazan los archivos de esa distribución; se rechaza el ejecutable bloqueado sin cerrar la aplicación por la fuerza. La desinstalación usa una lista explícita de archivos y elimina directorios sólo si quedan vacíos. No utiliza borrado recursivo. Los nombres retirados en futuras versiones necesitarán su migración explícita: no se declara resuelta todavía una actualización entre versiones con inventarios diferentes.
 
@@ -50,10 +50,10 @@ Los instaladores de esta revisión están en `artifacts/installer-a03b/packages/
 
 | Arquitectura | Bytes del EXE instalador | Estado |
 | --- | ---: | --- |
-| x64 | 31 914 307 | NotSigned |
-| x86 | 31 703 865 | NotSigned |
+| x64 | 31 932 295 | NotSigned |
+| x86 | 31 706 931 | NotSigned |
 
-Ambos aprobaron instalación silenciosa en una ruta con espacios, 607 archivos verificados por manifiesto, actualización en sitio, rechazo de carpeta ajena y ejecutable bloqueado, desinstalación, limpieza del registro y conservación de un archivo ajeno. Los 608 archivos del payload incluyen el propio manifiesto; el desinstalador y el identificador de instalación se generan al instalar. Los ZIP se comprobaron separadamente.
+Ambos aprobaron instalación silenciosa en una ruta con espacios, 609 archivos instalados verificados por manifiesto, actualización en sitio, rechazo de carpeta ajena y ejecutable bloqueado, desinstalación, limpieza del registro y conservación de un archivo ajeno. Los 610 archivos del payload incluyen el propio manifiesto y los dos avisos de NSIS; el desinstalador y el identificador de instalación se generan al instalar. Los ZIP se comprobaron separadamente.
 
 Se revisó el bitmap con el logo. La revisión interactiva de las páginas, idiomas, DPI y accesos opcionales sigue pendiente: la sesión no expone `node_repl` para la habilidad de control de ventanas. La prueba silenciosa no se presenta como inspección visual del asistente. Windows 11, Windows de 32 bits nativo y antivirus independientes también requieren su propia evidencia.
 

@@ -205,7 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pdf = PathBuf::from(&args[1]).canonicalize()?;
     let epub = PathBuf::from(&args[2]).canonicalize()?;
     let config = output.join("preferences.toml");
-    Preferences::default().save(&config)?;
+    crabpdf::config::ProfileStore::save(&Preferences::default(), &config)?;
     let result = Arc::new(Mutex::new(None));
     let outcome = Arc::clone(&result);
     let startup = Instant::now();

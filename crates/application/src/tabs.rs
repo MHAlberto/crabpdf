@@ -240,8 +240,8 @@ impl ReadingTab {
 mod tests {
     use super::*;
     use crate::{
-        application::profile::LibraryEntry,
         document::{DocumentDetails, DocumentInfo, PageSize},
+        profile::LibraryEntry,
     };
 
     #[test]

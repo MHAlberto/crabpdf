@@ -2,7 +2,7 @@
 
 Lector local de documentos desarrollado en Rust con egui/eframe y PDFium. Tiene identidad visual propia, sin cuentas, telemetría ni conexión obligatoria.
 
-El icono nativo procede de `crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
+El icono nativo procede de `assets/crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
 
 La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.0 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
@@ -23,6 +23,14 @@ Para continuar el desarrollo: [pantalla completa, favoritos y arrastre en 0.3.6]
 [Biblioteca de documentos](docs/screenshots/library.png).
 
 [Resaltado de palabras](docs/screenshots/highlight.png) y [biblioteca con libros y cómics](docs/screenshots/library-formats.png).
+
+## Estructura del código
+
+El repositorio usa un workspace Rust: `crates/core` contiene los tipos y la geometría; `crates/application`, las reglas de lectura y el perfil; `crates/runtime`, los trabajadores, PDFium, importadores y almacenamiento. `src/desktop` conecta servicios nativos y `src/ui` contiene la interfaz. Los recursos están en `assets/` y los documentos de prueba en `tests/fixtures/`.
+
+La lógica interna se comprueba con `cargo test -p crabpdf-core -p crabpdf-application --locked`, sin biblioteca PDFium ni ventana. Para comprobar todos los paquetes usa `cargo test --workspace --locked` y `cargo clippy --workspace --all-targets --locked -- -D warnings`. Las pruebas nativas omitidas requieren preparar PDFium y los conversores como se explica abajo.
+
+[Arquitectura actual](docs/ARCHITECTURE.md) · [Migración y evidencia](docs/architecture/PHASE_6.md). PDFium y los conversores siguen siendo componentes nativos; existe un pequeño puente de metadatos de MuPDF. La reorganización no implica un motor íntegramente Rust ni completa la paridad 1.0.
 
 ## Funciones implementadas
 
@@ -68,7 +76,7 @@ Para desarrollar se necesitan Rust **1.96.0**, MSVC/Windows SDK y un controlador
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Get-Pdfium.ps1 -Destination native
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Get-FormatTools.ps1
-cargo run --locked -- examples/reading-sample.pdf
+cargo run --locked -- tests/fixtures/reading-sample.pdf
 ```
 
 Windows x86 necesita el target y la DLL x86:
@@ -77,7 +85,7 @@ Windows x86 necesita el target y la DLL x86:
 rustup target add i686-pc-windows-msvc
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Get-Pdfium.ps1 -Architecture x86 -Destination native/win-x86
 $env:RUST_READER_PDFIUM = (Resolve-Path native/win-x86/pdfium.dll).Path
-cargo run --locked --target i686-pc-windows-msvc -- examples/reading-sample.pdf
+cargo run --locked --target i686-pc-windows-msvc -- tests/fixtures/reading-sample.pdf
 ```
 
 El script de PDFium descarga la build **7881**, comprueba su SHA-256 y conserva las licencias originales. La biblioteca nativa tiene que coincidir con la arquitectura del ejecutable. `Get-FormatTools.ps1` prepara los decodificadores de los demás formatos y requiere Visual Studio 2022 con C++, CMake y Windows SDK; sus herramientas x86 sirven para ambas builds Windows. Los paquetes portables ya las incluyen.

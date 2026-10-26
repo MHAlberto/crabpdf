@@ -27,7 +27,7 @@ pub(super) struct TabViewState {
     pub(super) scroll_motion: Option<motion::ScrollMotion>,
     pub(super) displayed_page: Option<usize>,
     pub(super) navigation_wait: Option<(usize, f64)>,
-    pub(super) reveal: Option<(usize, crate::document::Bounds)>,
+    pub(super) reveal: Option<(usize, crabpdf_core::document::Bounds)>,
     pub(super) password: String,
     pub(super) selection_geometry: super::selection_geometry::SelectionGeometry,
     pub(super) view_layout: Option<(LayoutSpec, Arc<PageLayout>)>,
@@ -53,7 +53,7 @@ impl Tab {
     }
     pub(super) fn reveal_search(
         &mut self,
-        destination: crate::application::search::SearchDestination,
+        destination: crabpdf_application::search::SearchDestination,
     ) {
         self.go_to(destination.page, true);
         self.view.reveal = destination.bounds.map(|bounds| (destination.page, bounds));
@@ -89,7 +89,7 @@ impl Tab {
         if !base.is_finite() || base <= 0.0 {
             return None;
         }
-        let logical = crate::layout::logical_page_size(
+        let logical = crabpdf_core::layout::logical_page_size(
             size,
             self.reader.state.rotation,
             self.reader.state.zoom,
@@ -101,8 +101,8 @@ impl Tab {
     }
     pub(super) fn supports_password(&self) -> bool {
         matches!(
-            crate::formats::Format::detect(&self.reader.path),
-            Ok(crate::formats::Format::Pdf)
+            crabpdf_application::formats::Format::detect(&self.reader.path),
+            Ok(crabpdf_application::formats::Format::Pdf)
         )
     }
     pub(super) fn stored(&self) -> Option<StoredDocument> {
@@ -129,7 +129,7 @@ impl Tab {
     pub(super) fn anchor(
         &self,
         pointer: Option<egui::Pos2>,
-    ) -> Option<crate::layout::ReadingAnchor> {
+    ) -> Option<crabpdf_core::layout::ReadingAnchor> {
         let (_, layout) = self.view.view_layout.as_ref()?;
         let screen = pointer
             .zip(self.view.viewport_rect)
@@ -156,7 +156,7 @@ impl Tab {
                         .is_some_and(|document| p.page == document.page)
                 })
             })?;
-        Some(crate::layout::ReadingAnchor {
+        Some(crabpdf_core::layout::ReadingAnchor {
             page: placement.page,
             x: ((point.x - placement.left) / placement.size.width).clamp(0.0, 1.0),
             y: ((point.y - placement.top) / placement.size.height).clamp(0.0, 1.0),

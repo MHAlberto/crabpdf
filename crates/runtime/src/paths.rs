@@ -27,6 +27,23 @@ impl AppPaths {
     }
 }
 
+pub fn config_path() -> Option<PathBuf> {
+    if let Some(path) = std::env::var_os("RUST_READER_CONFIG") {
+        return Some(PathBuf::from(path));
+    }
+    let root = if cfg!(target_os = "windows") {
+        std::env::var_os("APPDATA").map(PathBuf::from)
+    } else if cfg!(target_os = "macos") {
+        std::env::var_os("HOME")
+            .map(|p| std::path::Path::new(&p).join("Library/Application Support"))
+    } else {
+        std::env::var_os("XDG_CONFIG_HOME")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("HOME").map(|p| std::path::Path::new(&p).join(".config")))
+    };
+    root.map(|root| root.join("rust-reader").join("preferences.toml"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -28,7 +28,7 @@ struct Smoke {
 }
 fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("examples")
+        .join("tests/fixtures")
         .join(name)
         .canonicalize()
         .unwrap()
@@ -337,28 +337,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = output.join("preferences.toml");
     let a = fixture("reading-sample.pdf");
     let b = fixture("features-sample.pdf");
-    Preferences {
-        native_titlebar: native,
-        favorites: vec![
-            Favorite {
-                path: a.clone(),
-                page: 1,
-                label: "Página 2".into(),
-            },
-            Favorite {
-                path: b,
-                page: 0,
-                label: "Solo libro B".into(),
-            },
-            Favorite {
-                path: a.clone(),
-                page: 0,
-                label: "reading-sample.pdf · 1".into(),
-            },
-        ],
-        ..Default::default()
-    }
-    .save(&config)?;
+    crabpdf::config::ProfileStore::save(
+        &Preferences {
+            native_titlebar: native,
+            favorites: vec![
+                Favorite {
+                    path: a.clone(),
+                    page: 1,
+                    label: "Página 2".into(),
+                },
+                Favorite {
+                    path: b,
+                    page: 0,
+                    label: "Solo libro B".into(),
+                },
+                Favorite {
+                    path: a.clone(),
+                    page: 0,
+                    label: "reading-sample.pdf · 1".into(),
+                },
+            ],
+            ..Default::default()
+        },
+        &config,
+    )?;
     let outcome = Arc::new(Mutex::new(None));
     let result = Arc::clone(&outcome);
     eframe::run_native(

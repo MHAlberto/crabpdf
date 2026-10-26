@@ -19,7 +19,7 @@ fn export_includes_a_mark_committed_by_another_process() {
     std::fs::create_dir_all(&directory).unwrap();
     let source = directory.join("source.pdf");
     std::fs::copy(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/geometry-sample.pdf"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/geometry-sample.pdf"),
         &source,
     )
     .unwrap();

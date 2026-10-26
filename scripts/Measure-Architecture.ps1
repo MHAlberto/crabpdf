@@ -57,7 +57,7 @@ $originalPdfium=$env:RUST_READER_PDFIUM
 $records=New-Object Collections.Generic.List[object]
 Push-Location -LiteralPath $root
 try{
-    $source=@(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -Filter '*.rs' | Sort-Object FullName | ForEach-Object {
+    $source=@(Get-ChildItem -LiteralPath @((Join-Path $root 'src'), (Join-Path $root 'crates')) -Recurse -Filter '*.rs' | Sort-Object FullName | ForEach-Object {
         @{path=$_.FullName.Substring($root.Length+1).Replace('\','/');sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
     })
     foreach($run in 1..$Runs){

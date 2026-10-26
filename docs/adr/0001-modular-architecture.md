@@ -1,7 +1,7 @@
 # ADR-0001: monolito modular con puertos y adaptadores
 
 - Fecha: 23 de octubre de 2026.
-- Estado: dirección seleccionada; migración de código pendiente.
+- Estado: implementado en cuatro paquetes; validación y límites en [PHASE_6](../architecture/PHASE_6.md).
 - Base inspeccionada: CrabPDF 0.3.6, commit `3516ac91fc39c278a2c0ce19a3d85e01de761541`.
 - Ejecución: [plan de migración](../ARCHITECTURE_MIGRATION.md).
 - Alcance: organización y límites del código; se conserva el alcance de [V1 y V2](../ROADMAP.md).
@@ -89,7 +89,7 @@ La principal mejora esperada es poder comprobar favoritos, navegación, sesiones
 
 Se añaden manifiestos y límites de API que habrá que mantener. Separar paquetes no elimina los riesgos de los conversores, no corrige automáticamente bugs y no completa la paridad V1. La mejora de rendimiento debe medirse; la prioridad es conservar comportamiento y reducir el coste de cambios futuros.
 
-La migración usa fachadas temporales y cortes pequeños, con una implementación activa por funcionalidad. El enfoque gradual está respaldado por [Branch by Abstraction, Martin Fowler](https://martinfowler.com/bliki/BranchByAbstraction.html). No se duplican escrituras a perfiles o marcas para comparar implementaciones.
+La migración conserva una fachada pública de reexportaciones para consumidores del desktop; usa y cortes pequeños, con una implementación activa por funcionalidad. El enfoque gradual está respaldado por [Branch by Abstraction, Martin Fowler](https://martinfowler.com/bliki/BranchByAbstraction.html). No se duplican escrituras a perfiles o marcas para comparar implementaciones.
 
 ## Reconsiderar esta decisión si
 

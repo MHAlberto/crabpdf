@@ -1,6 +1,8 @@
 # Plan de migración de arquitectura de CrabPDF
 
-**Fecha:** 23 de octubre de 2026. **Base:** 0.3.6, commit `3516ac91fc39c278a2c0ce19a3d85e01de761541`. **Estado:** ejecución iniciada. [Primeros cortes y evidencia](architecture/PHASE_1.md): base local A00, metadatos A01 y favoritos A02a. [A02b](architecture/PHASE_2.md) separa la pestaña lógica, los modelos de perfil y el estado visual. [A02c](architecture/PHASE_3.md) extrae búsqueda/selección y cierra A02 dentro del paquete actual. [A03a](architecture/PHASE_4.md) extrae el protocolo de resultados y tipa los fallos de búsqueda por generación. [A03b](architecture/PHASE_5.md) separa mailbox/planificador y caracteriza prioridades, cancelación y cierre con canales llenos. El resto de A03 y la división de paquetes siguen pendientes. La aplicación conserva la versión de desarrollo 0.3.6.
+**Plan original:** 23 de octubre de 2026, sobre 0.3.6 (`3516ac9`). **Estado del código, 26 de octubre:** A01–A06 implementados. El workspace tiene cuatro paquetes reales; importación, almacenamiento, PDFium y servicios desktop están separados. [Ejecución y validación A03c–A07](architecture/PHASE_6.md). La revisión final y las limitaciones de rendimiento/plataforma se registran allí. La publicación 0.4.0 se conserva; este trabajo no cambia su tag ni sus paquetes.
+
+Historial: [A00/A01/A02a](architecture/PHASE_1.md), [A02b](architecture/PHASE_2.md), [A02c](architecture/PHASE_3.md), [A03a](architecture/PHASE_4.md), [A03b](architecture/PHASE_5.md). Las tablas que dicen «estado inicial» y el diagnóstico posterior describen la base histórica, no rutas actuales del workspace.
 
 La dirección seleccionada es un **monolito modular con puertos y adaptadores**, dividido por funciones de lectura. La [decisión ADR-0001](adr/0001-modular-architecture.md) compara opciones y explica sus costes. [ARCHITECTURE.md](ARCHITECTURE.md) sigue describiendo el código que existe; este documento describe el destino y cómo llegar.
 

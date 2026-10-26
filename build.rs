@@ -4,11 +4,11 @@ use std::fs;
 use std::path::Path;
 
 fn main() {
-    println!("cargo:rerun-if-changed=crabpdf-logo.svg");
+    println!("cargo:rerun-if-changed=assets/crabpdf-logo.svg");
     println!("cargo:rerun-if-changed=build.rs");
     let output = env::var_os("OUT_DIR").expect("Cargo must provide OUT_DIR");
     let output = Path::new(&output);
-    let svg = fs::read("crabpdf-logo.svg").expect("Cannot read the CrabPDF logo");
+    let svg = fs::read("assets/crabpdf-logo.svg").expect("Cannot read the CrabPDF logo");
     let tree = usvg::Tree::from_data(&svg, &usvg::Options::default())
         .expect("The CrabPDF logo must be a valid SVG");
     let png = render_icon(&tree, 256);

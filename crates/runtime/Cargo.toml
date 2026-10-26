@@ -1,0 +1,21 @@
+[package]
+name = "crabpdf-runtime"
+version = "0.4.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT"
+publish = false
+
+[dependencies]
+crabpdf-core = { path = "../core" }
+crabpdf-application = { path = "../application" }
+pdfium-render = { version = "=0.9.4", default-features = false, features = ["pdfium_7881", "thread_safe"] }
+serde = { version = "1.0", features = ["derive"] }
+toml = "1.1.8"
+image = { version = "0.25", default-features = false, features = ["png", "bmp", "ico", "tga"] }
+roxmltree = "=0.21.1"
+serde_json = "1.0"
+crc32fast = "=1.5.2"
+
+[lints]
+workspace = true

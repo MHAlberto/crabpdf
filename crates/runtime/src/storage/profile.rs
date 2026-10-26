@@ -1,7 +1,8 @@
-pub use crate::application::favorites::Favorite;
-pub use crate::application::profile::{LibraryEntry, StoredDocument};
-
-use serde::{Deserialize, Serialize};
+pub use crabpdf_application::preferences::{Preferences, Theme};
+pub use crabpdf_application::{
+    favorites::Favorite,
+    profile::{LibraryEntry, StoredDocument},
+};
 use std::fs;
 use std::io;
 use std::io::Write;
@@ -10,87 +11,20 @@ use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex, mpsc};
 use std::thread::JoinHandle;
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum Theme {
-    #[default]
-    Light,
-    Dark,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(default)]
-pub struct Preferences {
-    pub theme: Theme,
-    pub sidebar_open: bool,
-    pub restore_session: bool,
-    pub native_titlebar: bool,
-    pub reduce_motion: bool,
-    pub recent: Vec<StoredDocument>,
-    pub session: Vec<StoredDocument>,
-    pub favorites: Vec<Favorite>,
-    pub library: Vec<LibraryEntry>,
-    pub markup_color: [u8; 3],
-}
-
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            theme: Theme::Light,
-            sidebar_open: false,
-            restore_session: false,
-            native_titlebar: false,
-            reduce_motion: false,
-            recent: Vec::new(),
-            session: Vec::new(),
-            favorites: Vec::new(),
-            library: Vec::new(),
-            markup_color: [255, 230, 50],
-        }
-    }
-}
-
-impl Preferences {
-    /// Book-scoped view over the existing profile, preserving other books' entries.
-    pub fn favorites_for(&self, path: &Path) -> Vec<&Favorite> {
-        crate::application::favorites::for_document(&self.favorites, path)
-    }
-    pub fn remove_favorite(&mut self, path: &Path, page: usize) -> bool {
-        crate::application::favorites::remove(&mut self.favorites, path, page)
-    }
-    pub fn record_open(&mut self, path: &Path) {
-        if let Some(entry) = self.library.iter_mut().find(|entry| entry.path == path) {
-            entry.opens = entry.opens.saturating_add(1);
-        } else {
-            self.library.push(LibraryEntry {
-                path: path.to_owned(),
-                opens: 1,
-                ..Default::default()
-            });
-        }
-        self.library
-            .retain(|entry| self.recent.iter().any(|saved| saved.path == entry.path));
-    }
-    pub fn forget(&mut self, path: &Path) {
-        self.recent.retain(|entry| entry.path != path);
-        self.library.retain(|entry| entry.path != path);
-    }
-    pub fn remember(&mut self, document: StoredDocument) {
-        self.recent.retain(|entry| entry.path != document.path);
-        self.recent.insert(0, document);
-        self.recent.truncate(30);
-    }
+/// Serialized, locked profile I/O; models remain in application.
+pub struct ProfileStore;
+impl ProfileStore {
     /// Missing preferences are normal; corrupt/unreadable preferences are reported.
-    pub fn load(path: &Path) -> Result<Self, String> {
+    pub fn load(path: &Path) -> Result<Preferences, String> {
         match fs::read_to_string(path) {
             Ok(text) => toml::from_str(&text).map_err(|e| format!("Preferencias inválidas: {e}")),
-            Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(Self::default()),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(Preferences::default()),
             Err(e) => Err(format!("No se pudieron leer las preferencias: {e}")),
         }
     }
 
-    pub fn save(&self, path: &Path) -> Result<(), String> {
-        let text = toml::to_string_pretty(self).map_err(|e| e.to_string())?;
+    pub fn save(preferences: &Preferences, path: &Path) -> Result<(), String> {
+        let text = toml::to_string_pretty(preferences).map_err(|e| e.to_string())?;
         if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
             fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
@@ -100,7 +34,11 @@ impl Preferences {
 
     /// Reconcile only fields changed by this window with the latest on-disk state.
     /// The adjacent file lock covers read, merge and atomic replacement across processes.
-    pub fn save_merged(&self, path: &Path, base: &Self) -> Result<Self, String> {
+    pub fn save_merged(
+        preferences: &Preferences,
+        path: &Path,
+        base: &Preferences,
+    ) -> Result<Preferences, String> {
         let parent = path
             .parent()
             .filter(|p| !p.as_os_str().is_empty())
@@ -115,57 +53,9 @@ impl Preferences {
             .map_err(|e| e.to_string())?;
         lock.lock().map_err(|e| e.to_string())?;
         let disk = Self::load(path)?;
-        let mut merged = disk.clone();
-        macro_rules! scalar {
-            ($field:ident) => {
-                if self.$field != base.$field {
-                    merged.$field = self.$field.clone();
-                }
-            };
-        }
-        scalar!(theme);
-        scalar!(sidebar_open);
-        scalar!(restore_session);
-        scalar!(native_titlebar);
-        scalar!(reduce_motion);
-        scalar!(markup_color);
-        merge_entries(&base.recent, &self.recent, &mut merged.recent, |a, b| {
-            a.path == b.path
-        });
-        merged.recent.truncate(30);
-        merge_entries(&base.session, &self.session, &mut merged.session, |a, b| {
-            a.path == b.path
-        });
-        merge_entries(
-            &base.favorites,
-            &self.favorites,
-            &mut merged.favorites,
-            |a, b| a.path == b.path && a.page == b.page,
-        );
-        merge_entries(&base.library, &self.library, &mut merged.library, |a, b| {
-            a.path == b.path
-        });
-        merged.save(path)?;
+        let merged = preferences.merge_over(base, disk);
+        Self::save(&merged, path)?;
         Ok(merged)
-    }
-}
-
-fn merge_entries<T: Clone + PartialEq>(
-    base: &[T],
-    local: &[T],
-    disk: &mut Vec<T>,
-    same_key: impl Fn(&T, &T) -> bool,
-) {
-    for old in base {
-        if !local.iter().any(|item| same_key(item, old)) {
-            disk.retain(|item| !same_key(item, old));
-        }
-    }
-    for item in local.iter().rev() {
-        if base.iter().find(|old| same_key(old, item)) != Some(item) {
-            disk.retain(|old| !same_key(old, item));
-            disk.insert(0, item.clone());
-        }
     }
 }
 
@@ -212,7 +102,7 @@ impl PreferenceWriter {
                         }
                         state.pending.take().expect("pending snapshot")
                     };
-                    let result = snapshot.save_merged(&path, &base).map(|_| {
+                    let result = ProfileStore::save_merged(&snapshot, &path, &base).map(|_| {
                         // Track this window's last snapshot, not the merged disk state.
                         // Otherwise its next save could delete another window's additions.
                         base = snapshot;
@@ -262,6 +152,66 @@ impl PreferenceWriter {
 impl Drop for PreferenceWriter {
     fn drop(&mut self) {
         let _ = self.finish();
+    }
+}
+
+/// Owns one window's persistence baseline and asynchronous writer.
+/// A failed thread start can be retried without falling back to disk I/O in a frame.
+pub struct ProfileSession {
+    path: Option<PathBuf>,
+    base: Preferences,
+    writer: Option<PreferenceWriter>,
+    repaint: Arc<dyn Fn() + Send + Sync>,
+}
+impl ProfileSession {
+    pub fn open(
+        path: Option<PathBuf>,
+        repaint: Arc<dyn Fn() + Send + Sync>,
+    ) -> (Self, Preferences, Option<String>) {
+        let (preferences, mut warning) = match path.as_deref().map(ProfileStore::load) {
+            Some(Ok(preferences)) => (preferences, None),
+            Some(Err(error)) => (Preferences::default(), Some(error)),
+            None => (Preferences::default(), None),
+        };
+        let mut session = Self {
+            path,
+            base: preferences.clone(),
+            writer: None,
+            repaint,
+        };
+        if let Err(error) = session.ensure_writer() {
+            warning = Some(error);
+        }
+        (session, preferences, warning)
+    }
+    fn ensure_writer(&mut self) -> Result<(), String> {
+        if self.writer.is_none()
+            && let Some(path) = &self.path
+        {
+            let repaint = Arc::clone(&self.repaint);
+            self.writer = Some(PreferenceWriter::start(
+                path.clone(),
+                self.base.clone(),
+                move || repaint(),
+            )?);
+        }
+        Ok(())
+    }
+    pub fn request(&mut self, snapshot: Preferences) -> Result<(), String> {
+        self.ensure_writer()?;
+        if let Some(writer) = &self.writer {
+            writer.request(snapshot)?;
+        }
+        Ok(())
+    }
+    pub fn poll(&self) -> Option<Result<(), String>> {
+        self.writer.as_ref().and_then(PreferenceWriter::poll)
+    }
+    pub fn finish(&mut self) -> Result<(), String> {
+        match self.writer.as_mut() {
+            Some(writer) => writer.finish(),
+            None => Ok(()),
+        }
     }
 }
 
@@ -362,7 +312,7 @@ mod tests {
         assert_eq!(preferences.library[0].opens, 2);
         let encoded = toml::to_string(&preferences).unwrap();
         assert_eq!(
-            Preferences::load(Path::new("does-not-exist.toml")).unwrap(),
+            ProfileStore::load(Path::new("does-not-exist.toml")).unwrap(),
             Preferences::default()
         );
         assert_eq!(
@@ -375,7 +325,7 @@ mod tests {
 
     #[test]
     fn overlapping_windows_preserve_each_others_favorites_and_sessions() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."))
             .join("artifacts")
             .join(format!(
                 "preferences-merge-{}-{}.toml",
@@ -413,19 +363,19 @@ mod tests {
         let default = Preferences::default();
         std::thread::scope(|scope| {
             scope.spawn(|| {
-                first.save_merged(&path, &default).unwrap();
+                ProfileStore::save_merged(&first, &path, &default).unwrap();
             });
             scope.spawn(|| {
-                second.save_merged(&path, &default).unwrap();
+                ProfileStore::save_merged(&second, &path, &default).unwrap();
             });
         });
-        let merged = Preferences::load(&path).unwrap();
+        let merged = ProfileStore::load(&path).unwrap();
         assert_eq!(merged.favorites.len(), 2);
         assert_eq!(merged.session.len(), 2);
         let first_base = first.clone();
         first.theme = Theme::Dark;
-        first.save_merged(&path, &first_base).unwrap();
-        let after = Preferences::load(&path).unwrap();
+        ProfileStore::save_merged(&first, &path, &first_base).unwrap();
+        let after = ProfileStore::load(&path).unwrap();
         assert_eq!(after.favorites.len(), 2);
         assert_eq!(after.session.len(), 2);
         assert_eq!(after.theme, Theme::Dark);

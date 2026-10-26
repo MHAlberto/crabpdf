@@ -102,7 +102,7 @@ mod tests {
     use super::*;
     #[test]
     fn old_book_marks_and_changed_pagination_are_preserved_without_misplacing_them() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."))
             .join("artifacts")
             .join(format!(
                 "annotation-schema-{}-{}.toml",

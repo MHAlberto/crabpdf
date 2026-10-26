@@ -43,7 +43,7 @@ impl SelectionGeometry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::document::Glyph;
+    use crabpdf_core::document::Glyph;
     #[test]
     fn selected_lines_merge_but_columns_and_different_lines_remain_separate() {
         let glyph = |index, x, y| Glyph {

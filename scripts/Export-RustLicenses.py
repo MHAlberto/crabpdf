@@ -23,7 +23,7 @@ records = []
 resolved = {node["id"] for node in metadata["resolve"]["nodes"]}
 pattern = re.compile(r"LICENSE|LICENCE|COPYING|NOTICE|(^|[-_.])(OFL|UFL)([-_.]|$)", re.I)
 for package in sorted(metadata["packages"], key=lambda item: (item["name"], item["version"])):
-    if package["id"] not in resolved or package["name"] == "crabpdf":
+    if package["id"] not in resolved or package["id"] in metadata["workspace_members"]:
         continue
     source = Path(package["manifest_path"]).parent
     folder = destination / f"{package['name']}-{package['version']}"

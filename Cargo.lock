@@ -409,6 +409,9 @@ dependencies = [
 name = "crabpdf"
 version = "0.4.0"
 dependencies = [
+ "crabpdf-application",
+ "crabpdf-core",
+ "crabpdf-runtime",
  "crc32fast",
  "eframe",
  "embed-resource",
@@ -416,6 +419,35 @@ dependencies = [
  "pdfium-render",
  "resvg",
  "rfd",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
+name = "crabpdf-application"
+version = "0.4.0"
+dependencies = [
+ "crabpdf-core",
+ "serde",
+]
+
+[[package]]
+name = "crabpdf-core"
+version = "0.4.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "crabpdf-runtime"
+version = "0.4.0"
+dependencies = [
+ "crabpdf-application",
+ "crabpdf-core",
+ "crc32fast",
+ "image",
+ "pdfium-render",
  "roxmltree",
  "serde",
  "serde_json",

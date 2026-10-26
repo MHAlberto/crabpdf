@@ -26,7 +26,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "No existe la etiqueta $tag." }
     # A later correction to this upload helper may publish the existing tag, but
     # the application and build/packaging inputs must still match that tag.
-    $sourceChanges = @(git diff --name-only $releaseCommit HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs crabpdf-logo.svg src scripts/Build-LinuxFormatTools.sh scripts/Pack-Linux.sh scripts/Export-RustLicenses.py scripts/Pack-Portable.ps1 scripts/Export-Licenses.ps1 scripts/Build-Installer.ps1 scripts/Get-NSIS.ps1 scripts/Sign-Windows.ps1 scripts/Get-FormatTools.ps1 scripts/Pack-FormatSources.ps1 installer docs/THIRD_PARTY_NOTICES.md)
+    $sourceChanges = @(git diff --name-only $releaseCommit HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs crabpdf-logo.svg assets src crates scripts/Build-LinuxFormatTools.sh scripts/Pack-Linux.sh scripts/Export-RustLicenses.py scripts/Pack-Portable.ps1 scripts/Export-Licenses.ps1 scripts/Build-Installer.ps1 scripts/Get-NSIS.ps1 scripts/Sign-Windows.ps1 scripts/Get-FormatTools.ps1 scripts/Pack-FormatSources.ps1 installer docs/THIRD_PARTY_NOTICES.md)
     if ($LASTEXITCODE -ne 0 -or $sourceChanges.Count -gt 0) { throw "Las fuentes o entradas de empaquetado difieren de $tag." }
     if ((git ls-remote --tags origin "refs/tags/$tag") -notmatch 'refs/tags/') {
         throw "La etiqueta $tag aún no está en GitHub."

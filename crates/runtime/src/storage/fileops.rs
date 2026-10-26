@@ -60,7 +60,8 @@ mod tests {
     use std::io::Write;
     #[test]
     fn failed_write_preserves_existing_file() {
-        let folder = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("artifacts/atomic-write-test");
+        let folder = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."))
+            .join("artifacts/atomic-write-test");
         fs::create_dir_all(&folder).unwrap();
         let path = folder.join("preferences.toml");
         fs::write(&path, "old").unwrap();

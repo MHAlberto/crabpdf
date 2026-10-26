@@ -60,7 +60,7 @@ impl VisualSmoke {
         self.phase += 1;
         self.capture_pending = false;
         self.settled = None;
-        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples");
+        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
         match self.phase {
             1 => self.app.open_path(fixture.join("reading-sample.pdf")),
             2 => self.pending_keys.push(egui::Key::ArrowRight),

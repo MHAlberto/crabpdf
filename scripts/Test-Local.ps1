@@ -31,8 +31,8 @@ try {
         $native=if($arch -eq 'x86') {Join-Path $workspace 'native/win-x86/pdfium.dll'} else {Join-Path $workspace 'native/pdfium.dll'}
         if (-not (Test-Path -LiteralPath $native)) {throw "Falta PDFium para $arch."}
         $env:RUST_READER_PDFIUM=$native
-        Invoke-CargoCheck "$arch-clippy" @('clippy','--locked','--offline','--all-targets','--target',$target,'--','-D','warnings')
-        Invoke-CargoCheck "$arch-tests" @('test','--locked','--offline','--release','--target',$target,'--','--include-ignored','--test-threads=1')
+        Invoke-CargoCheck "$arch-clippy" @('clippy','--workspace','--locked','--offline','--all-targets','--target',$target,'--','-D','warnings')
+        Invoke-CargoCheck "$arch-tests" @('test','--workspace','--locked','--offline','--release','--target',$target,'--','--include-ignored','--test-threads=1')
         $buildArguments=@('build','--locked','--offline','--release','--target',$target,'--bins')
         if (-not $SkipVisual) { $buildArguments+='--examples' }
         Invoke-CargoCheck "$arch-build" $buildArguments

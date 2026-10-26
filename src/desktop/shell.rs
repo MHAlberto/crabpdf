@@ -1,75 +1,18 @@
+use crabpdf_runtime::paths::config_path;
 use std::env;
 use std::path::{Path, PathBuf};
 
-/// Keep native library discovery and OS directories outside the PDF engine/UI.
-pub fn library_name() -> &'static str {
-    if cfg!(target_os = "windows") {
-        "pdfium.dll"
-    } else if cfg!(target_os = "macos") {
-        "libpdfium.dylib"
-    } else {
-        "libpdfium.so"
-    }
-}
-
-pub fn library_candidates() -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-    if let Some(path) = env::var_os("RUST_READER_PDFIUM") {
-        let path = PathBuf::from(path);
-        candidates.push(if path.is_dir() {
-            path.join(library_name())
-        } else {
-            path
-        });
-    }
-    if let Ok(exe) = env::current_exe()
-        && let Some(dir) = exe.parent()
-    {
-        candidates.push(dir.join(library_name()));
-        candidates.push(dir.join("native").join(library_name()));
-    }
-    if let Ok(dir) = env::current_dir() {
-        candidates.push(dir.join("native").join(library_name()));
-    }
-    candidates.dedup();
-    candidates
-}
-
-pub fn config_path() -> Option<PathBuf> {
-    if let Some(path) = env::var_os("RUST_READER_CONFIG") {
-        return Some(PathBuf::from(path));
-    }
-    let root = if cfg!(target_os = "windows") {
-        env::var_os("APPDATA").map(PathBuf::from)
-    } else if cfg!(target_os = "macos") {
-        env::var_os("HOME").map(|p| Path::new(&p).join("Library/Application Support"))
-    } else {
-        env::var_os("XDG_CONFIG_HOME")
-            .map(PathBuf::from)
-            .or_else(|| env::var_os("HOME").map(|p| Path::new(&p).join(".config")))
-    };
-    root.map(|root| root.join("rust-reader").join("preferences.toml"))
-}
-
-/// Construct the async dialog on the UI thread (required for reliable macOS use).
-pub fn pdf_dialog() -> impl std::future::Future<Output = Option<rfd::FileHandle>> + Send {
-    rfd::AsyncFileDialog::new()
-        .set_title("Abrir un documento")
-        .add_filter("Documentos compatibles", crate::formats::EXTENSIONS)
-        .pick_file()
-}
-
-pub fn new_window(path: Option<&Path>) -> Result<(), crate::document::ReaderError> {
+pub fn new_window(path: Option<&Path>) -> Result<(), crabpdf_core::document::ReaderError> {
     new_window_with_paths(
         path,
-        &crate::app_paths::AppPaths::from_environment(config_path()),
+        &crabpdf_runtime::paths::AppPaths::from_environment(config_path()),
     )
 }
 
 pub fn new_window_with_paths(
     path: Option<&Path>,
-    paths: &crate::app_paths::AppPaths,
-) -> Result<(), crate::document::ReaderError> {
+    paths: &crabpdf_runtime::paths::AppPaths,
+) -> Result<(), crabpdf_core::document::ReaderError> {
     let executable = env::current_exe().map_err(platform_error)?;
     let mut command = std::process::Command::new(executable);
     if let Some(config) = &paths.config {
@@ -85,9 +28,9 @@ pub fn new_window_with_paths(
 
 /// Launch a separate process with the exact reading view, without rewriting preferences first.
 pub fn document_window_with_paths(
-    saved: &crate::application::profile::StoredDocument,
-    paths: &crate::app_paths::AppPaths,
-) -> Result<(), crate::document::ReaderError> {
+    saved: &crabpdf_application::profile::StoredDocument,
+    paths: &crabpdf_runtime::paths::AppPaths,
+) -> Result<(), crabpdf_core::document::ReaderError> {
     let mut command =
         document_window_command(env::current_exe().map_err(platform_error)?, saved, paths)?;
     command.spawn().map_err(platform_error)?;
@@ -96,9 +39,9 @@ pub fn document_window_with_paths(
 
 fn document_window_command(
     executable: PathBuf,
-    saved: &crate::application::profile::StoredDocument,
-    paths: &crate::app_paths::AppPaths,
-) -> Result<std::process::Command, crate::document::ReaderError> {
+    saved: &crabpdf_application::profile::StoredDocument,
+    paths: &crabpdf_runtime::paths::AppPaths,
+) -> Result<std::process::Command, crabpdf_core::document::ReaderError> {
     use crate::{
         document::{PageColors, Zoom},
         layout::LayoutMode,
@@ -152,7 +95,7 @@ fn document_window_command(
     Ok(command)
 }
 
-pub fn reveal(path: &Path) -> Result<(), crate::document::ReaderError> {
+pub fn reveal(path: &Path) -> Result<(), crabpdf_core::document::ReaderError> {
     let mut command = if cfg!(target_os = "windows") {
         let mut c = std::process::Command::new("explorer.exe");
         c.arg(format!("/select,{}", path.display()));
@@ -170,9 +113,9 @@ pub fn reveal(path: &Path) -> Result<(), crate::document::ReaderError> {
     Ok(())
 }
 
-fn platform_error(error: std::io::Error) -> crate::document::ReaderError {
-    crate::document::ReaderError::new(
-        crate::document::ErrorKind::File,
+fn platform_error(error: std::io::Error) -> crabpdf_core::document::ReaderError {
+    crabpdf_core::document::ReaderError::new(
+        crabpdf_core::document::ErrorKind::File,
         "No se pudo abrir el servicio del sistema.",
     )
     .with_details(error.to_string())
@@ -189,7 +132,7 @@ mod window_tests {
     };
     #[test]
     fn separate_window_round_trips_the_view_and_profile_without_shell_quoting() {
-        let paths = crate::app_paths::AppPaths::from_environment(Some(
+        let paths = crabpdf_runtime::paths::AppPaths::from_environment(Some(
             "profile with spaces/preferences.toml".into(),
         ));
         let position = serde_json::from_value(serde_json::json!({

@@ -339,12 +339,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fixture = output.join("colored-pages.pdf");
     write_fixture(&fixture)?;
     let config = output.join("preferences.toml");
-    Preferences {
-        reduce_motion: reduced,
-        theme: if dark { Theme::Dark } else { Theme::Light },
-        ..Default::default()
-    }
-    .save(&config)?;
+    crabpdf::config::ProfileStore::save(
+        &Preferences {
+            reduce_motion: reduced,
+            theme: if dark { Theme::Dark } else { Theme::Light },
+            ..Default::default()
+        },
+        &config,
+    )?;
     let outcome = Arc::new(Mutex::new(None));
     let result = Arc::clone(&outcome);
     eframe::run_native(

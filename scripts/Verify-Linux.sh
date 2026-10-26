@@ -2,8 +2,9 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 version="$(awk -F '"' '/^version = "/ { print $2; exit }' "$root/Cargo.toml")"
-tarball="$root/artifacts/packages/crabpdf-$version-linux-x64.tar.gz"
-deb="$root/artifacts/packages/crabpdf-$version-ubuntu24.04-amd64.deb"
+output="${1:-$root/artifacts/packages}"
+tarball="$output/crabpdf-$version-linux-x64.tar.gz"
+deb="$output/crabpdf-$version-ubuntu24.04-amd64.deb"
 work="$(mktemp -d)"
 trap 'rm -rf -- "$work"' EXIT
 mkdir -p "$work/tar" "$work/deb"

@@ -1,6 +1,6 @@
 //! Native application identity. The supplied SVG is rasterized only at build time.
 
-pub const NAME: &str = "CrabPDF";
+pub use crabpdf_core::APPLICATION_NAME as NAME;
 
 pub fn viewport() -> eframe::egui::ViewportBuilder {
     eframe::egui::ViewportBuilder::default()

@@ -1,5 +1,6 @@
 //! Export the actual shared action registry, including keyboard hints.
 use crabpdf::commands::Action;
+use crabpdf::desktop::command_meta::ActionMetadata;
 use std::io::Write;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args_os()

@@ -1,131 +1,79 @@
 # Arquitectura de CrabPDF
 
-El [plan de migración](ARCHITECTURE_MIGRATION.md) y la [decisión ADR-0001](adr/0001-modular-architecture.md) definen la dirección hacia un monolito modular con puertos y adaptadores. Los [primeros cortes de migración](architecture/PHASE_1.md) incorporan metadatos tipados y favoritos fuera de la UI; [A02b](architecture/PHASE_2.md) separa la pestaña lógica y los registros de perfil de su estado visual. [A02c](architecture/PHASE_3.md) extrae búsqueda y selección, incluida la cancelación por documento/generación. [A03a](architecture/PHASE_4.md) separa el protocolo de resultados y conserva la generación de los errores de búsqueda. La división del workspace sigue pendiente; esta página describe el código de desarrollo actual.
-
-La lógica de documentos permanece en Rust y fuera de egui. Un único hilo es dueño de PDFium y de todos los documentos nativos. La UI intercambia identificadores, solicitudes y resultados independientes del SDK.
-
-Esta página describe la implementación en desarrollo 0.3.6. La [auditoría](AUDIT_V1.md) documenta la base 0.2; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md) distinguen correcciones parciales de las rutas abiertas en [V1_PLAN.md](V1_PLAN.md).
+CrabPDF usa un monolito modular en un workspace de cuatro paquetes Rust. La versión publicada sigue siendo 0.4.0; esta reorganización pertenece al desarrollo posterior y no cambia esa publicación. La decisión está en [ADR-0001](adr/0001-modular-architecture.md), el plan original en [ARCHITECTURE_MIGRATION.md](ARCHITECTURE_MIGRATION.md) y la ejecución final en [PHASE_6.md](architecture/PHASE_6.md).
 
 ```mermaid
-flowchart LR
-    CLI[cli: arranque] --> UI[ui: pestañas y controles]
-    UI --> Commands[commands: acciones compartidas]
-    CLI --> Tabs[application/tabs: apertura y restauración]
-    UI --> Tabs
-    Tabs --> State[state: navegación por documento]
-    Tabs --> Search[application/search: consulta y resultados]
-    Tabs --> Selection[application/selection: rango y selección pendiente]
-    UI --- View[ui/tab_view: geometría, foco y animación]
-    State --> Layout[layout: páginas y regiones visibles]
-    UI --> Worker[worker: colas con prioridad]
-    UI -->|apertura de otros formatos| Import[worker: hilo de importación]
-    Import --> Formats[formats: decodificadores locales y caché]
-    Formats -->|documento preparado| Worker
-    Worker --> Engine[engine: adaptador PDFium]
-    Engine --> PDF[PDFium: documentos nativos]
-    Worker --> Cache[cache: LRU por bytes]
-    Worker --> Protocol[application/protocol: eventos tipados]
-    Protocol -->|detalles, texto, RGBA y fallos con generación| UI
-    Config[config: TOML] --- UI
-    Paths[app_paths: perfil] --- Config
-    Paths --- Formats
-    Paths --- Marks
-    Files[fileops: escritura temporal] --- Config
-    Files --- Engine
-    Engine --- Marks[annotations: almacén local de marcas]
-    Platform[platform: rutas y servicios nativos] --- UI
+flowchart TD
+    Desktop["crabpdf: desktop, CLI e interfaz"] --> Application["crabpdf-application: lectura y protocolo"]
+    Desktop --> Runtime["crabpdf-runtime: trabajadores y adaptadores"]
+    Desktop --> Core["crabpdf-core: tipos y geometría"]
+    Runtime --> Application
+    Runtime --> Core
+    Application --> Core
+    Runtime --> Native["PDFium y conversores locales"]
 ```
 
-| Componente | Responsabilidad |
+## Organización del repositorio
+
+| Ruta | Responsabilidad |
 | --- | --- |
-| `cli.rs`, `main.rs` | Argumentos, ayuda, errores y ventana nativa. |
-| `branding.rs`, `build.rs`, `crabpdf-logo.svg` | Identidad CrabPDF, icono de ventana y recursos del ejecutable; rasterización SVG durante la compilación. |
-| `commands.rs` | Vocabulario común para menús, contexto, paleta y atajos. |
-| `application/favorites.rs` | Modelo y reglas de favoritos por libro, acciones y resultados sin I/O; `config` conserva la fachada compatible. |
-| `application/tabs.rs` | Pestaña lógica, apertura/reintento, restauración, opciones iniciales, snapshots y navegación. |
-| `application/profile.rs` | Registros de perfil compatibles, sin I/O. |
-| `application/search.rs` | Generaciones, aceptación de resultados/errores, progreso, límite y navegación circular; produce destinos y cancelación como datos. |
-| `application/protocol.rs` | Resultados del worker sin tipos gráficos/nativos; `SearchFailed` conserva documento/generación. |
-| `application/selection.rs` | Palabra, arrastre y selección completa por página/documento; descarta contenido tardío o cancelado. |
-| `ui/tab_view.rs` | Estado visual de cada pestaña: scroll, geometría, foco, entrada de contraseña y animaciones. |
-| `ui/mod.rs` | Composición de pestañas, eventos, diálogos asíncronos y coordinación. |
-| `ui/panels.rs` | Menús, barras, miniaturas, índice, favoritos y diálogos. |
-| `ui/chrome.rs` | Pestañas integradas, operaciones nativas de ventana y controles flotantes de pantalla completa. |
-| `ui/home.rs`, `library.rs` | Biblioteca, tarjetas, portadas diferidas y caché PNG limitada. |
-| `ui/viewer.rs` | Viewport, regiones visibles, selección, enlaces y resaltados. |
-| `ui/motion.rs`, `ui/key_scroll.rs` | Saltos programáticos, entradas y desplazamiento por fotograma al mantener flechas; movimiento interrumpible. |
-| `ui/raster.rs`, `ui/selection_geometry.rs` | Instantáneas de presentación durante cambios de marcas y geometría de selección reutilizable por línea. |
-| `ui/theme.rs`, `ui/icons.rs` | Estilos e iconos vectoriales propios. |
-| `state.rs` | Estado de documento, historial, modos, zoom y rotación. |
-| `layout.rs` | Geometría, spreads y planificación de tiles. |
-| `reading_position.rs` | Ancla versionada relativa a página y viewport, sin tipos de UI/SDK. |
-| `document.rs` | Datos y claves, incluido el RGBA de portadas, sin dependencias de egui/PDFium. |
-| `engine.rs` | Carga, contraseña, metadatos, índice, texto, enlaces, búsqueda y rasterización PDF. |
-| `worker.rs` | Documentos nativos, cachés, colas y búsquedas progresivas. |
-| `formats.rs`, `import_info.js` | Despacho de extensiones, preparación mediante herramientas nativas, límites, caché y metadatos de libros. |
-| `djvu_text.rs` | Lectura de la capa OCR existente de DjVu y coordenadas para incorporar texto. |
-| `annotations.rs` | Persistencia local de marcas, asociación al archivo y bloqueo entre instancias. |
-| `cache.rs` | LRU con presupuesto de bytes. |
-| `config.rs`, `fileops.rs` | Preferencias y guardado temporal con reemplazo final. |
-| `app_paths.rs` | Perfil compartido por preferencias, documentos preparados, portadas, marcas y ventanas nuevas. |
-| `platform.rs` | DLL/dylib/so, configuración, carpetas y nuevas ventanas. |
+| `crates/core/src/` | Documento, errores, raster compartido, geometría, regiones y posición normalizada. Sólo std y serde. |
+| `crates/application/src/` | Pestañas, navegación, búsqueda, selección, favoritos, perfil, reconciliación de ventanas, formatos y protocolo de eventos. Sólo core, std y serde. |
+| `crates/runtime/src/worker/` | Fachada de solicitudes, scheduler, coordinador de importación y propietario serial de documentos PDFium. |
+| `crates/runtime/src/pdfium/` | Apertura, metadatos, geometría, rasterización, texto, marcas y exportación, en módulos separados. |
+| `crates/runtime/src/formats/` | Conversión, archivos comprimidos, cómics, libros, límites, procesos, caché y OCR DjVu. |
+| `crates/runtime/src/storage/` | Escritura atómica, marcas, bloqueo/merge de preferencias y escritor asíncrono. |
+| `crates/runtime/src/{paths,source,covers,cache}.rs` | Perfil único, identidad persistente de archivos, portadas y caché por bytes. |
+| `src/desktop/` | Composición de servicios, diálogos nativos, nuevas ventanas, servicios del sistema y etiquetas/atajos. |
+| `src/ui/` | Recursos gráficos, widgets y coordinación de vista, dividida en acciones, eventos, entrada, solicitudes y sesión. |
+| `src/{main,cli,branding,lib}.rs` | Entrada, argumentos, identidad y fachada pública. |
+| `assets/` | Logo SVG original; build.rs genera PNG, ICO y recursos del instalador. |
+| `tests/fixtures/` | Documentos originales de prueba. `examples/` contiene los recorridos Rust ejecutables. |
+| `installer/windows/`, `scripts/` | Definición NSIS y herramientas de construcción, validación y distribución por plataforma. |
+| `native/`, `artifacts/`, `target/` | Dependencias descargadas, evidencia/paquetes y compilación; ignorados por Git. |
 
-## Render y memoria
+Las dependencias apuntan hacia dentro. Core y application no cargan bibliotecas, abren archivos, crean hilos ni conocen egui/rfd. Runtime no depende de la interfaz. Los tipos de SDK, handles PDFium, texturas y controles de ventana no cruzan hacia los modelos. Las pruebas de [architecture.rs](../tests/architecture.rs) comprueban el grafo de dependencias y añaden una comprobación de rutas de servicios en las fuentes internas; esta última no pretende analizar todo el lenguaje Rust ni todos los alias posibles.
 
-Con un documento en pantalla completa, la UI reserva el lienzo para lectura y muestra los controles flotantes sólo junto al borde superior. El panel lateral usa una visibilidad temporal independiente de las preferencias de ventana. `LayoutSpec::compact` reduce los márgenes y la separación de páginas sin depender de egui; el visor usa barras de desplazamiento flotantes. Los atajos de lectura distinguen foco de texto, diálogos y menús del foco de un botón. La navegación horizontal mide el ancho del pliego actual, conserva el desplazamiento con zoom ampliado y cambia de página cuando el pliego cabe o se alcanza un borde.
+La fachada `crabpdf::{document,application,engine,worker,config,...}` reexporta las implementaciones para conservar consumidores y ejemplos. No contiene otra implementación, escritura doble ni buffers de conversión entre paquetes. Las APIs nuevas deben usar el paquete propietario. La persistencia explícita es `ProfileStore::{load,save,save_merged}`; `Preferences` es ahora un modelo sin I/O.
 
-El PDF permanece respaldado por un archivo. No se copia todo su contenido a un buffer Rust ni se rasterizan todas las páginas al abrirlo. La primera página proporciona las dimensiones iniciales; las demás se conocen bajo demanda. El modelo estima las páginas desconocidas y corrige la posición al llegar sus dimensiones reales.
+## Lectura y presentación
 
-Las páginas pequeñas y miniaturas usan una imagen completa acotada. En páginas grandes/con zoom se solicita solamente la cuadrícula visible: regiones de hasta 1024×1024 píxeles. PDFium conserva la escala de toda la página y recorta al pequeño bitmap de destino mediante el origen de render. Una prueba compara las regiones con el raster completo en cuatro rotaciones y tres modos de color.
+`ReadingTab` conserva la identidad de apertura, opciones iniciales, restauración y estado de lectura. `AppState` aplica límites de página/zoom e historial. Búsqueda y selección conservan sus propias identidades y aceptan resultados compatibles con la consulta y el documento. La vista conserva scroll, foco, geometría y texturas; no se serializan coordenadas de egui.
 
-La geometría de pantalla y los píxeles físicos se separan: 100 % equivale a 96 píxeles lógicos por pulgada; el PDF usa 72 puntos. La densidad incrementa los píxeles, sin cambiar el tamaño lógico. Se rechazan dimensiones patológicas superiores a un millón de unidades lógicas.
+`desktop::bootstrap::DesktopServices` resuelve AppPaths una vez y construye el perfil y el worker. La UI proporciona una notificación de repintado, no un contexto gráfico a runtime. El diálogo nativo se construye en el hilo UI, incluido macOS; entrega rutas y una identidad de documento. Abrir otra ventana conserva el perfil y la posición mediante argumentos separados, sin interpretar el nombre de archivo como shell.
 
-| Caché | x64 | x86 |
-| --- | --- | --- |
-| Raster del worker | 96 MiB | 32 MiB |
-| Texturas de UI | 64 MiB | 32 MiB |
-| Texto/enlaces, por caché | 16 MiB | 16 MiB |
-| Overview, máximo aproximado | 16 MP | 4 MP |
-| Región, máximo | 4 MiB RGBA | 4 MiB RGBA |
+El cambio de marcas incrementa la revisión. Las imágenes anteriores se conservan sólo como instantáneas de presentación acotadas, hasta que llega el raster nuevo compatible con su geometría. No cuentan como render actual ni alimentan al motor. La selección reutiliza geometría por línea y el desplazamiento al mantener flechas se integra por fotograma.
 
-Estos son presupuestos de caché, **no** un límite de memoria del proceso: conversiones, bitmaps temporales, fuentes y PDFium consumen memoria adicional. Un resultado excesivo no se retiene. Falta validar documentos extremos y medir contra SumatraPDF.
+En fullscreen, el visor usa el área cliente y muestra controles flotantes sólo cuando corresponden. Se conservan la restauración normal/maximizada, ambos estilos de barra y las preferencias de ventana. La verificación de geometría nativa se realiza con `Test-WindowGeometry.ps1`; una captura egui por sí sola no mide el cliente del SO.
 
-Las operaciones de control tienen prioridad; los rasters visibles preceden a extracción de texto y búsqueda. Una búsqueda trabaja por página y cede a la lectura entre páginas. La UI solicita repaint al recibir un evento; no mantiene un temporizador de render en reposo. El canal contiene como máximo dos resultados y la cola de render tiene un límite.
+## Trabajo en segundo plano y recursos
 
-La UI cancela solicitudes de render que dejaron de ser visibles. Una llamada nativa ya iniciada termina normalmente; la cancelación no interrumpe PDFium a mitad de una operación. Las claves incluyen documento, revisión del contenido, página, zoom, viewport, densidad, rotación, colores y región. Una marca nueva o un refresco externo cambia esa revisión e invalida los rasters del motor. La caché visual conserva instantáneas anteriores dentro del mismo presupuesto hasta recibir un reemplazo compatible; no las considera renders actuales. Resultados tardíos de revisiones anteriores y pestañas cerradas se descartan.
+Un hilo es dueño de todos los documentos y handles PDFium. La aplicación intercambia solicitudes/eventos tipados, incluyendo documento, revisión de raster y generación de búsqueda. No se amplía el pool PDFium durante esta migración.
 
-## Texto y búsquedas
+El scheduler conserva el orden FIFO de operaciones de control/escritura y la prioridad de render visible sobre contenido, precarga, portadas y continuación de búsqueda. Los renders visibles y la precarga mantienen sus límites 96/24 y su deduplicación. El canal de eventos tiene capacidad 2 y el de importaciones 16. La búsqueda puede esperar durante navegación sostenida: la extracción conserva esa política; no promete haber corregido su equidad.
 
-PDFium proporciona una transformación afín de coordenadas. Incluye CropBox, origen distinto de cero y rotación intrínseca del archivo, antes de aplicar el giro del usuario. Se evita convertir cada esquina mediante FFI para cada carácter.
+El coordinador de importación prepara libros fuera del hilo PDFium. Cerrar un documento cancela su token y la publicación comprueba que la apertura siga pendiente. Al cerrar el worker se cancela, se despierta el scheduler, se desconectan productores/receptores y se reúnen ambos hilos. Se prueba el caso de productores bloqueados por un canal lleno. Una llamada nativa PDFium en curso no es interrumpible; el cierre espera su retorno.
 
-La selección de ratón y doble clic funciona en una página. Los enlaces y resultados se expresan en coordenadas normalizadas. Al elegir una coincidencia se centra su región en pantalla. La búsqueda distingue generaciones, para que una respuesta tardía no contamine una consulta nueva. Se retienen como máximo 10 000 coincidencias y se indica el límite en pantalla.
+Se conservan los presupuestos: raster CPU 96 MiB x64 / 32 MiB x86, texturas GPU 64 / 32 MiB y texto 16 MiB por caché. El PDF permanece respaldado por archivo; no se rasteriza completo al abrirlo. Las regiones visibles usan tiles de hasta 1024 × 1024, con tamaño lógico separado de densidad física. Los presupuestos no representan el máximo de memoria del proceso ni incluyen conversores.
 
-Si las dimensiones de la página de destino todavía son desconocidas, la región de búsqueda queda pendiente hasta recibir la geometría real. Centrarla usando la altura estimada podía dejar una coincidencia de una página muy larga fuera de pantalla; `search_smoke` comprueba ese caso con PDFium y una ventana nativa.
+## Persistencia e importación
 
-Quedan pendientes selección entre páginas/por teclado, búsqueda avanzada y paridad de todos los gestos. Las restricciones de copia se consultan en PDFium.
+Los modelos de preferencias y su reconciliación viven en application. El adaptador conserva lectura, bloqueo interproceso y reemplazo atómico. Cada ventana mantiene su propio baseline; el escritor agrupa snapshots sin borrar cambios ajenos. `ProfileSession` inicia o reintenta el escritor y expone fallos; no usa un guardado síncrono como alternativa dentro de un frame. Al salir se vacían las solicitudes pendientes.
 
-## Persistencia y errores
+No cambian las variables de entorno, rutas heredadas, TOML, esquema 2 de marcas, identidad de archivos, firma preparada ni nombres de caché v4. `runtime::source::fingerprint` conserva la canonicalización/tamaño/fecha/hash anterior; no se convierte en un hash de contenido.
 
-Cada pestaña conserva sus propios modos, búsqueda, selección y scroll en memoria. Se guardan recientes, sesiones y favoritos; restaurar sesión es opcional. El TOML guarda página/modo/zoom/giro/colores/manga y un ancla versionada: punto relativo a la página y posición relativa en el viewport, codificados en enteros normalizados. Se captura junto al centro visible (o en el borde de la página si el centro cae en un hueco). La restauración espera la geometría real de la página y se cancela ante navegación explícita, zoom, interacción con el documento o parámetros de vista CLI. Los cambios de scroll programan el guardado diferido, sin escribir desde el frame. Los perfiles anteriores usan la página como alternativa; esquemas de ancla desconocidos o coordenadas fuera de rango tampoco se aplican. No se persiste aún el historial completo ni se valida el ancla contra cambios de contenido del archivo. El planificador mantiene una sola búsqueda activa, aunque cada pestaña tenga su estado visual. Nunca se guarda una contraseña. Su petición se elimina del worker al completar la carga, sin garantía de borrado criptográfico de memoria.
+Los importadores mantienen límites de tamaño/entradas, validación de rutas, cancelación, timeout y comprobación de integridad. Una caché sólo se publica como utilizable al verificar todas sus partes y el manifiesto. La reparación de un PDF preparado rechazado conserva su identidad y bloqueo, sin borrar el original.
 
-Preferencias y copias PDF se escriben en un temporal en el mismo directorio, se sincronizan y se renombran al destino. El documento de origen abierto se rechaza como destino de copia. Un fallo de escritura conserva el destino anterior. Las preferencias se fusionan bajo un bloqueo entre procesos y un hilo de disco evita esperar la escritura en la UI; faltan casos de sesiones concurrentes sobre el mismo archivo, errores de disco y cierre abrupto. Los errores de biblioteca, archivo, seguridad, render o configuración se muestran explícitamente.
+## Rust y componentes nativos
 
-PDFium sigue siendo el motor de páginas. `formats.rs` prepara los formatos básicos mediante decodificadores locales y una caché de PDF interno; las aperturas explícitas y las portadas sin caché se preparan en el hilo de importación antes de llegar a PDFium. La caché v4 verifica tamaño y CRC de PDF y sidecars mediante un manifiesto publicado al final bajo bloqueo por entrada. La espera de ese bloqueo es cancelable y tiene un máximo de 15 segundos. Los registros de listado y metadatos se acotan antes de cargarlos. Si PDFium rechaza un PDF preparado de una apertura, el worker pide al importador que descarte esa entrada y la reconstruya una sola vez; el render no ejecuta el decodificador. Todavía faltan el caso equivalente de portadas, competencia con la poda, fallos de borrado con otro lector abierto y medidas del coste de verificar entradas grandes. `djvu_text.rs` conserva texto OCR disponible en DjVu y lo incorpora de forma diferida por página. Los cómics se extraen con rutas y tamaños validados y se ordenan numéricamente. `import_info.js` recupera título/índice de los libros mediante el programa propio de MuPDF, sin ejecutar scripts del documento.
+La lógica de lectura, modelos, sincronización, conversión/orquestación, almacenamiento, interfaz y generación de recursos están escritos en Rust. PDFium, MuPDF, libmobi, DjVuLibre y 7-Zip siguen siendo dependencias nativas; la migración no las reemplaza ni cambia sus licencias.
 
-`annotations.rs` conserva marcas locales asociadas al archivo y a una firma del PDF preparado. El esquema 2 detecta si un importador produjo otra paginación: conserva las marcas antiguas, pero las deja sin aplicar y presenta un aviso para evitar marcarlas en el texto equivocado. Los PDF antiguos mantienen sus marcas compatibles. El worker crea anotaciones PDF nativas con quad points en orden Z; antes de exportar refresca las marcas bajo el bloqueo del almacén, y las revisiones invalidan las páginas afectadas y los resultados pendientes. El original no se sobrescribe. Faltan anclas por cita/contexto, migración segura y una prueba entre dos procesos de exportación. Estos límites se relacionan con F02/F03/F06 de la auditoría histórica.
+Existe un puente JavaScript pequeño, [import_info.js](../crates/runtime/src/formats/mupdf/import_info.js), ejecutado por `mutool run` para consultar el índice de libros con la misma paginación de MuPDF. Se conserva para no perder destinos de capítulos. [Razonamiento y alcance](../crates/runtime/src/formats/mupdf/README.md). Las definiciones NSIS y scripts PowerShell/Bash/Python son herramientas de plataforma. No se declara una implementación íntegramente Rust del motor ni de la cadena de distribución.
 
-La selección sigue limitada a una página. Impresión, edición general, formularios y los restantes formatos/servicios de referencia requieren componentes adicionales. [Formatos, almacenamiento y límites](FORMATS_AND_ANNOTATIONS.md).
+## Validación y evolución
 
-## Transiciones y viewport
+`cargo test -p crabpdf-core -p crabpdf-application --locked` comprueba las bibliotecas internas sin PDFium ni ventana. `cargo clippy --workspace --all-targets --locked -- -D warnings` y las pruebas del workspace incluyen todos los paquetes. Los contratos de formatos, marcas, procesos, perfil y los recorridos gráficos siguen en el paquete desktop.
 
-`ui/motion.rs` anima únicamente el desplazamiento y la entrada del contenido actual. El lienzo permanece opaco; no hay una textura duplicada ni mezcla de dos documentos. Los saltos cercanos se limitan a 160 ms, con cancelación por interacción y ajuste de ambos extremos cuando llega geometría real. Se elimina el objetivo cinético anterior de egui al aplicar un salto programático.
+CI conserva Windows x86/x64, Ubuntu x64 y macOS ARM/Intel. El empaquetado identifica crabpdf por nombre; el inventario de terceros excluye todos los miembros locales mediante workspace_members. La protección de publicación incluye crates y assets y rechaza fuentes diferentes del tag.
 
-El visor mantiene barras flotantes sin degradado y sin reserva variable de ancho. La vista previa coincide en documento, página, giro y colores, prefiriendo la revisión más reciente hasta la actual. Los mosaicos de una revisión anterior sólo se dibujan si coinciden en geometría y no cubren una vista previa más nueva. La navegación a un destino frío espera como máximo 200 ms y la precarga vecina sigue dentro de los presupuestos existentes. Los avisos de éxito flotan sin alterar el viewport. `reduce_motion` es una preferencia TOML con valor por defecto compatible. [Regresiones y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
-
-## Ventana y documento en 0.3.6
-
-`ReaderApp::sync_fullscreen` centraliza F11, Escape, presentación y arranque CLI. En Windows retira temporalmente el estado maximizado antes de entrar, para evitar que `WM_NCCALCSIZE` limite el cliente al área de trabajo del monitor. Reaplica decoraciones tras el cambio para actualizar la sombra del marco sin decorar y restaura el estado maximizado al salir. No introduce FFI en el lector.
-
-`Preferences::favorites_for` filtra por ruta de origen y ordena por página; quitar una entrada usa ruta y página. El almacén TOML conserva su formato y los favoritos de otros libros. El panel navega directamente en la pestaña activa. `ui/chrome.rs` sigue el ID estable de la pestaña durante el arrastre y ejecuta `DuplicateWindow` al soltar fuera. `platform` transfiere la vista y el ancla normalizada por argumentos estructurados a otro proceso, conservando la pestaña original.
-
-`ui/key_scroll.rs` integra el desplazamiento vertical en cada fotograma con un destino suave; las repeticiones del teclado no reinician una animación. Respeta los campos de texto, foco, cancelación, límites y reducción de movimiento. El hit test recorre una vez cada carácter hasta encontrar texto bajo el cursor y `selection_geometry` reutiliza la geometría mientras no cambia el rango. [Correcciones y evidencia](INTERACTION_FIXES.md).
+Separar paquetes no acredita por sí mismo más velocidad ni paridad V1. Las mediciones y sus límites se registran en PHASE_6. La 1.0 conserva las condiciones de [V1_PLAN.md](V1_PLAN.md); los plugins Rust/Wasm siguen fuera de esta migración.

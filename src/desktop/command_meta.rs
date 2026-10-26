@@ -1,166 +1,12 @@
-/// Shared command vocabulary for menus, shortcuts, context menus and the palette.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Action {
-    Open,
-    Home,
-    Close,
-    CloseOthers,
-    CloseAll,
-    CloseLeft,
-    CloseRight,
-    Reopen,
-    SaveAs,
-    Reload,
-    NewWindow,
-    DuplicateWindow,
-    DuplicateTab,
-    CopyPath,
-    Exit,
-    Properties,
-    Reveal,
-    Previous,
-    Next,
-    First,
-    Last,
-    GoTo,
-    Back,
-    Forward,
-    ScrollUp,
-    ScrollDown,
-    ScrollLeft,
-    ScrollRight,
-    ScrollUpPage,
-    ScrollDownPage,
-    ScrollLeftPage,
-    ScrollRightPage,
-    ScrollUpHalf,
-    ScrollDownHalf,
-    ZoomIn,
-    ZoomOut,
-    ActualSize,
-    FitWidth,
-    FitHeight,
-    FitPage,
-    CustomZoom,
-    RotateLeft,
-    RotateRight,
-    Single,
-    Facing,
-    Book,
-    Continuous,
-    VerticalReading,
-    Manga,
-    Find,
-    FindNext,
-    FindPrevious,
-    Copy,
-    SelectAll,
-    Highlight,
-    Underline,
-    UndoMarkup,
-    ToggleSidebar,
-    Thumbnails,
-    Outline,
-    Favorites,
-    ToggleFavorite,
-    Theme,
-    Invert,
-    Grayscale,
-    Fullscreen,
-    Maximize,
-    Presentation,
-    Toolbar,
-    MenuBar,
-    Palette,
-    Settings,
-    NextTab,
-    PreviousTab,
-    MoveTabLeft,
-    MoveTabRight,
-    ClearHistory,
-}
+use crabpdf_application::commands::Action;
 
-impl Action {
-    pub const ALL: &'static [Self] = &[
-        Self::Open,
-        Self::Home,
-        Self::Close,
-        Self::CloseOthers,
-        Self::CloseAll,
-        Self::CloseLeft,
-        Self::CloseRight,
-        Self::Reopen,
-        Self::SaveAs,
-        Self::Reload,
-        Self::NewWindow,
-        Self::DuplicateWindow,
-        Self::DuplicateTab,
-        Self::CopyPath,
-        Self::Exit,
-        Self::Properties,
-        Self::Reveal,
-        Self::Previous,
-        Self::Next,
-        Self::First,
-        Self::Last,
-        Self::GoTo,
-        Self::Back,
-        Self::Forward,
-        Self::ScrollUp,
-        Self::ScrollDown,
-        Self::ScrollLeft,
-        Self::ScrollRight,
-        Self::ScrollUpPage,
-        Self::ScrollDownPage,
-        Self::ScrollLeftPage,
-        Self::ScrollRightPage,
-        Self::ScrollUpHalf,
-        Self::ScrollDownHalf,
-        Self::ZoomIn,
-        Self::ZoomOut,
-        Self::ActualSize,
-        Self::FitWidth,
-        Self::FitHeight,
-        Self::FitPage,
-        Self::CustomZoom,
-        Self::RotateLeft,
-        Self::RotateRight,
-        Self::Single,
-        Self::Facing,
-        Self::Book,
-        Self::Continuous,
-        Self::VerticalReading,
-        Self::Manga,
-        Self::Find,
-        Self::FindNext,
-        Self::FindPrevious,
-        Self::Copy,
-        Self::SelectAll,
-        Self::Highlight,
-        Self::Underline,
-        Self::UndoMarkup,
-        Self::ToggleSidebar,
-        Self::Thumbnails,
-        Self::Outline,
-        Self::Favorites,
-        Self::ToggleFavorite,
-        Self::Theme,
-        Self::Invert,
-        Self::Grayscale,
-        Self::Fullscreen,
-        Self::Maximize,
-        Self::Presentation,
-        Self::Toolbar,
-        Self::MenuBar,
-        Self::Palette,
-        Self::Settings,
-        Self::NextTab,
-        Self::PreviousTab,
-        Self::MoveTabLeft,
-        Self::MoveTabRight,
-        Self::ClearHistory,
-    ];
-    pub fn label(self) -> &'static str {
+/// Localized labels and platform shortcuts belong to the desktop.
+pub trait ActionMetadata {
+    fn label(self) -> &'static str;
+    fn shortcut(self) -> Option<&'static str>;
+}
+impl ActionMetadata for Action {
+    fn label(self) -> &'static str {
         match self {
             Self::Open => "Abrir documento",
             Self::Home => "Ir a Inicio / biblioteca",
@@ -241,33 +87,7 @@ impl Action {
             Self::ClearHistory => "Borrar documentos recientes",
         }
     }
-    pub fn needs_document(self) -> bool {
-        !matches!(
-            self,
-            Self::Open
-                | Self::Home
-                | Self::NewWindow
-                | Self::Reopen
-                | Self::Exit
-                | Self::NextTab
-                | Self::PreviousTab
-                | Self::MoveTabLeft
-                | Self::MoveTabRight
-                | Self::Theme
-                | Self::ToggleSidebar
-                | Self::Thumbnails
-                | Self::Outline
-                | Self::Favorites
-                | Self::Fullscreen
-                | Self::Maximize
-                | Self::Toolbar
-                | Self::MenuBar
-                | Self::Palette
-                | Self::Settings
-                | Self::ClearHistory
-        )
-    }
-    pub fn shortcut(self) -> Option<&'static str> {
+    fn shortcut(self) -> Option<&'static str> {
         Some(match self {
             Self::Open => "Ctrl/⌘ + O",
             Self::Home => "Ctrl/⌘ + Mayús + H",

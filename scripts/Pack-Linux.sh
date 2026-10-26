@@ -9,7 +9,9 @@ native="$root/native/linux-x64"
 bundle="$native/pdfium-7881-linux-x64"
 format_tools="$native/format-tools"
 licenses="$root/artifacts/linux-rust-licenses"
-output="$root/artifacts/packages"
+output="${1:-$root/artifacts/packages}"
+output="$(realpath -m -- "$output")"
+case "$output" in "$root"/*) ;; *) echo 'La salida debe quedar dentro del proyecto.' >&2; exit 1 ;; esac
 
 for command in readelf dpkg-deb sha256sum tar; do
     command -v "$command" >/dev/null || { echo "Falta $command" >&2; exit 1; }
@@ -57,7 +59,7 @@ cp "$binary" "$app/crabpdf"
 chmod 755 "$app/crabpdf"
 cp "$native/libpdfium.so" "$app/libpdfium.so"
 cp "$root/LICENSE" "$app/LICENSE"
-cp "$root/crabpdf-logo.svg" "$app/crabpdf-logo.svg"
+cp "$root/assets/crabpdf-logo.svg" "$app/crabpdf-logo.svg"
 cp "$root/docs/THIRD_PARTY_NOTICES.md" "$app/THIRD_PARTY_NOTICES.md"
 cp "$root/docs/dependencies.csv" "$app/dependencies.csv"
 cp "$root/docs/FORMATS_AND_ANNOTATIONS.md" "$app/FORMATS_AND_ANNOTATIONS.md"
@@ -102,7 +104,7 @@ cat > "$deb/usr/bin/crabpdf" <<'EOF'
 exec /opt/crabpdf/crabpdf "$@"
 EOF
 chmod 755 "$deb/usr/bin/crabpdf"
-cp "$root/crabpdf-logo.svg" "$deb/usr/share/icons/hicolor/scalable/apps/crabpdf.svg"
+cp "$root/assets/crabpdf-logo.svg" "$deb/usr/share/icons/hicolor/scalable/apps/crabpdf.svg"
 cat > "$deb/usr/share/applications/crabpdf.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application

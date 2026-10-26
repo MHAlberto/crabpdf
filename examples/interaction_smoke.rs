@@ -326,11 +326,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     hit_benchmark(&output);
     let source = output.join(format!("reading-{}.pdf", std::process::id()));
     std::fs::copy(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/reading-sample.pdf"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/reading-sample.pdf"),
         &source,
     )?;
     let config = output.join("preferences.toml");
-    crabpdf::config::Preferences::default().save(&config)?;
+    crabpdf::config::ProfileStore::save(&crabpdf::config::Preferences::default(), &config)?;
     let outcome = Arc::new(Mutex::new(None));
     let result = Arc::clone(&outcome);
     eframe::run_native(

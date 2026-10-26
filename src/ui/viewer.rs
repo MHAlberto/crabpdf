@@ -1,6 +1,6 @@
 use super::{Action, ReaderApp, theme};
-use crate::document::{Bounds, LinkTarget, PageContent, PageSize};
-use crate::layout::{LayoutSpec, PageLayout, visible_tiles};
+use crabpdf_core::document::{Bounds, LinkTarget, PageContent, PageSize};
+use crabpdf_core::layout::{LayoutSpec, PageLayout, visible_tiles};
 use eframe::egui::{self, Color32, Rect, Vec2, emath::GuiRounding};
 use std::sync::Arc;
 
@@ -57,7 +57,7 @@ impl ReaderApp {
                 })
                 .is_some();
             if !found {
-                self.need_page(crate::document::RenderKey {
+                self.need_page(crabpdf_core::document::RenderKey {
                     page,
                     bitmap_side_limit: key.bitmap_side_limit.min(768),
                     region: None,
@@ -372,7 +372,7 @@ impl ReaderApp {
                 let (cell_width, cell_height) = spec.cell_size();
                 let vertical_only = matches!(
                     spec.zoom,
-                    crate::document::Zoom::FitWidth | crate::document::Zoom::FitPage
+                    crabpdf_core::document::Zoom::FitWidth | crabpdf_core::document::Zoom::FitPage
                 );
                 let area = if vertical_only {
                     egui::ScrollArea::vertical()
@@ -416,7 +416,7 @@ impl ReaderApp {
                             };
                             // A bounded full-page preview is prepared for both neighbors.
                             // It stays visible while sharper tiles are still arriving.
-                            let preview_key = crate::document::RenderKey {
+                            let preview_key = crabpdf_core::document::RenderKey {
                                 bitmap_side_limit: key.bitmap_side_limit.min(768),
                                 region: None,
                                 ..key
@@ -474,7 +474,7 @@ impl ReaderApp {
                                 .collect();
                             }
                             for region in regions {
-                                let key = crate::document::RenderKey { region, ..key };
+                                let key = crabpdf_core::document::RenderKey { region, ..key };
                                 displayed_keys.push(key);
                                 if let Some(display) = self.need_page(key).or_else(|| {
                                     super::raster::stale_tile(
@@ -573,7 +573,7 @@ impl ReaderApp {
                                 density,
                                 texture_limit,
                             ) {
-                                self.prefetch_page(crate::document::RenderKey {
+                                self.prefetch_page(crabpdf_core::document::RenderKey {
                                     bitmap_side_limit: key.bitmap_side_limit.min(768),
                                     region: None,
                                     ..key

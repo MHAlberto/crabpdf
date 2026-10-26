@@ -161,7 +161,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::env::consts::ARCH
         ))
         .into_os_string(),
-        root.join("examples/tall-sample.pdf").into_os_string(),
+        root.join("tests/fixtures/tall-sample.pdf").into_os_string(),
     ];
     let Invocation::Run(launch) = cli::parse(args)? else {
         return Err("Arranque inválido".into());

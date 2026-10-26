@@ -1,7 +1,8 @@
 use super::{Action, ReaderApp, Sidebar, icons, theme};
-use crate::application::favorites::FavoriteAction;
-use crate::document::{ErrorKind, Zoom};
-use crate::layout::LayoutMode;
+use crate::desktop::command_meta::ActionMetadata;
+use crabpdf_application::favorites::FavoriteAction;
+use crabpdf_core::document::{ErrorKind, Zoom};
+use crabpdf_core::layout::LayoutMode;
 use eframe::egui::{self, Align, Layout, RichText};
 use icons::Icon;
 

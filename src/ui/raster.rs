@@ -40,7 +40,7 @@ pub(super) fn stale_tile<V>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::document::{PageColors, RasterRegion, Zoom};
+    use crabpdf_core::document::{PageColors, RasterRegion, Zoom};
     fn key() -> RenderKey {
         RenderKey {
             document_id: 7,

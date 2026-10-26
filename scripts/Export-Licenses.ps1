@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 $json = & cargo metadata --locked --offline --format-version 1
 if ($LASTEXITCODE -ne 0) { throw 'No se pudo leer cargo metadata. Ejecuta cargo fetch primero.' }
 $metadata = $json | ConvertFrom-Json
-$packages = $metadata.packages | Where-Object { $_.name -ne 'crabpdf' } | Sort-Object name, version
+$packages = $metadata.packages | Where-Object { $_.id -notin $metadata.workspace_members } | Sort-Object name, version
 $parent = Split-Path -Parent $Destination
 if ($parent) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
 $packages | Select-Object name, version, license, repository |

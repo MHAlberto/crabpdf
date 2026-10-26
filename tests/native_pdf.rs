@@ -8,7 +8,7 @@ use std::time::Duration;
 
 fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("examples")
+        .join("tests/fixtures")
         .join(name)
 }
 

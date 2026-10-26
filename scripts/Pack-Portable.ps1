@@ -16,7 +16,7 @@ if (-not $destinationPath.StartsWith($workspace + [IO.Path]::DirectorySeparatorC
 Push-Location -LiteralPath $workspace
 try {
     if (-not $SkipBuild) {
-        & cargo build --locked --offline --release --target $target
+        & cargo build --locked --offline --release -p crabpdf --bin crabpdf --target $target
         if ($LASTEXITCODE -ne 0) { throw 'Fallo de compilacion.' }
     }
     $exe = Join-Path $workspace "target/$target/release/crabpdf.exe"

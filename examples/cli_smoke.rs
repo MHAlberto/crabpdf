@@ -72,8 +72,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "90".into(),
         "--config".into(),
         config.into_os_string(),
-        root.join("examples/reading-sample.pdf").into_os_string(),
-        root.join("examples/features-sample.pdf").into_os_string(),
+        root.join("tests/fixtures/reading-sample.pdf")
+            .into_os_string(),
+        root.join("tests/fixtures/features-sample.pdf")
+            .into_os_string(),
     ];
     let Invocation::Run(launch) = cli::parse(args)? else {
         return Err("Se esperaba un arranque CLI".into());

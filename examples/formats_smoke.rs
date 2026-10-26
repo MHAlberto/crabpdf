@@ -259,7 +259,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir(&run)?;
     let source = run.join("lectura.pdf");
     std::fs::copy(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/reading-sample.pdf"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/reading-sample.pdf"),
         &source,
     )?;
     let ebook = run.join("libro.epub");

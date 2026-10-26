@@ -1,4 +1,5 @@
 use super::{Action, ReaderApp, icons, theme};
+use crate::desktop::command_meta::ActionMetadata;
 use eframe::egui::{self, Align, Layout, Rect, Sense, Vec2};
 
 impl ReaderApp {

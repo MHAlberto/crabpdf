@@ -158,11 +158,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
         std::fs::create_dir_all(&output)?;
         let output = output.canonicalize()?;
-        Preferences {
-            restore_session: true,
-            ..Preferences::default()
-        }
-        .save(&output.join("preferences.toml"))?;
+        crabpdf::config::ProfileStore::save(
+            &Preferences {
+                restore_session: true,
+                ..Preferences::default()
+            },
+            &output.join("preferences.toml"),
+        )?;
         for stage in ["write", "read", "cli"] {
             let status = std::process::Command::new(std::env::current_exe()?)
                 .arg("--stage")
@@ -173,7 +175,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err(format!("Falló lectura persistente: {stage}").into());
             }
             if stage == "write" {
-                let prefs = Preferences::load(&output.join("preferences.toml"))?;
+                let prefs = crabpdf::config::ProfileStore::load(&output.join("preferences.toml"))?;
                 if !prefs
                     .session
                     .first()
@@ -198,7 +200,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
     if stage == "write" {
-        launch.files.push(root.join("examples/tall-sample.pdf"));
+        launch
+            .files
+            .push(root.join("tests/fixtures/tall-sample.pdf"));
         launch.view.search = Some("reader".into());
     }
     if stage == "cli" {
@@ -209,7 +213,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "1".into(),
             "--zoom".into(),
             "fit-page".into(),
-            root.join("examples/tall-sample.pdf").into_os_string(),
+            root.join("tests/fixtures/tall-sample.pdf").into_os_string(),
         ])?
         else {
             return Err("CLI inesperada".into());

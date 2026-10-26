@@ -44,3 +44,7 @@ La [evidencia local](evidence/a03b-windows-validation.json) registra fuentes, bi
 A03b queda implementado dentro del paquete actual. A03 completo sigue abierto. A03c separará la coordinación de importación y sus adaptadores de procesos/caché; después se extraerán almacenamiento y adaptación PDFium antes de A04/A05.
 
 Permanecen pendientes la equidad bajo carga continua, el ciclo de vida completo del hilo nativo, mediciones comparables de A00 y evidencia gráfica Linux/macOS. Los paquetes Linux no se rediseñaron en esta entrega. La paridad SumatraPDF y la versión 1.0 conservan los criterios del backlog.
+
+## Continuación
+
+[A03c–A07 y workspace](PHASE_6.md) registra la extracción posterior. Las rutas `src/worker.rs` y `src/worker/scheduler.rs` de esta fase histórica corresponden ahora a `crates/runtime/src/worker/`.

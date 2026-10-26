@@ -29,7 +29,7 @@ fn isolated_file(name: &str) -> PathBuf {
     ));
     std::fs::create_dir_all(&directory).unwrap();
     let output = directory.join(name);
-    std::fs::copy(root().join("examples/geometry-sample.pdf"), &output).unwrap();
+    std::fs::copy(root().join("tests/fixtures/geometry-sample.pdf"), &output).unwrap();
     output
 }
 

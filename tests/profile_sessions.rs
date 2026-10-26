@@ -1,4 +1,4 @@
-use crabpdf::config::{Favorite, Preferences};
+use crabpdf::config::Favorite;
 use std::path::PathBuf;
 
 #[test]
@@ -15,7 +15,7 @@ fn a_second_process_cannot_erase_the_first_windows_favorite() {
         ));
     std::fs::create_dir_all(&directory).unwrap();
     let config = directory.join("preferences.toml");
-    let base = Preferences::load(&config).unwrap();
+    let base = crabpdf::config::ProfileStore::load(&config).unwrap();
     let mut first = base.clone();
     first.favorites.push(Favorite {
         path: PathBuf::from("first.pdf"),
@@ -30,8 +30,8 @@ fn a_second_process_cannot_erase_the_first_windows_favorite() {
         .unwrap();
     assert!(status.success());
     // The first process still has the snapshot loaded before the helper wrote to disk.
-    first.save_merged(&config, &base).unwrap();
-    let latest = Preferences::load(&config).unwrap();
+    crabpdf::config::ProfileStore::save_merged(&first, &config, &base).unwrap();
+    let latest = crabpdf::config::ProfileStore::load(&config).unwrap();
     assert_eq!(latest.favorites.len(), 2);
     assert!(
         latest
@@ -54,12 +54,12 @@ fn helper_writes_a_favorite() {
         return;
     };
     let path = PathBuf::from(path);
-    let base = Preferences::load(&path).unwrap();
+    let base = crabpdf::config::ProfileStore::load(&path).unwrap();
     let mut second = base.clone();
     second.favorites.push(Favorite {
         path: PathBuf::from("second.pdf"),
         page: 2,
         label: "Segunda ventana".into(),
     });
-    second.save_merged(&path, &base).unwrap();
+    crabpdf::config::ProfileStore::save_merged(&second, &path, &base).unwrap();
 }

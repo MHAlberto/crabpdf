@@ -190,5 +190,106 @@
                    "ubuntu_installed_files":  408,
                    "clippy_x64":  "passed",
                    "windows_x64_unit":  48
-               }
+               },
+    "release":  {
+                    "tag":  "v0.4.0",
+                    "prerelease":  true,
+                    "published_assets":  [
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-format-tools-sources.zip",
+                                                 "name":  "crabpdf-0.4.0-format-tools-sources.zip",
+                                                 "bytes":  82302008,
+                                                 "digest":  "sha256:d2887978c1cbd8b1d44b05fe40a6c2025cca70b78f12e6eb9a0169e88b5532c1"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-linux-x64.tar.gz",
+                                                 "name":  "crabpdf-0.4.0-linux-x64.tar.gz",
+                                                 "bytes":  40618728,
+                                                 "digest":  "sha256:a1d0ba79551ddd54d0cc131b70c85326fbb39ed4cad4b1041d0df395da5b07ed"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                                                 "name":  "crabpdf-0.4.0-ubuntu24.04-amd64.deb",
+                                                 "bytes":  30637504,
+                                                 "digest":  "sha256:4c95a58a2d61befd297b07ebd7de8adfb1b9423dbcbba27ccdd50bb83b32c7af"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64-setup.exe",
+                                                 "name":  "crabpdf-0.4.0-win-x64-setup.exe",
+                                                 "bytes":  31921766,
+                                                 "digest":  "sha256:e1a51f45fa07fdb277f8cbffd74a73eba2035e6e1bf924897ef9d11bc25292d2"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64-setup.exe.json",
+                                                 "name":  "crabpdf-0.4.0-win-x64-setup.exe.json",
+                                                 "bytes":  653,
+                                                 "digest":  "sha256:76c3ed7b363e3810e5c3ac7b29267799c46260faad35e252235e741ad1dc741f"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64.zip",
+                                                 "name":  "crabpdf-0.4.0-win-x64.zip",
+                                                 "bytes":  43604106,
+                                                 "digest":  "sha256:6e6667690f204ea14ed2a1a689f2120ef6530c42cd93f30fe9e03f408b891278"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86-setup.exe",
+                                                 "name":  "crabpdf-0.4.0-win-x86-setup.exe",
+                                                 "bytes":  31703907,
+                                                 "digest":  "sha256:562c1b262e561d7c0f44a58a155b82a681ad2747631abdc4ca52c7bce8eb723e"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86-setup.exe.json",
+                                                 "name":  "crabpdf-0.4.0-win-x86-setup.exe.json",
+                                                 "bytes":  651,
+                                                 "digest":  "sha256:002f3c091657e93f54e1e50f756cd1e818db787bfb77546846c45079f9f65803"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86.zip",
+                                                 "name":  "crabpdf-0.4.0-win-x86.zip",
+                                                 "bytes":  43267071,
+                                                 "digest":  "sha256:25413d4c0eef2b5414c4d1d55d7499b997487d4b2b436096a56cab736037f00d"
+                                             },
+                                             {
+                                                 "download":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/SHA256SUMS-v0.4.0.txt",
+                                                 "name":  "SHA256SUMS-v0.4.0.txt",
+                                                 "bytes":  899,
+                                                 "digest":  "sha256:16afd9793df8c8712ba1fb790921dce9cc6fd4ded42a3c8d3d81fa99ea0d7a73"
+                                             }
+                                         ],
+                    "commit":  "e17c06d10e3a8ead483e6643d28b571b56a273f0",
+                    "url":  "https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0",
+                    "draft":  false
+                },
+    "ci_final":  {
+                     "conclusion":  "success",
+                     "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542",
+                     "commit":  "e17c06d10e3a8ead483e6643d28b571b56a273f0",
+                     "jobs":  [
+                                  {
+                                      "conclusion":  "success",
+                                      "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542/job/121789064739",
+                                      "name":  "build (windows-2022, win, x86, i686-pc-windows-msvc)"
+                                  },
+                                  {
+                                      "conclusion":  "success",
+                                      "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542/job/121789065071",
+                                      "name":  "build (macos-15, mac, arm64, aarch64-apple-darwin)"
+                                  },
+                                  {
+                                      "conclusion":  "success",
+                                      "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542/job/121789065082",
+                                      "name":  "build (macos-15-intel, mac, x64, x86_64-apple-darwin)"
+                                  },
+                                  {
+                                      "conclusion":  "success",
+                                      "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542/job/121789065142",
+                                      "name":  "build (windows-2022, win, x64, x86_64-pc-windows-msvc)"
+                                  },
+                                  {
+                                      "conclusion":  "success",
+                                      "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40384498542/job/121789065309",
+                                      "name":  "build (ubuntu-24.04, linux, x64, x86_64-unknown-linux-gnu)"
+                                  }
+                              ]
+                 }
 }

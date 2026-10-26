@@ -6,7 +6,11 @@ El icono nativo procede de `crabpdf-logo.svg`, con fondo transparente. `build.rs
 
 La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.0 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
-Descargas de Windows y Ubuntu/Linux: [publicaciones de CrabPDF en GitHub](https://github.com/MHAlberto/crabpdf/releases).
+Descarga [CrabPDF 0.4.0](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0):
+
+- Windows: [instalador x64](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64-setup.exe) · [instalador x86](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86-setup.exe).
+- Linux: [Ubuntu 24.04 DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-ubuntu24.04-amd64.deb) · [Linux x64 TAR](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-linux-x64.tar.gz).
+- Portables, fuentes y SHA-256: [todos los archivos de la entrega](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0).
 
 La entrega [0.4.0](docs/RELEASE_0_4_0.md) reúne la migración modular, las mejoras de lectura y los instaladores Windows. [Notas de la versión](docs/releases/v0.4.0.md).
 
@@ -93,7 +97,7 @@ sudo apt-get install build-essential pkg-config libx11-dev libxi-dev libxrandr-d
 cargo build --locked --release
 ```
 
-`scripts/Build-LinuxFormatTools.sh` compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `scripts/Pack-Linux.sh` comprueba arquitectura y hashes de PDFium y los conversores y construye el tar y el `.deb` a partir de `artifacts/crabpdf-linux-x64`. Necesita `binutils` y los textos Rust generados con `python3 scripts/Export-RustLicenses.py`. [Evidencia de esta revisión](docs/IMPLEMENTATION_PROGRESS_0_3_4.md) y [primera entrega Linux](docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
+`scripts/Build-LinuxFormatTools.sh` compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `scripts/Pack-Linux.sh` comprueba arquitectura y hashes de PDFium y los conversores y construye el tar y el `.deb` a partir de `artifacts/crabpdf-linux-x64`. Necesita `binutils` y los textos Rust generados con `python3 scripts/Export-RustLicenses.py`. [Validación de 0.4.0](docs/RELEASE_0_4_0.md) y [primera entrega Linux](docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md).
 
 ## macOS
 

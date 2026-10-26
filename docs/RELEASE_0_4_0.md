@@ -31,7 +31,8 @@ Resultados locales y de la CI del candidato, registrados en [v0.4.0-validation.j
 - Debian Bookworm: compilación optimizada Linux con Rust 1.96.0. TAR y DEB: 408 hashes internos comprobados por paquete.
 - Ubuntu 24.04: instalación del DEB, versión 0.4.0, 408 archivos instalados verificados, ocho pruebas PDF y siete de formatos/marcas con los conversores empaquetados.
 - Interfaz real con entrada simulada: 32 capturas Windows y 68 Ubuntu durante selección, resaltado, subrayado, deshacer, desplazamiento y apertura de formatos. Además se inició el ejecutable instalado en Ubuntu y se capturó su ventana.
-- La [CI del código candidato 5165a09](https://github.com/MHAlberto/crabpdf/actions/runs/40363886061) aprobó Windows x64/x86, Ubuntu x64 y macOS Intel/ARM. El publicador exige además una ejecución completa aprobada para la revisión etiquetada.
+- La [CI final de e17c06d](https://github.com/MHAlberto/crabpdf/actions/runs/40384498542) aprobó Windows x64/x86, Ubuntu x64 y macOS Intel/ARM, incluidos los instaladores de ambas arquitecturas Windows.
+- Se publicó [v0.4.0](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0) y se comprobaron los diez archivos públicos contra su tamaño y SHA-256 locales.
 
 Se revisaron las capturas de lectura del DEB instalado y de resaltado Windows. Los recorridos Ubuntu usan Xvfb, Mesa por software y Openbox para la ventana instalada. No equivalen a escritorios físicos ni a pruebas en Wayland. La revisión interactiva de las páginas/DPI del asistente sigue pendiente.
 

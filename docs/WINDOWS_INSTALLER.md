@@ -1,6 +1,6 @@
 # Instalador de Windows
 
-26 de octubre de 2026. Compilación de desarrollo 0.3.6; todavía no es 1.0.
+26 de octubre de 2026. Compilación de desarrollo 0.4.0; todavía no es 1.0.
 
 ## Experiencia e instalación
 
@@ -19,7 +19,7 @@ Preparar Rust/MSVC, PDFium y herramientas de formatos conforme al README. Despu�
 ```powershell
 ./scripts/Build-Installer.ps1 -Architecture x64
 ./scripts/Build-Installer.ps1 -Architecture x86
-./scripts/Test-Installer.ps1 -Architecture x64 -Installer artifacts/packages/crabpdf-0.3.6-win-x64-setup.exe
+./scripts/Test-Installer.ps1 -Architecture x64 -Installer artifacts/packages/crabpdf-0.4.0-win-x64-setup.exe
 ./scripts/Verify-Portable.ps1
 ```
 
@@ -46,15 +46,15 @@ Según [Microsoft](https://learn.microsoft.com/en-us/windows/apps/package-and-de
 
 ## Evidencia local
 
-Los instaladores de esta revisión están en `artifacts/installer-a03b/packages/`:
+Los instaladores de esta revisión están en `artifacts/packages/`:
 
 | Arquitectura | Bytes del EXE instalador | Estado |
 | --- | ---: | --- |
-| x64 | 31 932 295 | NotSigned |
-| x86 | 31 706 931 | NotSigned |
+| x64 | 31 921 766 | NotSigned |
+| x86 | 31 703 907 | NotSigned |
 
 Ambos aprobaron instalación silenciosa en una ruta con espacios, 609 archivos instalados verificados por manifiesto, actualización en sitio, rechazo de carpeta ajena y ejecutable bloqueado, desinstalación, limpieza del registro y conservación de un archivo ajeno. Los 610 archivos del payload incluyen el propio manifiesto y los dos avisos de NSIS; el desinstalador y el identificador de instalación se generan al instalar. Los ZIP se comprobaron separadamente.
 
 Se revisó el bitmap con el logo. La revisión interactiva de las páginas, idiomas, DPI y accesos opcionales sigue pendiente: la sesión no expone `node_repl` para la habilidad de control de ventanas. La prueba silenciosa no se presenta como inspección visual del asistente. Windows 11, Windows de 32 bits nativo y antivirus independientes también requieren su propia evidencia.
 
-El [informe versionado](architecture/evidence/a03b-windows-validation.json) contiene hashes y límites. No se sustituyó la publicación pública 0.3.6.
+La entrega [0.4.0](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0) está publicada con hashes y [validación de cierre](releases/v0.4.0-validation.json). La actualización real de 0.3.6 a 0.4.0 también fue comprobada. El [informe inicial A03b](architecture/evidence/a03b-windows-validation.json) conserva la evidencia de la introducción del instalador.

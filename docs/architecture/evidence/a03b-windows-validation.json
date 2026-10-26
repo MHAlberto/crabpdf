@@ -108,7 +108,11 @@
                    ],
     "date":  "2026-10-26",
     "ci":  {
-               "installer_notice_followup":  "pending push",
+               "installer_notice_followup":  {
+                                                 "status":  "queued at observation",
+                                                 "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40359752465",
+                                                 "commit":  "9c66d25"
+                                             },
                "status":  "in_progress",
                "url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40358457030",
                "jobs":  [

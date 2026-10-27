@@ -74,6 +74,7 @@ try {
 CrabPDF $version - Windows $Architecture
 Ejecutar crabpdf.exe. Conservar pdfium.dll y la carpeta format-tools.
 F11: pantalla completa sin barras; mover el puntero al borde superior muestra controles.
+F6: invertir/restaurar colores del documento (tambien Mayus+I). No modifica el archivo.
 F11 o Escape: salir. F12: panel lateral. Flechas izquierda/derecha: paginas o desplazar con zoom.
 PDF, EPUB, Kindle sin DRM, FB2, XPS, DjVu, CHM, comics e imagenes comunes.
 Seleccionar palabras con doble clic o arrastrando. Marcas: resaltar, subrayar y elegir color.

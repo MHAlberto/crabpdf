@@ -57,6 +57,11 @@ fn consume_reader_key(ctx: &egui::Context, modifiers: egui::Modifiers, key: egui
         exact && input.consume_key(modifiers, key)
     })
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum WindowTitleIdentity {
+    Home,
+    Document(DocumentId),
+}
 pub struct ReaderApp {
     tabs: Vec<Tab>,
     active: usize,
@@ -106,7 +111,11 @@ pub struct ReaderApp {
     settings_open: bool,
     notice: Option<String>,
     notice_started: Option<(String, Instant)>,
-    last_title: String,
+    last_title: Option<WindowTitleIdentity>,
+    #[cfg(test)]
+    titlebar_drag_rect: Option<egui::Rect>,
+    #[cfg(test)]
+    titlebar_control_rects: Vec<egui::Rect>,
     entrance: motion::Entrance,
     markup_button: Option<egui::Rect>,
     tab_drag: Option<u64>,
@@ -289,7 +298,11 @@ impl ReaderApp {
             tab_buttons: Vec::new(),
             favorite_buttons: Vec::new(),
             favorite_toggle: None,
-            last_title: String::new(),
+            last_title: None,
+            #[cfg(test)]
+            titlebar_drag_rect: None,
+            #[cfg(test)]
+            titlebar_control_rects: Vec::new(),
         };
         for saved in session.into_iter().take(64) {
             app.open_document(saved.path.clone(), Some(saved));
@@ -521,19 +534,30 @@ impl eframe::App for ReaderApp {
                 ctx.request_repaint_after(due.saturating_duration_since(Instant::now()));
             }
         }
-        let title = self.state().document.as_ref().map_or_else(
-            || crate::branding::NAME.into(),
-            |d| format!("{} · {}", d.info.file_name(), crate::branding::NAME),
-        );
-        if title != self.last_title {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
-            self.last_title = title;
+        let identity = self
+            .state()
+            .document
+            .as_ref()
+            .map_or(WindowTitleIdentity::Home, |document| {
+                WindowTitleIdentity::Document(document.id)
+            });
+        if self.last_title != Some(identity) {
+            let title = self.state().document.as_ref().map_or_else(
+                || crate::branding::NAME.into(),
+                |document| format!("{} · {}", document.info.file_name(), crate::branding::NAME),
+            );
+            ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
+            self.last_title = Some(identity);
         }
     }
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.frame_keys.clear();
         self.markup_button = None;
         self.tab_buttons.clear();
+        #[cfg(test)]
+        {
+            self.titlebar_drag_rect = None;
+        }
         self.favorite_buttons.clear();
         self.favorite_toggle = None;
         let duration = if self.preferences.reduce_motion {

@@ -1,6 +1,7 @@
 //! Small persistent cover cache. File I/O and rendering run on the PDF worker.
 use crate::document::{PageColors, PageRaster, ReaderError, RenderKey, Zoom};
 use crate::engine::{PdfEngine, PdfiumEngine};
+use image::ImageEncoder;
 use pdfium_render::prelude::Pdfium;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -86,10 +87,15 @@ pub fn load_prepared(
         && std::fs::create_dir_all(parent).is_ok()
     {
         let mut png = Vec::new();
-        if let Some(image) = image::RgbaImage::from_raw(width as u32, height as u32, rgba.clone())
-            && image
-                .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
-                .is_ok()
+        // Encode the renderer's buffer directly; the cover keeps owning the same RGBA.
+        if image::codecs::png::PngEncoder::new(&mut png)
+            .write_image(
+                &rgba,
+                width as u32,
+                height as u32,
+                image::ExtendedColorType::Rgba8,
+            )
+            .is_ok()
         {
             use std::io::Write;
             let _ = crate::fileops::atomic_write(&file, |output| output.write_all(&png));

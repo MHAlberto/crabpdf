@@ -179,6 +179,11 @@ impl eframe::App for Probe {
             self.idle_calls += 1;
         }
         self.app.logic(ctx, frame);
+        // Idle timers may run logic without painting in egui 0.36. Finish the
+        // observation here as well; a new UI pass is not needed to write the report.
+        if self.phase == 9 && self.began.elapsed() >= Duration::from_secs(4) {
+            self.step(ctx);
+        }
         if let Some(error) = &self.app.state().error {
             self.finish(ctx, Err(error.to_string()));
         }

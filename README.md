@@ -156,6 +156,7 @@ También se aceptan `-page`, `-zoom`, `-view`, `-search`, `-fullscreen` y `-pres
 | Una / enfrentadas / libro | Ctrl+6 / Ctrl+7 / Ctrl+8 |
 | Pestañas / reabrir | Ctrl+Tab / Ctrl+Mayús+T |
 | Pantalla completa / presentación | F11 / F5 |
+| Invertir / restaurar colores del documento | F6 (también Mayús+I) |
 | Barra / menú / panel lateral | F8 / F9 / F12 |
 
 En macOS se usa ⌘ para acciones de aplicación; ⌘+G busca el siguiente resultado, ⌘+Alt+G va a página y ⌘+0 muestra tamaño real. Escape cierra los paneles flotantes y sale de pantalla completa.

@@ -1,7 +1,7 @@
 //! Exercises the actual native eframe/Glow window with isolated preferences.
 //! cargo run --example visual_smoke -- artifacts/ui
 use crabpdf::commands::Action;
-use crabpdf::document::{ErrorKind, Zoom};
+use crabpdf::document::{ErrorKind, PageColors, Zoom};
 use crabpdf::ui::ReaderApp;
 use eframe::egui;
 use std::path::PathBuf;
@@ -94,7 +94,7 @@ impl VisualSmoke {
                 self.app.execute(Action::RotateRight, ctx);
                 self.app.execute(Action::FitPage, ctx);
             }
-            12 => self.app.execute(Action::Invert, ctx),
+            12 => self.pending_keys.push(egui::Key::F6),
             13 => self.app.execute(Action::Grayscale, ctx),
             14 => self.app.execute(Action::Properties, ctx),
             15 => {
@@ -147,6 +147,7 @@ impl VisualSmoke {
                         1 | 5 => page == 0,
                         2..=4 => page == 1,
                         8 => self.app.tab_count() == 2,
+                        12 => self.app.state().colors == PageColors::Inverted,
                         22 | 23 => self.app.tab_count() == 2,
                         24 => self.app.tab_count() == 1,
                         _ => true,

@@ -62,7 +62,7 @@ Outline,"Índice del documento","",false,"Funcional: conectada al despachador; d
 Favorites,"Favoritos","",false,"Funcional: conectada al despachador; disponibilidad según contexto"
 ToggleFavorite,"Añadir o quitar favorito","",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 Theme,"Cambiar tema claro / oscuro","",false,"Funcional: conectada al despachador; disponibilidad según contexto"
-Invert,"Invertir colores del documento","",true,"Funcional: conectada al despachador; disponibilidad según contexto"
+Invert,"Invertir colores del documento","F6",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 Grayscale,"Documento en escala de grises","",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 Fullscreen,"Pantalla completa","F11",false,"Documento sin barras permanentes; controles flotantes al borde superior; restaura panel de ventana; F11 sale desde presentación"
 Maximize,"Maximizar / restaurar ventana","",false,"Funcional: conectada al despachador; disponibilidad según contexto"

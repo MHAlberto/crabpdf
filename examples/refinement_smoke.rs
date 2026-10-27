@@ -1,5 +1,9 @@
 //! Native regression of library, vertical reading, keyboard zoom and window modes.
-use crabpdf::{commands::Action, document::Zoom, ui::ReaderApp};
+use crabpdf::{
+    commands::Action,
+    document::{PageColors, Zoom},
+    ui::ReaderApp,
+};
 use eframe::egui;
 use std::{
     path::PathBuf,
@@ -195,8 +199,15 @@ impl Smoke {
             34 | 40 => {
                 self.app.execute(Action::VerticalReading, ctx);
                 self.key(egui::Key::F11);
+                if self.phase == 40 {
+                    self.key(egui::Key::F6);
+                }
             }
-            37 | 39 | 45 => self.key(egui::Key::F11),
+            37 | 39 => self.key(egui::Key::F11),
+            45 => {
+                self.key(egui::Key::F11);
+                self.key(egui::Key::F6);
+            }
             35 => self.pointer = Some(egui::pos2(ctx.viewport_rect().center().x, 1.0)),
             36 => self.pointer = Some(ctx.viewport_rect().center()),
             38 => self.key(egui::Key::F5),
@@ -334,6 +345,7 @@ impl Smoke {
                     && full_canvas
                     && self.app.screen_modes() == (true, false)
                     && self.app.fullscreen_controls_rect().is_none()
+                    && (self.phase != 40 || self.app.state().colors == PageColors::Inverted)
                     && self
                         .app
                         .current_page_viewport()
@@ -342,6 +354,7 @@ impl Smoke {
             35 => rendered && full_canvas && self.app.fullscreen_controls_rect().is_some(),
             37 | 39 | 45 => {
                 rendered
+                    && (self.phase != 45 || self.app.state().colors == PageColors::Original)
                     && self.app.screen_modes() == (false, false)
                     && !ctx.input(|i| i.viewport().fullscreen.unwrap_or(false))
                     && self.app.reading_viewport().is_some_and(|rect| {

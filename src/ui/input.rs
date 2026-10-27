@@ -307,6 +307,7 @@ impl ReaderApp {
             (egui::Modifiers::SHIFT, egui::Key::F3, Action::FindPrevious),
             (egui::Modifiers::NONE, egui::Key::F11, Action::Fullscreen),
             (egui::Modifiers::NONE, egui::Key::F5, Action::Presentation),
+            (egui::Modifiers::NONE, egui::Key::F6, Action::Invert),
             (egui::Modifiers::NONE, egui::Key::F8, Action::Toolbar),
             (egui::Modifiers::NONE, egui::Key::F9, Action::MenuBar),
             (egui::Modifiers::NONE, egui::Key::F12, Action::ToggleSidebar),

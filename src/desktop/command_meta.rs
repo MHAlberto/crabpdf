@@ -131,6 +131,7 @@ impl ActionMetadata for Action {
             Self::Underline => "Ctrl/⌘ + Mayús + U",
             Self::UndoMarkup => "Ctrl/⌘ + Z",
             Self::Palette => "Ctrl/⌘ + K",
+            Self::Invert => "F6",
             Self::Fullscreen => "F11",
             Self::Presentation => "F5",
             Self::Toolbar => "F8",

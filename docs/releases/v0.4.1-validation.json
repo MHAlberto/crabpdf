@@ -1,0 +1,432 @@
+{
+  "schema": 1,
+  "application_version": "0.4.1",
+  "recorded_local_date": "2026-10-27",
+  "base_commit": "b043142b7f088fa989ef71f03fafeb30fad7a191",
+  "source_commit": "113960d9a137264545ab29f6e553645b94aa4ad9",
+  "delivery": "Local Windows x64 executable, ZIP and EXE installer. Public v0.4.0 unchanged; this record does not assert 0.4.1 Linux/x86/macOS packaging or CI results.",
+  "source_inputs": [
+    {
+      "path": "Cargo.toml",
+      "bytes": 1165,
+      "sha256": "f76f70f7f906ad612ad6e14c659a7e228e21296a64a37b60dd79bfe16738d8d6"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 87387,
+      "sha256": "d48d1fc754c3f40822b387c1a99d228fd22ed06217bccda8895a2b77f4da986e"
+    },
+    {
+      "path": "crates/core/Cargo.toml",
+      "bytes": 214,
+      "sha256": "f9e1a00d3445a62f13308d31a52ebd0f3f32046009c7f875c6ef10a483d1edb9"
+    },
+    {
+      "path": "crates/application/Cargo.toml",
+      "bytes": 257,
+      "sha256": "0224b28a35db7e79bc198ca8fe0515a1bfe4f03962dc79cf5e3cfa4dbae213e0"
+    },
+    {
+      "path": "crates/runtime/Cargo.toml",
+      "bytes": 584,
+      "sha256": "8b3226973dacfc53638a00e655d38de6a96c82f21a50dae7192a263a37d58dfc"
+    },
+    {
+      "path": "src/ui/chrome.rs",
+      "bytes": 27642,
+      "sha256": "a013d4c3f0588595a750b48cd1279d1debc7317ac3c87b82f05021244efd4268"
+    },
+    {
+      "path": "src/ui/mod.rs",
+      "bytes": 22333,
+      "sha256": "f41f345a782bcbb4851ecbd218c2c94a1291978df825cec5002b16a16f1b438f"
+    },
+    {
+      "path": "crates/runtime/src/covers.rs",
+      "bytes": 5100,
+      "sha256": "fe1cab4506f523b1b80ab7e046c664c79fa45650bae7ff7c361b9f3813796f6b"
+    },
+    {
+      "path": "examples/performance_probe.rs",
+      "bytes": 9329,
+      "sha256": "91991629998f5c794612216bae505fc2bd5d49c458508384e492e02a2a14255b"
+    },
+    {
+      "path": "crates/runtime/examples/cache_bench.rs",
+      "bytes": 2721,
+      "sha256": "c5370f5cb7d369a925f94f60233cc55e8a3750f850e78559389ae1770ea1b81d"
+    },
+    {
+      "path": "scripts/Pack-Portable.ps1",
+      "bytes": 7873,
+      "sha256": "701a854efadcf787e33a82c5a708b7ead65c03214396be24c2d9730e2abfba40"
+    }
+  ],
+  "checks": {
+    "fmt": true,
+    "clippy_workspace_all_targets_warnings_denied": true,
+    "workspace_libraries_and_tests": {
+      "passed": 90,
+      "failed": 0,
+      "ignored": 19
+    },
+    "native_pdf_and_formats": {
+      "passed": 15,
+      "failed": 0,
+      "ignored": 0
+    },
+    "unique_tests_passed": 105,
+    "titlebar_regressions": 3,
+    "titlebar_regression_densities": [
+      1.0,
+      1.25,
+      1.5
+    ],
+    "chrome_native_ui": [
+      {
+        "style": "custom",
+        "screenshots": 26,
+        "fullscreen_client_matches_monitor": true,
+        "fullscreen_samples": 3,
+        "detached_window": {
+          "anchor": [
+            0.3082500100135803,
+            0.3720000088214874
+          ],
+          "page": 1,
+          "pid": 12028,
+          "zoom": {
+            "Percent": 125
+          }
+        }
+      },
+      {
+        "style": "native",
+        "screenshots": 26,
+        "fullscreen_client_matches_monitor": true,
+        "fullscreen_samples": 3,
+        "detached_window": {
+          "anchor": [
+            0.3022499978542328,
+            0.34860000014305115
+          ],
+          "page": 1,
+          "pid": 13508,
+          "zoom": {
+            "Percent": 125
+          }
+        }
+      }
+    ],
+    "interaction_screenshots": 16,
+    "interaction_report_sha256": "64732f974c29aeaeaa53bebe9c6db39037c35796ae2c3e8c0c91afa113f97c7a"
+  },
+  "packages": {
+    "zip": {
+      "version": "0.4.1",
+      "target": "x86_64-pc-windows-msvc",
+      "files_verified": 607,
+      "zip_bytes": 43597347,
+      "zip_sha256": "cb7d485dc5efbd13b6f4f4d34d1446816da8dd3b942930f0328255072af26ed1"
+    },
+    "installer": {
+      "installer": "crabpdf-0.4.1-win-x64-setup.exe",
+      "version": "0.4.1",
+      "payload_files": 610,
+      "compiler": "NSIS 3.12",
+      "compiler_archive_sha256": "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+      "authenticode_status": "NotSigned",
+      "architecture": "x64",
+      "signer": null,
+      "target": "x86_64-pc-windows-msvc",
+      "requires_admin": false,
+      "security_certification": false,
+      "bytes": 31909189,
+      "source_commit": "b043142b7f088fa989ef71f03fafeb30fad7a191",
+      "source_dirty": true,
+      "sha256": "72684c6d8745b5e54e9980ef9d8878efdcff4117bc37e696f17cd30361d4bc5d"
+    },
+    "installation_validation": {
+      "installation": true,
+      "gui_reviewed": false,
+      "payload_files": 609,
+      "registry_removed": true,
+      "installer_sha256": "72684c6d8745b5e54e9980ef9d8878efdcff4117bc37e696f17cd30361d4bc5d",
+      "preserves_unrelated_files": true,
+      "architecture": "x64",
+      "uninstall": true,
+      "upgrade": true,
+      "rejects_locked_executable": true,
+      "manifest_verified": true,
+      "uninstaller_authenticode": "NotSigned",
+      "rejects_unrelated_directory": true
+    },
+    "files": [
+      {
+        "path": "target/x86_64-pc-windows-msvc/release/crabpdf.exe",
+        "bytes": 11366400,
+        "sha256": "1c05e81a1e91a260a5e9c512b4dce3061ba0cabfb84d4bd74c2cd152be4df9ae"
+      },
+      {
+        "path": "artifacts/packages/crabpdf-0.4.1-win-x64.zip",
+        "bytes": 43597347,
+        "sha256": "cb7d485dc5efbd13b6f4f4d34d1446816da8dd3b942930f0328255072af26ed1"
+      },
+      {
+        "path": "artifacts/packages/crabpdf-0.4.1-win-x64-setup.exe",
+        "bytes": 31909189,
+        "sha256": "72684c6d8745b5e54e9980ef9d8878efdcff4117bc37e696f17cd30361d4bc5d"
+      },
+      {
+        "path": "artifacts/packages/crabpdf-0.4.1-format-tools-sources.zip",
+        "bytes": 82302008,
+        "sha256": "7a1f55d59a481a360d9cc89ed902ffa4f28ca1aa01d0b06b33346055cff06bdd"
+      }
+    ]
+  },
+  "size_comparison": {
+    "scope": "Windows x64 release executable only; same pinned toolchain/profile/dependency versions. Metadata version differs. Not the size of the complete distribution.",
+    "reference_bytes": 11400192,
+    "reference_sha256": "06929ad17827ae5b7120979e7db57ee69a8f05cd58c4438031fa2f7c5345eb48",
+    "current_bytes": 11366400,
+    "delta_bytes": -33792,
+    "delta_percent": -0.29641606036108864
+  },
+  "performance": {
+    "runs": 5,
+    "cpu": "Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz",
+    "os": "Microsoft Windows NT 10.0.19045.0",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "summary": [
+      {
+        "phase": "pdf_first_open",
+        "max_ms": 144.9387,
+        "min_ms": 93.5312,
+        "median_ms": 106.2322,
+        "n": 5
+      },
+      {
+        "phase": "startup_to_first_ready",
+        "max_ms": 480.25980000000004,
+        "min_ms": 386.93850000000003,
+        "median_ms": 428.20120000000003,
+        "n": 5
+      },
+      {
+        "phase": "page_next_prefetched",
+        "max_ms": 27.619600000000002,
+        "min_ms": 15.5316,
+        "median_ms": 20.0029,
+        "n": 5
+      },
+      {
+        "phase": "page_last_not_prefetched",
+        "max_ms": 75.1167,
+        "min_ms": 31.4059,
+        "median_ms": 46.466100000000004,
+        "n": 5
+      },
+      {
+        "phase": "scroll_ready_and_stable_80ms",
+        "max_ms": 382.76169999999996,
+        "min_ms": 322.56960000000004,
+        "median_ms": 350.5114,
+        "n": 5
+      },
+      {
+        "phase": "pdf_reopen_same_process",
+        "max_ms": 190.94,
+        "min_ms": 69.0099,
+        "median_ms": 81.3876,
+        "n": 5
+      },
+      {
+        "phase": "epub_first_open_empty_import_cache",
+        "max_ms": 464.4218,
+        "min_ms": 152.4272,
+        "median_ms": 316.4755,
+        "n": 5
+      }
+    ],
+    "peak_working_set_bytes": {
+      "min": 123289600,
+      "median": 124379136,
+      "max": 130424832
+    },
+    "idle_cpu_percent_one_core": [
+      3.9679914509782908,
+      0,
+      0,
+      0,
+      0
+    ],
+    "idle_observed_seconds": [
+      3.9377605,
+      3.8836057999999993,
+      3.9036402999999997,
+      3.9810760999999997,
+      3.9519951999999994
+    ],
+    "limits": "Windows observer measures only this app process. Converter CPU/RSS, GPU allocation and compositor presentation latency are not measured. Fresh per-run app/import caches; OS disk cache uncontrolled. Fixture is synthetic; not a large real-world corpus. Probe polls at 8ms outside idle; observer samples resources at 50ms. Min/median/max only; no p95 estimate.",
+    "baseline_comparison": "No equivalent pre-change latency baseline; this is a current synthetic reference only."
+  },
+  "rejected_cache_experiment": {
+    "shipped": false,
+    "reason": "Mutable scan regressed the exploratory 128-entry case; original cache implementation retained.",
+    "before": {
+      "architecture": "x86_64",
+      "rows": [
+        {
+          "entries": 8,
+          "iterations_per_sample": 40000,
+          "max_ns": 92.7475,
+          "median_ns": 91.4925,
+          "min_ns": 90.955,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 8,
+          "iterations_per_sample": 40000,
+          "max_ns": 102.3625,
+          "median_ns": 95.7675,
+          "min_ns": 94.445,
+          "n": 9,
+          "operation": "best_match"
+        },
+        {
+          "entries": 32,
+          "iterations_per_sample": 40000,
+          "max_ns": 191.64,
+          "median_ns": 154.2075,
+          "min_ns": 135.0175,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 32,
+          "iterations_per_sample": 40000,
+          "max_ns": 1248.3775,
+          "median_ns": 125.72,
+          "min_ns": 121.3725,
+          "n": 9,
+          "operation": "best_match"
+        },
+        {
+          "entries": 128,
+          "iterations_per_sample": 40000,
+          "max_ns": 265.665,
+          "median_ns": 219.545,
+          "min_ns": 212.775,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 128,
+          "iterations_per_sample": 40000,
+          "max_ns": 267.0925,
+          "median_ns": 231.95,
+          "min_ns": 228.86,
+          "n": 9,
+          "operation": "best_match"
+        }
+      ],
+      "schema": 1,
+      "scope": "CPU-only cache lookup; same-process warm data. Not PDF opening, UI latency, peak memory or a p95 estimate."
+    },
+    "candidate": {
+      "architecture": "x86_64",
+      "rows": [
+        {
+          "entries": 8,
+          "iterations_per_sample": 40000,
+          "max_ns": 33.745,
+          "median_ns": 32.045,
+          "min_ns": 31.86,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 8,
+          "iterations_per_sample": 40000,
+          "max_ns": 40.32,
+          "median_ns": 38.74,
+          "min_ns": 38.595,
+          "n": 9,
+          "operation": "best_match"
+        },
+        {
+          "entries": 32,
+          "iterations_per_sample": 40000,
+          "max_ns": 120.275,
+          "median_ns": 106.615,
+          "min_ns": 104.4125,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 32,
+          "iterations_per_sample": 40000,
+          "max_ns": 153.055,
+          "median_ns": 124.6125,
+          "min_ns": 118.3425,
+          "n": 9,
+          "operation": "best_match"
+        },
+        {
+          "entries": 128,
+          "iterations_per_sample": 40000,
+          "max_ns": 441.1725,
+          "median_ns": 424.005,
+          "min_ns": 410.2375,
+          "n": 9,
+          "operation": "most_recent"
+        },
+        {
+          "entries": 128,
+          "iterations_per_sample": 40000,
+          "max_ns": 488.32,
+          "median_ns": 475.705,
+          "min_ns": 448.105,
+          "n": 9,
+          "operation": "best_match"
+        }
+      ],
+      "schema": 1,
+      "scope": "CPU-only cache lookup; same-process warm data. Not PDF opening, UI latency, peak memory or a p95 estimate."
+    }
+  },
+  "evidence_hashes": [
+    {
+      "path": "artifacts/performance-chrome/tests-041-focused.log",
+      "bytes": 29266,
+      "sha256": "8ae76be9bda9ccdedc29e0a4b8a5f94873515a8cbfef92429606c7b10a69606b"
+    },
+    {
+      "path": "artifacts/performance-chrome/clippy-041.log",
+      "bytes": 1526,
+      "sha256": "d84f060d50816eac55aa2e6db946773deb47fc5c10d6a9e739df452df31c10ff"
+    },
+    {
+      "path": "artifacts/performance-chrome/native-041.log",
+      "bytes": 3728,
+      "sha256": "2230f4e45c2d42e78f2b4a48793b7576b5bf1f45da1c77fdf615a4e55e9042c9"
+    },
+    {
+      "path": "artifacts/performance-chrome/build-release-041.log",
+      "bytes": 1506,
+      "sha256": "765d5c01fee67e1b574014f8f3d2b25760e703f62bf90a97158ac6c32997754f"
+    },
+    {
+      "path": "artifacts/performance-chrome/measurement-041/report.json",
+      "bytes": 38078,
+      "sha256": "112e92b322e3531c64f17bc8b8439bed25fcd89887b9c53ffbf495002c270471"
+    }
+  ],
+  "limitations": [
+    "Native GUI uses synthetic RawInput and Win32 observations, not a full physical-device matrix.",
+    "No manual installer GUI review or security certification; Authenticode NotSigned.",
+    "A00/A07 comparative performance acceptance and SumatraPDF 1.0 parity remain open."
+  ]
+}

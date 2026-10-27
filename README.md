@@ -4,13 +4,15 @@ Lector local de documentos desarrollado en Rust con egui/eframe y PDFium. Tiene 
 
 El icono nativo procede de `assets/crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
 
-La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.0 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
+La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.1 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).
 
 Descarga [CrabPDF 0.4.0](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0):
 
 - Windows: [instalador x64](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64-setup.exe) · [instalador x86](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86-setup.exe).
 - Linux: [Ubuntu 24.04 DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-ubuntu24.04-amd64.deb) · [Linux x64 TAR](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-linux-x64.tar.gz).
 - Portables, fuentes y SHA-256: [todos los archivos de la entrega](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0).
+
+La compilación local **0.4.1** corrige el arrastre y la alineación de la barra, incorpora F6 para invertir colores y reduce copias y trabajo por frame. [Cambios de 0.4.1](docs/releases/v0.4.1.md) · [Revisión de rendimiento](docs/PERFORMANCE.md). Las descargas públicas anteriores permanecen en 0.4.0.
 
 La entrega [0.4.0](docs/RELEASE_0_4_0.md) reúne la migración modular, las mejoras de lectura y los instaladores Windows. [Notas de la versión](docs/releases/v0.4.0.md).
 

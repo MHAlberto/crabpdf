@@ -2,6 +2,8 @@
 
 Lector local de documentos desarrollado en Rust con egui/eframe y PDFium. Tiene identidad visual propia, sin cuentas, telemetría ni conexión obligatoria.
 
+[Sitio web de CrabPDF](https://mhalberto.github.io/crabpdf/) · [Editar y desplegar la web](docs/WEBSITE.md).
+
 El icono nativo procede de `assets/crabpdf-logo.svg`, con fondo transparente. `build.rs` genera el PNG de la ventana y, en Windows, incrusta un ICO con nueve tamaños de 16 a 256 píxeles y las propiedades CrabPDF en `crabpdf.exe`. No se necesita el SVG junto al ejecutable.
 
 La meta de **v1.0** es reproducir todas las funciones y detalles visibles de la revisión fijada de SumatraPDF en Windows x86/x64, Linux y macOS. La implementación está marcada como **0.4.1 en desarrollo**: la paridad completa todavía no está alcanzada. [Alcance y pendientes](docs/ROADMAP.md).

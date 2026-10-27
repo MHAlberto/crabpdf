@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>CrabPDF — Un espacio para seguir leyendo</title>
+  <meta name="description" content="Un lector de documentos local y de código abierto. Lee PDF, libros y cómics, subraya ideas y retoma tu lectura. Descargas para Windows y Ubuntu / Linux.">
+  <meta name="theme-color" content="#191c21">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="CrabPDF — Un espacio para seguir leyendo">
+  <meta property="og:description" content="Tus PDF, libros y cómics. Lectura local, marcas de color y una interfaz que deja espacio a la página.">
+  <meta property="og:url" content="https://mhalberto.github.io/crabpdf/">
+  <meta property="og:image" content="https://mhalberto.github.io/crabpdf/site/assets/reading.png">
+  <link rel="canonical" href="https://mhalberto.github.io/crabpdf/">
+  <link rel="icon" type="image/svg+xml" href="./site/assets/crabpdf-logo.svg">
+  <script src="./site/app.js"></script>
+  <link rel="stylesheet" href="./site/assets/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <svg aria-hidden="true" class="absolute size-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+      <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1-4-2-6-2m12 5v-3.4c0-1 .1-1.5-.5-2.1 3-.3 6-1.5 6-6.5a5 5 0 0 0-1.4-3.5 4.5 4.5 0 0 0-.1-3.5S17.8 2.6 15 4a13 13 0 0 0-6 0C6.2 2.6 5 3 5 3a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 3.5 10c0 5 3 6.2 6 6.5-.6.6-.6 1.2-.5 2.1V22"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6v15M3 4c4-1 6 0 9 2 3-2 5-3 9-2v15c-4-1-6 0-9 2-3-2-5-3-9-2z"/></symbol>
+      <symbol id="i-mark" viewBox="0 0 24 24"><path d="m6 15 9-11 5 4-9 11zM6 15l-1 5 6-1M3 22h18"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+      <symbol id="i-windows" viewBox="0 0 24 24"><path d="m3 5 8-1v8H3zm10-1 8-1v9h-8zM3 14h8v7l-8-1zm10 0h8v9l-8-1z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.01"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="sticky top-0 z-50 border-b border-line bg-canvas">
+    <div class="shell flex min-h-20 flex-wrap items-center gap-x-5 gap-y-0">
+      <a href="./" aria-label="CrabPDF, inicio" class="flex items-center gap-2.5 py-3">
+        <img src="./site/assets/crabpdf-logo.svg" width="46" height="46" alt="" class="size-11">
+        <span class="text-xl font-semibold tracking-tight">CrabPDF</span>
+      </a>
+      <nav id="main-nav" aria-label="Navegación principal" class="site-nav">
+        <a class="nav-link" href="#lectura">La experiencia</a>
+        <a class="nav-link" href="#formatos">Formatos</a>
+        <a class="nav-link" href="#proyecto">El proyecto</a>
+        <a class="nav-link flex items-center gap-2" href="https://github.com/MHAlberto/crabpdf">
+          <svg class="icon" aria-hidden="true"><use href="#i-github"/></svg> GitHub
+        </a>
+      </nav>
+      <div class="ml-auto flex items-center gap-1 md:ml-0">
+        <button id="theme-toggle" class="js-only size-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-ink" aria-label="Cambiar a tema claro" aria-pressed="false" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>
+        </button>
+        <a href="#descargas" class="button button-primary hidden py-2 sm:inline-flex">Descargar</a>
+        <button id="nav-toggle" class="size-11 items-center justify-center rounded-md text-muted hover:bg-surface" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="contenido" tabindex="-1">
+    <section class="shell grid items-center gap-12 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1fr_1.3fr] lg:gap-14 lg:pb-24 lg:pt-20" aria-labelledby="hero-title">
+      <div>
+        <a href="#descargas" class="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-muted">
+          <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+          0.4.0 disponible para descargar
+        </a>
+        <h1 id="hero-title" class="mt-7 text-[clamp(2.8rem,4.6vw,4rem)] font-semibold leading-[1.07] tracking-[-0.05em]">Abre un libro.<br>Quédate leyendo.</h1>
+        <p class="mt-6 max-w-md text-lg leading-8 text-muted">Tus PDF, libros y cómics en un lector que deja espacio a la página. Rápido, local y construido en Rust.</p>
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a class="button button-primary" href="#descargas"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Descargar CrabPDF</a>
+          <a class="button button-secondary" href="https://github.com/MHAlberto/crabpdf">Ver el código</a>
+        </div>
+        <p class="mt-5 text-sm text-muted">Windows 10 / 11 · Ubuntu y Linux x64</p>
+        <div class="mt-9 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-5 text-sm text-muted">
+          <span class="flex items-center gap-2"><svg class="icon size-4 text-accent" aria-hidden="true"><use href="#i-check"/></svg>Sin cuentas</span>
+          <span class="flex items-center gap-2"><svg class="icon size-4 text-accent" aria-hidden="true"><use href="#i-check"/></svg>Sin telemetría</span>
+          <span class="flex items-center gap-2"><svg class="icon size-4 text-accent" aria-hidden="true"><use href="#i-check"/></svg>Código abierto</span>
+        </div>
+      </div>
+      <div class="min-w-0">
+        <div role="tablist" aria-label="Capturas de la aplicación" class="js-only mb-3 flex-wrap gap-1">
+          <button type="button" role="tab" id="preview-reading" class="preview-tab" aria-controls="view-reading" aria-selected="true">Lectura</button>
+          <button type="button" role="tab" id="preview-marks" class="preview-tab" aria-controls="view-marks" aria-selected="false" tabindex="-1">Subrayado</button>
+          <button type="button" role="tab" id="preview-library" class="preview-tab" aria-controls="view-library" aria-selected="false" tabindex="-1">Biblioteca</button>
+        </div>
+        <div role="tabpanel" id="view-reading" aria-labelledby="preview-reading" tabindex="0">
+          <figure>
+            <div class="reader-frame"><img src="./site/assets/reading.png" width="1080" height="780" fetchpriority="high" alt="CrabPDF con su interfaz oscura, pestañas y un documento de prueba abierto" class="block h-auto w-full"></div>
+            <figcaption class="preview-note mt-4 text-sm leading-6 text-muted">La página, en primer plano. Pestañas y controles compactos para seguir leyendo.</figcaption>
+          </figure>
+        </div>
+        <div role="tabpanel" id="view-marks" aria-labelledby="preview-marks" tabindex="0">
+          <figure>
+            <div class="reader-frame"><img src="./site/assets/marks.png" width="1080" height="780" loading="lazy" alt="Texto de un PDF resaltado en amarillo con el menú de marcas de CrabPDF" class="block h-auto w-full"></div>
+            <figcaption class="preview-note mt-4 text-sm leading-6 text-muted">Selecciona, resalta y guarda tus ideas. Elige un color y exporta una copia del PDF.</figcaption>
+          </figure>
+        </div>
+        <div role="tabpanel" id="view-library" aria-labelledby="preview-library" tabindex="0">
+          <figure>
+            <div class="reader-frame"><img src="./site/assets/library.png" width="1080" height="780" loading="lazy" alt="Biblioteca de CrabPDF con portadas de PDF, libros electrónicos y cómics" class="block h-auto w-full"></div>
+            <figcaption class="preview-note mt-4 text-sm leading-6 text-muted">Vuelve a tus documentos recientes y frecuentes desde una biblioteca con portadas.</figcaption>
+          </figure>
+        </div>
+        <p class="mt-1 text-xs text-muted">Capturas reales de CrabPDF con documentos de prueba.</p>
+      </div>
+    </section>
+
+    <section id="lectura" class="border-y border-line bg-surface/40 py-16 sm:py-20" aria-labelledby="reading-title">
+      <div class="shell">
+        <div class="max-w-2xl">
+          <h2 id="reading-title" class="section-title">Sigue el ritmo de tu lectura.</h2>
+          <p class="section-copy">Del primer vistazo a las notas del margen. Las herramientas de siempre, cerca cuando hacen falta.</p>
+        </div>
+        <div class="mt-12 grid gap-10 md:grid-cols-3 md:gap-9">
+          <article>
+            <svg class="icon mb-5 size-7 text-accent" aria-hidden="true"><use href="#i-book"/></svg>
+            <h3 class="text-xl font-semibold tracking-tight">Lee de corrido</h3>
+            <p class="mt-3 text-sm leading-7 text-muted">Desplázate entre páginas, ajusta el ancho y usa la pantalla completa. Alterna entre una página, páginas enfrentadas y lectura continua.</p>
+            <p class="mt-5 flex items-center gap-2 text-xs text-muted"><kbd class="key">F11</kbd>Pantalla completa</p>
+          </article>
+          <article class="border-t border-line pt-8 md:border-l md:border-t-0 md:pl-9 md:pt-0">
+            <svg class="icon mb-5 size-7 text-accent" aria-hidden="true"><use href="#i-mark"/></svg>
+            <h3 class="text-xl font-semibold tracking-tight">Subraya tus ideas</h3>
+            <p class="mt-3 text-sm leading-7 text-muted">Selecciona palabras o frases, resalta y subraya con tus colores. Conserva las marcas localmente o exporta una copia PDF con anotaciones.</p>
+            <div class="mt-6 flex gap-2" role="img" aria-label="Amarillo, verde, azul, rosa, naranja y rojo">
+              <span class="size-3.5 rounded-sm bg-[#ffeb3b]"></span><span class="size-3.5 rounded-sm bg-[#55c95a]"></span><span class="size-3.5 rounded-sm bg-[#52a5ef]"></span><span class="size-3.5 rounded-sm bg-[#f071bb]"></span><span class="size-3.5 rounded-sm bg-[#ffac44]"></span><span class="size-3.5 rounded-sm bg-[#ed585b]"></span>
+            </div>
+          </article>
+          <article class="border-t border-line pt-8 md:border-l md:border-t-0 md:pl-9 md:pt-0">
+            <svg class="icon mb-5 size-7 text-accent" aria-hidden="true"><use href="#i-bookmark"/></svg>
+            <h3 class="text-xl font-semibold tracking-tight">Retoma donde ibas</h3>
+            <p class="mt-3 text-sm leading-7 text-muted">Encuentra tus libros por su portada. Guarda favoritos por documento y arrastra una pestaña fuera para abrirla en otra ventana con tu punto de lectura.</p>
+            <a class="text-link mt-5 inline-block text-sm" href="https://github.com/MHAlberto/crabpdf#funciones-implementadas">Explorar las funciones</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="formatos" class="shell grid gap-9 py-16 sm:py-20 lg:grid-cols-[.85fr_1.15fr] lg:gap-20" aria-labelledby="formats-title">
+      <div>
+        <h2 id="formats-title" class="section-title">Tu biblioteca tiene<br>más de un formato.</h2>
+        <p class="section-copy">Un mismo lugar para el artículo que estudias, la novela que llevas a medias y el cómic del fin de semana.</p>
+        <a href="https://github.com/MHAlberto/crabpdf/blob/main/docs/FORMATS_AND_ANNOTATIONS.md" class="text-link mt-5 inline-block text-sm">Todas las extensiones y sus límites</a>
+      </div>
+      <div class="divide-y divide-line">
+        <div class="pb-5"><h3 class="mb-3 text-sm font-medium">Documentos</h3><div class="flex flex-wrap gap-2"><span class="format-chip">PDF</span><span class="format-chip">XPS / OXPS</span><span class="format-chip">DjVu</span><span class="format-chip">CHM</span></div></div>
+        <div class="py-5"><h3 class="mb-3 text-sm font-medium">Libros electrónicos</h3><div class="flex flex-wrap gap-2"><span class="format-chip">EPUB</span><span class="format-chip">MOBI / AZW</span><span class="format-chip">FictionBook</span></div><p class="mt-3 text-xs text-muted">Lectura de libros sin protección DRM.</p></div>
+        <div class="py-5"><h3 class="mb-3 text-sm font-medium">Cómics e imágenes</h3><div class="flex flex-wrap gap-2"><span class="format-chip">CBZ / CBR / CB7 / CBT</span><span class="format-chip">PNG / JPEG / TIFF</span></div></div>
+        <div class="pt-5"><h3 class="mb-3 text-sm font-medium">Texto</h3><div class="flex flex-wrap gap-2"><span class="format-chip">TXT</span><span class="format-chip">Markdown</span><span class="format-chip">HTML local</span></div></div>
+      </div>
+    </section>
+
+    <section id="descargas" class="border-y border-line bg-surface py-16 sm:py-20" aria-labelledby="downloads-title">
+      <div class="shell grid gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
+        <div>
+          <h2 id="downloads-title" class="section-title">Haz espacio<br>a tu próxima lectura.</h2>
+          <p class="section-copy">Descarga CrabPDF para tu escritorio. La versión pública actual es <strong class="font-medium text-ink">0.4.0</strong>, una entrega de desarrollo hacia la 1.0.</p>
+          <p class="mt-5 text-sm leading-7 text-muted">La <a class="text-link" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/releases/v0.4.1.md">0.4.1 está en desarrollo</a>, con mejoras de arrastre, alineación e inversión de colores con F6.</p>
+          <div class="mt-7 flex flex-wrap gap-x-5 gap-y-3 text-sm">
+            <a class="text-link" href="https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.0">Notas de la entrega</a>
+            <a class="text-link" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/SHA256SUMS-v0.4.0.txt">Verificar SHA-256</a>
+          </div>
+        </div>
+        <div class="min-w-0">
+          <div role="tablist" aria-label="Sistema operativo" class="js-only mb-7 flex-wrap gap-1 rounded-lg border border-line bg-canvas p-1">
+            <button class="platform-tab" type="button" id="tab-windows" role="tab" aria-selected="true" aria-controls="download-windows">Windows</button>
+            <button class="platform-tab" type="button" id="tab-linux" role="tab" aria-selected="false" aria-controls="download-linux" tabindex="-1">Ubuntu / Linux</button>
+            <button class="platform-tab" type="button" id="tab-macos" role="tab" aria-selected="false" aria-controls="download-macos" tabindex="-1">macOS</button>
+          </div>
+          <div id="download-windows" class="download-pane" role="tabpanel" aria-labelledby="tab-windows" tabindex="0">
+            <h3 class="text-xl font-semibold">Windows 10 y 11</h3>
+            <p class="mt-2 text-sm text-muted">Instalador por usuario con el logo de CrabPDF.</p>
+            <a class="button button-primary mt-6" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64-setup.exe"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Descargar para Windows x64<span class="font-normal opacity-80">32 MB</span></a>
+            <div class="mt-6">
+              <a class="download-choice" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x64.zip"><span>Portable x64 <span class="text-xs">· ZIP, 44 MB</span></span><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a>
+              <a class="download-choice" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86-setup.exe"><span>Instalador x86 <span class="text-xs">· 32 bits</span></span><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a>
+              <a class="download-choice" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-win-x86.zip"><span>Portable x86 <span class="text-xs">· ZIP, 32 bits</span></span><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a>
+            </div>
+            <p class="mt-4 flex items-start gap-2.5 text-xs leading-6 text-muted"><svg class="icon mt-1 size-4" aria-hidden="true"><use href="#i-info"/></svg>El instalador todavía no tiene firma digital. Windows puede mostrar una advertencia al abrirlo.</p>
+          </div>
+          <div id="download-linux" class="download-pane" role="tabpanel" aria-labelledby="tab-linux" tabindex="0">
+            <h3 class="text-xl font-semibold">Ubuntu y Linux x64</h3>
+            <p class="mt-2 text-sm leading-7 text-muted">Paquete DEB para Ubuntu 24.04. TAR para sistemas con glibc 2.36 o posterior.</p>
+            <a class="button button-primary mt-6" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-ubuntu24.04-amd64.deb"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Descargar para Ubuntu<span class="font-normal opacity-80">DEB, 31 MB</span></a>
+            <a class="download-choice mt-6" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-linux-x64.tar.gz"><span>Linux x64 <span class="text-xs">· TAR.GZ, 41 MB</span></span><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a>
+            <p class="mt-5 text-xs text-muted">En la carpeta de la descarga, instala el DEB con:</p>
+            <div class="mt-3 flex items-center gap-2 rounded-md border border-line bg-canvas p-3">
+              <code id="ubuntu-command" class="min-w-0 flex-1 break-all text-xs leading-6">sudo apt install ./crabpdf-0.4.0-ubuntu24.04-amd64.deb</code>
+              <button id="copy-install" type="button" class="js-only size-11 shrink-0 items-center justify-center rounded text-muted hover:bg-surface" aria-label="Copiar comando de instalación"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg></button>
+            </div>
+            <p id="copy-status" role="status" class="mt-2 min-h-5 text-xs text-accent"></p>
+            <p class="mt-3 text-xs leading-6 text-muted">Probado con escritorio virtual en Ubuntu 24.04. Para otras distribuciones, consulta los <a class="text-link" href="https://github.com/MHAlberto/crabpdf#ubuntu-y-linux">requisitos de Linux</a>.</p>
+          </div>
+          <div id="download-macos" class="download-pane" role="tabpanel" aria-labelledby="tab-macos" tabindex="0">
+            <h3 class="text-xl font-semibold">macOS, en camino</h3>
+            <p class="mt-3 max-w-lg text-sm leading-7 text-muted">El código se compila y prueba en CI para Intel y Apple Silicon. Todavía no hay un instalador público ni validación completa de la interfaz en un Mac físico.</p>
+            <a class="button button-secondary mt-6" href="https://github.com/MHAlberto/crabpdf"><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg>Seguir el desarrollo en GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="proyecto" class="shell py-16 sm:py-20" aria-labelledby="project-title">
+      <div class="grid gap-9 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
+        <div><h2 id="project-title" class="section-title">Un lector local.<br>Un proyecto abierto.</h2></div>
+        <div>
+          <p class="max-w-xl text-base leading-8 text-muted">CrabPDF nace de una idea: llevar la experiencia de lectura de SumatraPDF a una aplicación en Rust, rápida y adaptable a distintos escritorios.</p>
+          <p class="mt-4 max-w-xl text-sm leading-7 text-muted">La meta de la 1.0 es la paridad de funciones. Aún estamos trabajando en ella, con PDFium y herramientas nativas para leer los distintos formatos.</p>
+          <div class="mt-8 grid grid-cols-3 gap-4 border-y border-line py-6">
+            <div><p class="text-xl font-semibold text-accent">0.4.0</p><p class="mt-1 text-xs leading-5 text-muted">Descarga pública</p></div>
+            <div><p class="text-xl font-semibold">0.4.1</p><p class="mt-1 text-xs leading-5 text-muted">Desarrollo actual</p></div>
+            <div><p class="text-xl font-semibold text-muted">1.0</p><p class="mt-1 text-xs leading-5 text-muted">Meta de paridad</p></div>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+            <a class="text-link" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/ROADMAP.md">Ruta hacia la 1.0</a>
+            <a class="text-link" href="https://github.com/MHAlberto/crabpdf/issues">Informar de un problema</a>
+            <a class="text-link" href="https://github.com/MHAlberto/crabpdf/releases">Todas las versiones</a>
+          </div>
+        </div>
+      </div>
+      <div class="faq mt-16 border-t border-line pt-10">
+        <h2 class="text-2xl font-semibold tracking-tight">Antes de abrir tu primer libro</h2>
+        <div class="mt-4">
+          <details><summary>¿Necesito una cuenta o conexión para leer?</summary><p>No. CrabPDF lee archivos locales, sin cuentas ni telemetría. La conexión se necesita para descargar la aplicación, no para leer tus documentos.</p></details>
+          <details><summary>¿Qué pasa con el documento cuando lo subrayo?</summary><p>Las marcas se guardan localmente. El archivo original se conserva; cuando quieras compartir las anotaciones, usa Guardar una copia para exportarlas dentro de otro PDF.</p></details>
+          <details><summary>¿Puedo usarlo sin instalar?</summary><p>En Windows puedes descargar el ZIP portable y descomprimirlo. Conserva el ejecutable, la biblioteca PDFium y la carpeta de herramientas juntos. Las preferencias se guardan en el perfil del usuario.</p></details>
+          <details><summary>¿Ya tiene todas las funciones de SumatraPDF?</summary><p>Todavía no. La paridad completa es el objetivo de la versión 1.0. El repositorio documenta las funciones disponibles, las limitaciones y las pruebas que faltan.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-line bg-surface/40 py-8">
+    <div class="shell flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3"><img src="./site/assets/crabpdf-logo.svg" alt="" width="34" height="34" class="size-8"><div><p class="text-sm font-semibold">CrabPDF</p><p class="mt-1 text-xs text-muted">Un espacio para seguir leyendo.</p></div></div>
+      <div class="flex flex-wrap gap-x-6 gap-y-3 text-xs text-muted">
+        <a class="hover:text-ink" href="https://github.com/MHAlberto/crabpdf">Código fuente</a>
+        <a class="hover:text-ink" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/THIRD_PARTY_NOTICES.md">Licencias</a>
+        <a class="hover:text-ink" href="https://github.com/MHAlberto/crabpdf/releases/download/v0.4.0/crabpdf-0.4.0-format-tools-sources.zip">Fuentes de los conversores</a>
+        <a class="hover:text-ink" href="#contenido">Volver arriba</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

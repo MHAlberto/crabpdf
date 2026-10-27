@@ -1,0 +1,94 @@
+@import "tailwindcss" source(none);
+@source "../../index.html";
+@source "../app.js";
+
+@theme inline {
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-button-ink: var(--button-ink);
+}
+@layer base {
+  :root {
+    color-scheme: dark;
+    --canvas: #191c21;
+    --surface: #22262c;
+    --line: #363c45;
+    --ink: #edf0f5;
+    --muted: #b0b7c3;
+    --accent: #97b8e9;
+    --button-ink: #182b46;
+    --selected: #303e52;
+    --code: #171a1e;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --canvas: #fafafb;
+    --surface: #eaecef;
+    --line: #dadee3;
+    --ink: #222834;
+    --muted: #596170;
+    --accent: #355d9d;
+    --button-ink: #fff;
+    --selected: #dce5f3;
+    --code: #eef0f4;
+  }
+  html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+  body { @apply m-0 bg-canvas font-sans text-ink antialiased; }
+  button, a, summary { -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; }
+  a, button, summary { touch-action: manipulation; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+  ::selection { color: var(--ink); background: var(--selected); }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+}
+@layer components {
+  .shell { @apply mx-auto max-w-7xl px-6 sm:px-8 lg:px-10; }
+  .button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2.5 rounded-md border border-transparent px-5 py-3 text-sm font-semibold;
+    transition: background-color 140ms, border-color 140ms;
+  }
+  .button-primary { @apply bg-accent text-button-ink hover:brightness-110; }
+  .button-secondary { @apply border-line bg-surface text-ink hover:border-accent; }
+  .icon { width: 1.25rem; height: 1.25rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-link { @apply py-3 text-sm text-muted hover:text-ink; }
+  .section-title { @apply text-3xl font-semibold tracking-[-0.035em] sm:text-4xl; line-height: 1.15; text-wrap: balance; }
+  .section-copy { @apply mt-4 max-w-xl text-base leading-7 text-muted; }
+  .preview-tab { @apply min-h-11 rounded-md px-3.5 py-2 text-sm text-muted hover:text-ink; }
+  .preview-tab[aria-selected="true"] { background: var(--selected); color: var(--accent); }
+  .reader-frame { @apply overflow-hidden rounded-lg border border-line bg-surface; box-shadow: 0 20px 60px #00000024; }
+  .platform-tab { @apply min-h-12 rounded-md px-4 py-2.5 text-sm font-medium text-muted; }
+  .platform-tab[aria-selected="true"] { background: var(--selected); color: var(--accent); }
+  .format-chip { @apply rounded border border-line bg-surface px-3 py-1.5 text-sm text-muted; }
+  .text-link { @apply text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent; }
+  .download-choice { @apply flex min-h-12 items-center justify-between gap-4 border-t border-line py-4 text-sm text-muted hover:text-accent; }
+  .download-choice svg { width: 1rem; height: 1rem; }
+  .key { @apply inline-flex min-h-7 min-w-8 items-center justify-center rounded border border-line bg-canvas px-2 text-xs font-medium text-muted; }
+  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded bg-accent px-5 py-3 text-button-ink focus:translate-y-0; }
+  .js-only { display: none; }
+  .js .js-only { display: inline-flex; }
+  #nav-toggle { display: none; }
+  .site-nav { @apply flex items-center gap-7; }
+  .preview-note { min-height: 3rem; }
+  .faq summary { @apply cursor-pointer py-5 pr-8 text-base font-medium; }
+  .faq details { @apply border-b border-line; }
+  .faq details p { @apply max-w-3xl pb-6 pr-6 text-sm leading-7 text-muted; }
+  .faq summary::marker { color: var(--accent); }
+  .download-pane { @apply min-w-0; }
+  @media (max-width: 767px) {
+    .js #nav-toggle { display: inline-flex; }
+    .site-nav { @apply order-last w-full flex-wrap gap-x-6 gap-y-0 border-t border-line py-3; }
+    .js .site-nav:not(.is-open) { display: none; }
+  }
+  @media (min-width: 768px) {
+    .site-nav { margin-left: auto; }
+  }
+}

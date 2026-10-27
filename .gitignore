@@ -3,3 +3,7 @@
 /dist/
 /artifacts/
 *.log
+
+/docs/node_modules/
+/output/playwright/
+/.playwright-cli/

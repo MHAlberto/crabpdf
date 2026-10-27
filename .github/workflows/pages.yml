@@ -1,0 +1,68 @@
+name: CrabPDF website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/index.html'
+      - 'docs/site/**'
+      - 'docs/package.json'
+      - 'docs/package-lock.json'
+      - '.github/workflows/pages.yml'
+  pull_request:
+    paths:
+      - 'docs/index.html'
+      - 'docs/site/**'
+      - 'docs/package.json'
+      - 'docs/package-lock.json'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crabpdf-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      pages: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+      - name: Install website build tools
+        working-directory: docs
+        run: npm ci --no-audit --no-fund
+      - name: Build static website and check references
+        working-directory: docs
+        run: npm run build && npm run check
+      - name: Configure Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+      - name: Upload public files
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/site
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy CrabPDF
+        id: deployment
+        uses: actions/deploy-pages@v4

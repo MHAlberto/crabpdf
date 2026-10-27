@@ -4,7 +4,19 @@ on:
   push:
     branches: ['**']
     tags-ignore: ['v*']
+    paths-ignore:
+      - 'docs/index.html'
+      - 'docs/site/**'
+      - 'docs/package*.json'
+      - 'docs/WEBSITE.md'
+      - '.github/workflows/pages.yml'
   pull_request:
+    paths-ignore:
+      - 'docs/index.html'
+      - 'docs/site/**'
+      - 'docs/package*.json'
+      - 'docs/WEBSITE.md'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:

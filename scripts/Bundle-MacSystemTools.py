@@ -50,6 +50,8 @@ for command, name in (("7zz", "7z"), ("ddjvu", "ddjvu"), ("djvutoxml", "djvutoxm
 while pending:
     source, destination = pending.pop()
     linked = subprocess.check_output(["otool", "-L", str(source)], text=True)
+    load_commands = subprocess.check_output(["otool", "-l", str(source)], text=True)
+    run_paths = re.findall(r"cmd LC_RPATH\s+cmdsize \d+\s+path (.*?) \(offset \d+\)", load_commands)
     for line in linked.splitlines()[1:]:
         dep = line.strip().split(" (")[0]
         if dep.startswith(("/usr/lib/", "/System/Library/")):
@@ -58,6 +60,25 @@ while pending:
             continue
         if dep.startswith("@loader_path/"):
             resolved = source.parent / dep.removeprefix("@loader_path/")
+        elif dep.startswith("@rpath/"):
+            # Homebrew dylibs can refer to sibling libraries through @rpath.
+            # Resolve declared paths plus the component's own library directory;
+            # refuse ambiguous versions instead of copying an arbitrary match.
+            candidates = [source.parent / dep.removeprefix("@rpath/")]
+            for run_path in run_paths:
+                if run_path.startswith("@loader_path/"):
+                    base = source.parent / run_path.removeprefix("@loader_path/")
+                elif run_path == "@loader_path":
+                    base = source.parent
+                elif run_path.startswith("/"):
+                    base = Path(run_path)
+                else:
+                    continue
+                candidates.append(base / dep.removeprefix("@rpath/"))
+            matches = {item.resolve() for item in candidates if item.is_file()}
+            if len(matches) != 1:
+                raise RuntimeError(f"Unresolved or ambiguous run-path dependency: {source}: {dep}: {matches}")
+            resolved = matches.pop()
         elif dep.startswith("/"):
             resolved = Path(dep)
         else:

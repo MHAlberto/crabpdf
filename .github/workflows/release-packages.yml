@@ -8,12 +8,19 @@ on:
         default: '0.4.2'
         required: true
         type: string
+      platforms:
+        description: Platforms to package
+        default: all
+        required: true
+        type: choice
+        options: [all, mac, linux]
 
 permissions:
   contents: read
 
 jobs:
   mac:
+    if: inputs.platforms != 'linux'
     strategy:
       fail-fast: false
       matrix:
@@ -49,8 +56,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: ./scripts/Get-Pdfium.ps1 -Platform mac -Architecture '${{ matrix.architecture }}' -Destination 'native/mac-${{ matrix.architecture }}'
+      - uses: actions/cache/restore@v4
+        id: converters-cache
+        with:
+          path: native/mac-${{ matrix.architecture }}/format-tools
+          key: mac-converters-${{ matrix.architecture }}-${{ hashFiles('scripts/Build-MacFormatTools.sh') }}
       - name: Build bundled MuPDF and libmobi
+        id: converters
         run: bash scripts/Build-MacFormatTools.sh '${{ matrix.architecture }}'
+      - uses: actions/cache/save@v4
+        if: steps.converters-cache.outputs.cache-hit != 'true'
+        with:
+          path: native/mac-${{ matrix.architecture }}/format-tools
+          key: mac-converters-${{ matrix.architecture }}-${{ hashFiles('scripts/Build-MacFormatTools.sh') }}
       - name: Build reader and package verification executable
         run: |
           cargo fmt --all -- --check
@@ -71,6 +89,7 @@ jobs:
           if-no-files-found: warn
 
   linux:
+    if: inputs.platforms != 'mac'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

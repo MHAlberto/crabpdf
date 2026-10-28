@@ -4,10 +4,23 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 arch="${1:?Expected arm64 or x64}"
 case "$arch" in arm64) machine=arm64 ;; x64) machine=x86_64 ;; *) exit 2 ;; esac
 test "$(uname -s)" = Darwin && test "$(uname -m)" = "$machine"
+tools="$root/native/mac-$arch/format-tools"
+if [ -f "$tools/provenance.json" ] && [ -f "$tools/mutool" ] && [ -f "$tools/mobitool" ]; then
+    python3 - "$tools" <<'PY'
+import hashlib, json, pathlib, sys
+tools = pathlib.Path(sys.argv[1])
+report = json.loads((tools / "provenance.json").read_text())
+assert report["source_mupdf_sha256"] == "98a5c10cda20c3992cdf76ff6b2a1149c32bd79cc796d3f703230b1185b7e934"
+assert report["source_libmobi_sha256"] == "7abb0ee4c401ef225bbe03b4ebf94d76c81d810fa9b6274f74b4751e10ecd4f0"
+for name in ("mutool", "mobitool"):
+    assert hashlib.sha256((tools / name).read_bytes()).hexdigest() == report[name + "_sha256"]
+PY
+    for file in "$tools/mutool" "$tools/mobitool"; do lipo "$file" -verify_arch "$machine"; done
+    exit 0
+fi
 python3 "$root/scripts/Get-UnixFormatSources.py"
 sources="$root/native/format-downloads"
 build="$root/artifacts/mac-format-build-$arch"
-tools="$root/native/mac-$arch/format-tools"
 mkdir -p "$build/mupdf" "$build/libmobi" "$build/output" "$tools"
 for item in mupdf-1.28.5-source.tar.gz libmobi-source.tar.gz; do
     if tar -tzf "$sources/$item" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then
@@ -28,7 +41,7 @@ cp "$build/output/libmobi/tools/mobitool" "$tools/mobitool"
 chmod 755 "$tools/mutool" "$tools/mobitool"
 cp "$build/mupdf/COPYING" "$tools/MuPDF-COPYING.txt"
 cp "$build/libmobi/COPYING" "$tools/Libmobi-COPYING.LESSER.txt"
-for file in "$tools/mutool" "$tools/mobitool"; do lipo -verify_arch "$machine" "$file"; done
+for file in "$tools/mutool" "$tools/mobitool"; do lipo "$file" -verify_arch "$machine"; done
 python3 - "$tools" "$arch" <<'PY'
 import hashlib, json, pathlib, sys
 tools, arch = pathlib.Path(sys.argv[1]), sys.argv[2]

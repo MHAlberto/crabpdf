@@ -71,7 +71,7 @@ for file in (executables / "format-tools").iterdir():
 minimum = (13, 0)
 dependencies = {}
 for file in mach_files:
-    run("lipo", "-verify_arch", machine, file)
+    run("lipo", file, "-verify_arch", machine)
     load = subprocess.check_output(["otool", "-l", str(file)], text=True)
     for number in re.findall(r"\bminos\s+(\d+(?:\.\d+)+)", load):
         minimum = max(minimum, tuple(map(int, number.split("."))))

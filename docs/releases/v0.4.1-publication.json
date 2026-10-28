@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "version": "0.4.1",
+  "date": "2026-10-27",
+  "tag": "v0.4.1",
+  "tagged_commit": "6eb980a269809280668b1b2007b9ff5e36f52fda",
+  "validated_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/40565789343",
+  "platforms_ci_passed": [
+    "Windows x64",
+    "Windows x86 (WOW64)",
+    "Ubuntu 24.04 x64",
+    "macOS ARM",
+    "macOS Intel"
+  ],
+  "windows": {
+    "origin": "GitHub Actions artifacts 12764021075 (x64), 12764111254 (x86)",
+    "packages": [
+      {
+        "architecture": "x64",
+        "installer": {
+          "authenticode_status": "NotSigned",
+          "compiler_archive_sha256": "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+          "source_dirty": false,
+          "installer": "crabpdf-0.4.1-win-x64-setup.exe",
+          "signer": null,
+          "security_certification": false,
+          "sha256": "367fa148f0c7253b2978da5da11337617ae289a781ad1e0e62dc4d7d00f39e80",
+          "source_commit": "6eb980a269809280668b1b2007b9ff5e36f52fda",
+          "payload_files": 610,
+          "target": "x86_64-pc-windows-msvc",
+          "architecture": "x64",
+          "bytes": 31896962,
+          "requires_admin": false,
+          "compiler": "NSIS 3.12",
+          "version": "0.4.1"
+        },
+        "installation_validation": {
+          "installer_sha256": "367fa148f0c7253b2978da5da11337617ae289a781ad1e0e62dc4d7d00f39e80",
+          "rejects_locked_executable": true,
+          "uninstall": true,
+          "registry_removed": true,
+          "uninstaller_authenticode": "NotSigned",
+          "payload_files": 609,
+          "preserves_unrelated_files": true,
+          "manifest_verified": true,
+          "architecture": "x64",
+          "upgrade": true,
+          "gui_reviewed": false,
+          "installation": true,
+          "rejects_unrelated_directory": true
+        },
+        "zip_verified_files": 607
+      },
+      {
+        "architecture": "x86",
+        "installer": {
+          "authenticode_status": "NotSigned",
+          "compiler": "NSIS 3.12",
+          "version": "0.4.1",
+          "installer": "crabpdf-0.4.1-win-x86-setup.exe",
+          "payload_files": 610,
+          "source_commit": "6eb980a269809280668b1b2007b9ff5e36f52fda",
+          "signer": null,
+          "source_dirty": false,
+          "architecture": "x86",
+          "sha256": "e21fa0e5ee147e015ad678a12a55a15d031b0fee5aa88e89cd6134e89ca7ea83",
+          "compiler_archive_sha256": "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+          "security_certification": false,
+          "target": "i686-pc-windows-msvc",
+          "requires_admin": false,
+          "bytes": 31689832
+        },
+        "installation_validation": {
+          "preserves_unrelated_files": true,
+          "architecture": "x86",
+          "manifest_verified": true,
+          "registry_removed": true,
+          "rejects_unrelated_directory": true,
+          "gui_reviewed": false,
+          "upgrade": true,
+          "uninstall": true,
+          "installer_sha256": "e21fa0e5ee147e015ad678a12a55a15d031b0fee5aa88e89cd6134e89ca7ea83",
+          "rejects_locked_executable": true,
+          "installation": true,
+          "payload_files": 609,
+          "uninstaller_authenticode": "NotSigned"
+        },
+        "zip_verified_files": 607
+      }
+    ]
+  },
+  "linux": {
+    "builder": "rust:1.96.0-bookworm cached Docker builder",
+    "application_code_equivalent_to_tag": true,
+    "workspace_libraries_and_tests_passed": 89,
+    "tar_and_deb_files_verified_each": 408,
+    "ubuntu": "24.04 Docker with Mesa software rendering, Xvfb, Openbox and X11 compositor",
+    "installed_version": "CrabPDF 0.4.1",
+    "installed_files_verified": 408,
+    "window_pdf_verified_visually": true,
+    "f6_inverts_and_restores_pdf": true,
+    "f6_pdf_crop_mean_rgb_difference": 247.07481932236496,
+    "window_capture_sha256": "33ef76f280d9795934464401753e612e79d65f1b7c635783d1baa543d2b7e2a5",
+    "root_desktop_capture": "Returned black pixels in this virtual environment; used the active-window capture and a real X11 focus/resize instead."
+  },
+  "assets": [
+    {
+      "name": "crabpdf-0.4.1-win-x64.zip",
+      "bytes": 44170504,
+      "sha256": "f63cb945da3129b0431751172a36e5d659d2c4d65626fdfaeeb76021f3907c15"
+    },
+    {
+      "name": "crabpdf-0.4.1-win-x86.zip",
+      "bytes": 43793115,
+      "sha256": "279355f082f4b89fee5a9d0e0a678a4021e87a222e00e60553e8fee5591ba631"
+    },
+    {
+      "name": "crabpdf-0.4.1-win-x64-setup.exe",
+      "bytes": 31896962,
+      "sha256": "367fa148f0c7253b2978da5da11337617ae289a781ad1e0e62dc4d7d00f39e80"
+    },
+    {
+      "name": "crabpdf-0.4.1-win-x64-setup.exe.json",
+      "bytes": 608,
+      "sha256": "73cd01f5ded0ca18f99a089655529aeb6773ab1ca01e0f06af8d9ab975d7a30d"
+    },
+    {
+      "name": "crabpdf-0.4.1-win-x86-setup.exe",
+      "bytes": 31689832,
+      "sha256": "e21fa0e5ee147e015ad678a12a55a15d031b0fee5aa88e89cd6134e89ca7ea83"
+    },
+    {
+      "name": "crabpdf-0.4.1-win-x86-setup.exe.json",
+      "bytes": 606,
+      "sha256": "e9292e9c217e7c91ffb2c0f09e29364c4f62e01cb002e2e04191d5e73fdc8e7d"
+    },
+    {
+      "name": "crabpdf-0.4.1-ubuntu24.04-amd64.deb",
+      "bytes": 30627852,
+      "sha256": "9aaa5ea71af4f2d5f8e47cfcf9ce5319ddb79ff8ab23ad6c0d2805701d1f5762"
+    },
+    {
+      "name": "crabpdf-0.4.1-linux-x64.tar.gz",
+      "bytes": 40648125,
+      "sha256": "5f947ebf93027496f54b27bba8d3c7d6390e91e44e6f7ae23e10b13d16cf5bcd"
+    },
+    {
+      "name": "crabpdf-0.4.1-format-tools-sources.zip",
+      "bytes": 82302008,
+      "sha256": "7a1f55d59a481a360d9cc89ed902ffa4f28ca1aa01d0b06b33346055cff06bdd"
+    }
+  ],
+  "limits": [
+    "Development prerelease; no Authenticode signature or independent security certification.",
+    "Ubuntu GUI uses a virtual desktop. Physical devices, native Windows x86, Wayland and macOS GUI need separate evidence.",
+    "No macOS installer in this release.",
+    "Existing public v0.4.0 release and assets remain unchanged."
+  ],
+  "release_url": "https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.1"
+}

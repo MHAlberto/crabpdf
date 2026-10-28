@@ -36,7 +36,7 @@ Antes de subir, comprueba escritorio y móvil, ambos temas, menú con Escape, fl
 
 ## Versiones y descargas
 
-La publicación pública es **0.4.0**. **0.4.1** existe en el código y como compilación local; la web no presenta sus archivos como descargas públicas. macOS se presenta como desarrollo, sin un instalador disponible.
+La publicación pública es **0.4.1**: instaladores y portables Windows x64/x86 procedentes de GitHub Actions, más DEB Ubuntu y TAR Linux x64. macOS se presenta como desarrollo, sin un instalador disponible. La etiqueta apunta al commit exacto aprobado en las cinco plataformas; los enlaces se actualizan después de publicar sus assets.
 
 Cuando se publique una entrega:
 

@@ -1,5 +1,8 @@
 # Refinamiento de CrabPDF
 
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
 Solicitud: 13 de octubre de 2026. Se conservan Rust, egui/eframe 0.36.2,
 Glow, PDFium 7881, el worker de documentos y las preferencias TOML.
 La revisión previa a los cambios está concluida. Las capturas de SumatraPDF

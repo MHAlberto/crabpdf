@@ -1,8 +1,11 @@
 # Avance de implementación 0.3.0 hacia V1
 
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
 Este informe conserva la entrega **0.3.0**. La corrección posterior de caché y sus resultados están en [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md).
 
-Fecha: 14 de octubre de 2026. Este registro describe cambios locales posteriores a la [auditoría de la base 0.2](AUDIT_V1.md). **0.3.0 está en desarrollo; ninguna ruta R01–R08 ni la paridad con SumatraPDF está cerrada.** La referencia y los criterios de salida siguen en [V1_PLAN.md](V1_PLAN.md). No hay repositorio remoto ni CI ejecutada.
+Fecha: 14 de octubre de 2026. Este registro describe cambios locales posteriores a la [auditoría de la base 0.2](AUDIT_V1.md). **0.3.0 está en desarrollo; ninguna ruta R01–R08 ni la paridad con SumatraPDF está cerrada.** La referencia y los criterios de salida siguen en [V1_PLAN.md](../V1_PLAN.md). No hay repositorio remoto ni CI ejecutada.
 
 | Ruta | Cambio implementado | Evidencia local inicial | Límite pendiente |
 | --- | --- | --- | --- |
@@ -17,12 +20,12 @@ Fecha: 14 de octubre de 2026. Este registro describe cambios locales posteriores
 
 ## Validación de este avance
 
-En Windows 10 x64 (build 19045), `scripts/Test-Local.ps1 -Architecture both -ReportRoot artifacts/validation-h1-20261014` terminó con **17 comprobaciones sin fallos**: formato, Clippy, 24 unitarias, `profile_sessions`, 7 pruebas de `native_pdf`, 7 de `formats_and_marks`, builds release y recorridos nativos por x64/x86. En cada arquitectura produjo 25 capturas de UI, 21 de refinamiento y 16 de formatos. [Informe y logs locales](../artifacts/validation-h1-20261014/results.json). La prueba de perfil inicia un segundo proceso; las 14 pruebas de `native_pdf`/`formats_and_marks` están ignoradas por defecto y el script las ejecuta expresamente.
+En Windows 10 x64 (build 19045), `scripts/Test-Local.ps1 -Architecture both -ReportRoot artifacts/validation-h1-20261014` terminó con **17 comprobaciones sin fallos**: formato, Clippy, 24 unitarias, `profile_sessions`, 7 pruebas de `native_pdf`, 7 de `formats_and_marks`, builds release y recorridos nativos por x64/x86. En cada arquitectura produjo 25 capturas de UI, 21 de refinamiento y 16 de formatos. Informe y logs locales (`artifacts/validation-h1-20261014/results.json`, registro local no versionado). La prueba de perfil inicia un segundo proceso; las 14 pruebas de `native_pdf`/`formats_and_marks` están ignoradas por defecto y el script las ejecuta expresamente.
 
-Después se corrigió un error de **los fixtures**, no del decodificador: PowerShell 5 leía sin BOM el script UTF-8 de muestras y producía «capÃ­tulo». `scripts/New-FormatSamples.ps1` ahora tiene BOM UTF-8; la prueba de EPUB comprueba que PDFium extrae «capítulo». Se repitieron `annotation_sync` y los siete casos de formatos en release x64 y x86; todos pasaron. Las 16 capturas nuevas por arquitectura muestran el acento correcto y se inspeccionó `08-epub.png` en ambas. Clippy volvió a pasar en ambos targets y `cargo fmt --all -- --check` pasó. [Informe específico](../artifacts/validation-targeted-20261014/results.json).
+Después se corrigió un error de **los fixtures**, no del decodificador: PowerShell 5 leía sin BOM el script UTF-8 de muestras y producía «capÃ­tulo». `scripts/New-FormatSamples.ps1` ahora tiene BOM UTF-8; la prueba de EPUB comprueba que PDFium extrae «capítulo». Se repitieron `annotation_sync` y los siete casos de formatos en release x64 y x86; todos pasaron. Las 16 capturas nuevas por arquitectura muestran el acento correcto y se inspeccionó `08-epub.png` en ambas. Clippy volvió a pasar en ambos targets y `cargo fmt --all -- --check` pasó. Informe específico (`artifacts/validation-targeted-20261014/results.json`, registro local no versionado).
 
-Los paquetes portables locales `crabpdf-0.3.0-win-x64.zip` (43 543 154 bytes, SHA-256 `1a6ea6f42c945b1838411595cc9525c0a9be9e9f184a2c46730fa3fb980009c9`) y `crabpdf-0.3.0-win-x86.zip` (43 193 592 bytes, SHA-256 `ce5cf9d2e8e4965632772700a1c98ce5042220939538df1e3d60573ea6497224`) pasaron `scripts/Verify-Portable.ps1`: 607 archivos con longitud y hash comprobados en cada uno. El informe de [VALIDATION.md](VALIDATION.md) y los paquetes 0.2 quedan históricos. Un target x86 ejecutado bajo WOW64 no valida un Windows de 32 bits. Linux, macOS y Windows 11 siguen sin prueba funcional de 0.3.
+Los paquetes portables locales `crabpdf-0.3.0-win-x64.zip` (43 543 154 bytes, SHA-256 `1a6ea6f42c945b1838411595cc9525c0a9be9e9f184a2c46730fa3fb980009c9`) y `crabpdf-0.3.0-win-x86.zip` (43 193 592 bytes, SHA-256 `ce5cf9d2e8e4965632772700a1c98ce5042220939538df1e3d60573ea6497224`) pasaron `scripts/Verify-Portable.ps1`: 607 archivos con longitud y hash comprobados en cada uno. El informe de [VALIDATION.md](VALIDATION_0_2.md) y los paquetes 0.2 quedan históricos. Un target x86 ejecutado bajo WOW64 no valida un Windows de 32 bits. Linux, macOS y Windows 11 siguen sin prueba funcional de 0.3.
 
 ## Próxima salida técnica
 
-Cerrar R01–R07 con pruebas de concurrencia y fallo reales, registrar tiempos/tamaño/RSS de PDF y libros representativos y continuar el inventario de comportamientos R00. La versión 1.0 requiere también impresión, edición/formularios, accesibilidad, integraciones optativas y validación multiplataforma; el [backlog](V1_BACKLOG.csv) no permite convertir esta entrega parcial en V1.
+Cerrar R01–R07 con pruebas de concurrencia y fallo reales, registrar tiempos/tamaño/RSS de PDF y libros representativos y continuar el inventario de comportamientos R00. La versión 1.0 requiere también impresión, edición/formularios, accesibilidad, integraciones optativas y validación multiplataforma; el [backlog](../V1_BACKLOG.csv) no permite convertir esta entrega parcial en V1.

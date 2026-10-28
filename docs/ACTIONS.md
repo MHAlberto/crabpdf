@@ -61,10 +61,10 @@ Los saltos cercanos en modo continuo animan el desplazamiento durante 160 ms; lo
 
 El visor ocupa también el espacio del antiguo pie inferior. La versión y el límite de resolución se consultan al situar el puntero sobre CrabPDF en la barra superior. Los avisos de éxito aparecen flotantes sin desplazar el documento.
 
-Marcas agrupa resaltar/subrayar, seis muestras circulares con indicador de selección, color personalizado, deshacer y guardar copia. Requiere documento; las acciones mantienen las comprobaciones de selección/permisos. Las cruces vectoriales de pestaña y ventana disponen de áreas de clic de 24×24 y 44×30 puntos respectivamente. [Evidencia y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
+Marcas agrupa resaltar/subrayar, seis muestras circulares con indicador de selección, color personalizado, deshacer y guardar copia. Requiere documento; las acciones mantienen las comprobaciones de selección/permisos. Las cruces vectoriales de pestaña y ventana disponen de áreas de clic de 24×24 y 44×30 puntos respectivamente. [Evidencia y límites](history/IMPLEMENTATION_PROGRESS_0_3_5.md).
 
 ## Favoritos y arrastre en 0.3.6
 
 Favoritos muestra únicamente el documento activo. Permite guardar/quitar la página actual, recorrer páginas guardadas en orden y eliminar cada entrada. Navegar desde el panel conserva zoom, modo y giro. Los favoritos de otros libros permanecen guardados en el perfil y reaparecen al abrirlos.
 
-Arrastrar el nombre de una pestaña fuera de la barra y soltar crea una copia en otra pestaña de la misma ventana, conservando página, zoom y punto de lectura. El original permanece abierto. Volver a la barra o pulsar Escape cancela el gesto; la zona vacía de la barra mantiene el movimiento de ventana. [Informe](IMPLEMENTATION_PROGRESS_0_3_6.md).
+Arrastrar el nombre de una pestaña fuera de la barra y soltar crea una copia en otra pestaña de la misma ventana, conservando página, zoom y punto de lectura. El original permanece abierto. Volver a la barra o pulsar Escape cancela el gesto; la zona vacía de la barra mantiene el movimiento de ventana. [Informe](history/IMPLEMENTATION_PROGRESS_0_3_6.md).

@@ -1,59 +1,62 @@
-# Sitio web de CrabPDF
+# Sitio web
 
-Dirección: https://mhalberto.github.io/crabpdf/
+Dirección pública: https://mhalberto.github.io/crabpdf/
 
-La web vive en este repositorio, dentro de `docs`. Usa HTML semántico, JavaScript nativo y Tailwind CSS **4.3.3**, fijado en el lockfile. No utiliza un framework de interfaz, fuentes remotas, CDN de estilos ni servicios de analítica.
+La fuente vive en docs: HTML, JavaScript nativo y Tailwind CSS **4.3.3**, fijado en el lockfile. Node sólo interviene al construir; el navegador recibe siete archivos estáticos. El sitio no usa fuentes remotas, CDN de estilos ni analítica.
 
-## Archivos
+## Fuentes y salidas
 
-- `index.html`: contenido, enlaces de descarga, versión pública y estado del proyecto.
-- `site/app.js`: tema persistente, menú móvil, pestañas accesibles y copia del comando Ubuntu.
-- `site/styles/input.css`: tokens de la aplicación y entrada Tailwind.
-- `site/assets/site.css`: CSS minificado, versionado para abrir la página sin instalar herramientas.
-- `site/assets/`: logo original y tres capturas reales con documentos de prueba. No añadir libros personales.
-- `site/build.mjs`: copia únicamente siete archivos públicos a `dist/site`; no publica los documentos técnicos ni node_modules.
-- `site/check.mjs`: verifica recursos, IDs, destinos internos, referencias accesibles y dimensiones.
-- `../.github/workflows/pages.yml`: validación y despliegue independiente de la aplicación Rust.
+| Elemento | Fuente única |
+| --- | --- |
+| Contenido y estructura | `docs/index.html` |
+| Versión pública | `docs/site/release.json` |
+| Tamaños y assets de la entrega | `docs/releases/v<versión>-publication.json` |
+| Interacciones | `docs/site/app.js` |
+| Estilos | `docs/site/styles/input.css` |
+| Logo | `assets/crabpdf-logo.svg` |
+| Capturas | `docs/screenshots/` |
+| Sitio generado | `dist/site/`, ignorado por Git |
 
-Los colores y radios siguen `src/ui/theme.rs`: fondo carbón, superficies compactas y acento azul. El tema claro conserva los colores equivalentes de la aplicación.
+El HTML fuente contiene marcadores como `{{version}}`; no es el archivo servido directamente. build.mjs resuelve la versión y tamaños desde la publicación registrada y copia logo/capturas a la salida. El CSS se genera directamente en dist. No se mantienen copias de imágenes ni CSS compilado dentro de docs/site.
 
-## Editar y comprobar
+Los colores y radios siguen la aplicación: fondo carbón, superficies compactas y acento azul; el tema claro usa sus equivalentes. La modificación de contenido mantiene esa identidad.
 
-Se necesita Node.js 24 (la CI usa esa versión). Desde la raíz:
+## Construir y comprobar
+
+Con Node.js 24, desde la raíz:
 
 ```sh
 npm --prefix docs ci
 npm --prefix docs run build
 npm --prefix docs run check
+node docs/tools/check-links.mjs
 python -m http.server 4173 --bind 127.0.0.1 --directory dist/site
 ```
 
-Abre http://127.0.0.1:4173/. Para regenerar los estilos al editar, ejecuta `npm --prefix docs run dev` en otra terminal. Esa orden actualiza el CSS de docs; vuelve a ejecutar build para refrescar la copia de dist.
+Abre http://127.0.0.1:4173/. `npm --prefix docs run dev` observa cambios del CSS y actualiza dist; después de modificar HTML, metadatos, JS o imágenes, vuelve a ejecutar build.
 
-Tras modificar HTML, clases o estilos, regenera y guarda también `site/assets/site.css`. El navegador recibe el CSS ya compilado; Tailwind y Node sólo se necesitan para construir.
+check.mjs inspecciona la salida real: recursos, fragmentos, referencias accesibles, imágenes y marcadores sin resolver. El build rechaza archivos inesperados en la salida para que sólo se publique la lista explícita. Si quedan archivos de una revisión anterior, revisa esa carpeta antes de retirarlos.
 
-Antes de subir, comprueba escritorio y móvil, ambos temas, menú con Escape, flechas/Home/End en pestañas, las capturas, los enlaces de descarga y el comando de Ubuntu. El contenido esencial, las descargas y las preguntas frecuentes siguen disponibles con JavaScript desactivado. Se respeta Reducir movimiento del sistema.
+Comprueba temas, navegación móvil, Escape, flechas/Home/End en pestañas, copiado del comando Ubuntu y ausencia de desplazamiento horizontal. El contenido esencial y las descargas funcionan sin JavaScript; se respeta Reducir movimiento.
 
-## Versiones y descargas
+## Actualizar una entrega
 
-La publicación pública es **0.4.1**: instaladores y portables Windows x64/x86 procedentes de GitHub Actions, más DEB Ubuntu y TAR Linux x64. macOS se presenta como desarrollo, sin un instalador disponible. La etiqueta apunta al commit exacto aprobado en las cinco plataformas; los enlaces se actualizan después de publicar sus assets.
+La versión pública actual está en release.json. Debe corresponder a una entrega publicada, con su registro de procedencia y assets en GitHub.
 
-Cuando se publique una entrega:
+1. Publica y verifica los paquetes con el procedimiento de [Desarrollo](DEVELOPMENT.md).
+2. Conserva su registro de publicación y cambia únicamente la versión de release.json.
+3. El build obtiene los tamaños de ese registro y genera enlaces y comando Ubuntu con la misma versión.
+4. Actualiza las notas y el README; distingue una descarga pública de una compilación en desarrollo.
+5. Construye, comprueba y sube los cambios.
 
-1. Verifica la publicación y los nombres exactos de sus assets en GitHub.
-2. Actualiza en index.html los enlaces, tamaños, versión pública, notas, hashes y comando Ubuntu.
-3. Actualiza el estado de desarrollo por separado. No convertir una compilación local en un enlace de descarga inexistente.
-4. Conserva el aviso de ausencia de firma digital hasta disponer de firma válida; no declarar una certificación de seguridad.
-5. Regenera el CSS, comprueba la página y guarda los cambios.
+macOS se presenta como desarrollo sin instalador público. El aviso de ausencia de firma sólo cambia cuando la entrega tenga una firma válida; no se deduce confianza del logo o del asistente.
 
-Las capturas y el logo se sirven localmente. Las descargas, fuentes y licencias enlazan a este mismo proyecto en GitHub.
+## Desplegar
 
-## Despliegue
+GitHub Pages usa el entorno github-pages y [pages.yml](../.github/workflows/pages.yml). Los cambios de la fuente web, sus recursos canónicos o el registro de publicación disparan el build. Un pull request verifica, pero no despliega.
 
-Pages debe usar **GitHub Actions**, con el entorno `github-pages`. El workflow construye el sitio, comprueba sus referencias y sube únicamente `dist/site`. El despliegue tiene permisos de Pages y OIDC; la construcción sólo tiene lectura.
+El workflow sube sólo dist/site, sin documentación interna, dependencias npm o perfiles. Los cambios exclusivamente documentales tienen su [comprobación de enlaces](../.github/workflows/docs.yml) y no necesitan cinco compilaciones nativas.
 
-Un push a main que cambie los archivos de la web dispara la publicación. Un pull request sólo construye y verifica. También se puede ejecutar manualmente desde Actions. La CI Rust omite cambios exclusivamente web para evitar cinco compilaciones nativas innecesarias.
+Las rutas públicas siguen siendo relativas bajo /crabpdf/. Si cambia el repositorio o el dominio, actualiza canonical, etiquetas sociales y esta dirección.
 
-El sitio utiliza rutas relativas para funcionar bajo `/crabpdf/`. Si se cambia el nombre del repositorio o se añade un dominio, hay que actualizar canonical, las etiquetas sociales y esta dirección. No hay router ni servicio que requiera un servidor adicional.
-
-Referencias de implementación: [Tailwind CLI](https://tailwindcss.com/docs/installation/tailwind-cli) y [workflows de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Referencias: [Tailwind CLI](https://tailwindcss.com/docs/installation/tailwind-cli) y [GitHub Pages con Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).

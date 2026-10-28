@@ -1,0 +1,35 @@
+name: Error de la aplicación
+description: Describe un fallo que pueda reproducirse.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Versión de CrabPDF
+      placeholder: Versión descargada o commit de una compilación propia
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Sistema y arquitectura
+      placeholder: "Ejemplo: Windows 10 x64, Ubuntu 24.04 X11"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Pasos para reproducir
+      description: Incluye el formato del documento y las opciones de lectura que influyen.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Resultado esperado y resultado observado
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Capturas, logs o documento de prueba
+      description: Opcional. Usa material que puedas compartir públicamente.

@@ -93,6 +93,9 @@ impl Smoke {
         self.keys.push((egui::Modifiers::NONE, key));
     }
     fn advance(&mut self, ctx: &egui::Context) {
+        // A timer can run logic without painting in egui 0.36. Every new
+        // scene must invalidate the UI, including zooms already in the cache.
+        ctx.request_repaint();
         self.phase += 1;
         self.capture = false;
         self.settled = None;

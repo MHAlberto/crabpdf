@@ -1,5 +1,8 @@
 # CrabPDF 0.3.3: paquete Linux x64 y validación de Ubuntu
 
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
 **Fecha:** 2026-10-15. Se mantuvo la versión Rust 0.3.3 y se añadieron paquetes Linux a la entrega Windows de la misma versión. No se declara paridad 1.0.
 
 ## Construcción
@@ -16,8 +19,8 @@ El tar y el `.deb` incluyen CrabPDF, PDFium, MuPDF, libmobi, logo, licencias y `
 ## Pruebas ejecutadas
 
 - En Debian Bookworm x86_64 pasaron `cargo fmt --all -- --check`, `cargo clippy --locked --all-targets -- -D warnings`, `cargo test --locked --release` y las siete pruebas ignoradas de `native_pdf` con PDFium real. La suite de formatos con **conversores Debian 12 del sistema** falló en dos de siete casos: MuPDF 1.21 no conservó el índice EPUB ni convirtió texto/Markdown y libmobi 0.11 aceptó un Kindle cifrado. Estos resultados motivaron el empaquetado de MuPDF 1.28.5 y libmobi 0.12; no se trasladaron como pruebas aprobadas.
-- En un contenedor **Ubuntu 24.04 limpio**, `apt` instaló el `.deb`, se comprobó `crabpdf --version` y se verificó el `SHA256SUMS` interno. Con las herramientas empaquetadas, `formats_and_marks --ignored --test-threads=1` aprobó **7/7** pruebas: EPUB, Kindle y DRM, DjVu, cómics, texto/Markdown, persistencia y exportación de marcas. [Log](../artifacts/validation-linux-20261015/final-ubuntu-formats.log).
-- Con Xvfb y render OpenGL por software, `visual_smoke` recorrió la ventana real y guardó **25 capturas**, incluidas lectura, modo continuo, búsqueda, paleta, selección y pestañas. La prueba terminó con código 0 y se inspeccionaron las capturas de lectura normal y continua. [Log](../artifacts/validation-linux-20261015/final-ubuntu-visual.log) y [capturas](../artifacts/validation-linux-20261015/final-ui/).
+- En un contenedor **Ubuntu 24.04 limpio**, `apt` instaló el `.deb`, se comprobó `crabpdf --version` y se verificó el `SHA256SUMS` interno. Con las herramientas empaquetadas, `formats_and_marks --ignored --test-threads=1` aprobó **7/7** pruebas: EPUB, Kindle y DRM, DjVu, cómics, texto/Markdown, persistencia y exportación de marcas. Log (`artifacts/validation-linux-20261015/final-ubuntu-formats.log`, registro local no versionado).
+- Con Xvfb y render OpenGL por software, `visual_smoke` recorrió la ventana real y guardó **25 capturas**, incluidas lectura, modo continuo, búsqueda, paleta, selección y pestañas. La prueba terminó con código 0 y se inspeccionaron las capturas de lectura normal y continua. Log (`artifacts/validation-linux-20261015/final-ubuntu-visual.log`, registro local no versionado) y capturas (`artifacts/validation-linux-20261015/final-ui`, registro local no versionado).
 - Tras actualizar la documentación dentro de los paquetes, se añadió Mesa a las dependencias declaradas del `.deb` para proporcionar el render por software usado en la prueba. Los binarios permanecen idénticos. En otro Ubuntu 24.04 limpio se instaló el `.deb` definitivo con APT y solo Xvfb como entorno de prueba adicional: el ejecutable instalado abrió su ventana durante ocho segundos sin errores de bibliotecas. `scripts/Verify-Linux.sh` aprobó los 408 hashes internos de cada archivo final. El comando y perfil aislado se conservaron en `artifacts/validation-linux-20261015/`.
 
 ## Límites

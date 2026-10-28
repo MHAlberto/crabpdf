@@ -1,20 +1,8 @@
 # Rutas de implementación hasta CrabPDF 1.0
 
-La revisión de arquitectura del 23 de octubre de 2026 parte del código 0.3.6 y propone una migración incremental A00–A07. Los [primeros cortes de implementación](architecture/PHASE_1.md) registran la base local, los metadatos tipados y la extracción de favoritos, con sus límites de validación. El [plan y las correspondencias de rutas](ARCHITECTURE_MIGRATION.md) desarrollan R08/R09 sin dar por cerradas las demás funciones V1. La [decisión ADR-0001](adr/0001-modular-architecture.md) fija límites, alternativas y consecuencias.
+Estado de referencia: **0.4.1**, publicada el 27 de octubre de 2026. La extracción de arquitectura R09 está completada; A00 y la aceptación cuantitativa de A07 siguen abiertas. Consulta [arquitectura](ARCHITECTURE.md), [evidencia de migración](architecture/PHASE_6.md) y [validación actual](VALIDATION.md).
 
-Base: **0.2.0**, 13 de octubre de 2026. Este documento convierte la [auditoría](AUDIT_V1.md) en trabajo ejecutable. Los IDs R00–R30 corresponden a [V1_BACKLOG.csv](V1_BACKLOG.csv). Todas las rutas siguen pendientes como entregas completas, aunque aprovechen funciones existentes. No se cambió la versión de la aplicación.
-
-La implementación posterior de **0.3.0** avanzó parcialmente R01–R08; [IMPLEMENTATION_PROGRESS.md](IMPLEMENTATION_PROGRESS.md) registra código, pruebas y límites sin alterar los criterios de salida de este plan.
-
-La revisión **0.3.1** añade un reintento acotado de PDFs internos rechazados por PDFium. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_1.md).
-
-La revisión **0.3.2** acota y hace cancelable la espera del bloqueo de caché, además de limitar lecturas de registros de importación antes de cargarlos. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_2.md).
-
-La revisión **0.3.3** corrige pantalla completa, márgenes, salida desde presentación y navegación por flechas según zoom/foco. Avanza parcialmente R13 y R22; sus criterios completos siguen abiertos. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_3.md).
-
-La revisión **0.3.4** avanza R10: guarda el punto relativo a la página y manga, restaura con otro tamaño/escala y respeta la vista explícita CLI. El historial completo y la reconciliación de sesiones concurrentes de R03 siguen pendientes. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_4.md).
-
-La revisión **0.3.5** avanza parcialmente R13, R16 y R22: navegación sin objetivo de scroll residual, transiciones breves, viewport sin pie inferior, Marcas compacto y controles de cierre vectoriales. No completa el editor ni la paridad visual. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_5.md).
+Este plan mantiene los criterios de salida de R00–R30. El [backlog](V1_BACKLOG.csv) es la tabla de estado por ruta; una mejora parcial no equivale a completar esa ruta. La [auditoría inicial](history/AUDIT_V1.md) y los [informes históricos](history/README.md) conservan su contexto original.
 
 En el CSV, **P0** es trabajo previo para proteger datos y establecer evidencia; **P1** es el resto de trabajo necesario para la 1.0. La prioridad ordena la ejecución y no elimina requisitos.
 
@@ -88,7 +76,7 @@ Las rutas bajo **actual** existen. Las rutas bajo **propuesta** son archivos/mó
 | R06 | Ciclo de trabajo: `crates/runtime/src/formats/`, `crates/runtime/src/worker/`, `crates/runtime/src/storage/annotations.rs`. | `src/process_job.rs`, `tests/job_lifecycle.rs`: cancelar/cerrar/error mata y espera hijos; plazo total y lectura/tamaño acotados; ningún temporal queda publicándose. |
 | R07 | Esquema de marcas: `crates/runtime/src/storage/annotations.rs`, `crates/core/src/document.rs`, `crates/runtime/src/pdfium/`. | `src/annotation_anchor.rs`, `tests/annotation_migration.rs`: versión del documento preparado, migración con respaldo, contextos de texto y marcas ambiguas conservadas. |
 | R08 | Contratos tipados: `crates/core/src/document.rs`, `crates/runtime/src/pdfium/`, `crates/runtime/src/worker/`, `src/ui/mod.rs`. | `src/document_capabilities.rs` si el tamaño lo justifica; pruebas de capacidades/progreso/errores: UI deja de interpretar «Marcas locales»/«Título» como protocolo. |
-| R09 | Coordinación incremental: `src/ui/mod.rs`, `src/ui/panels.rs`, `crates/application/src/commands.rs`, `crates/runtime/src/formats/`. | `src/ui/{tab,input,dialogs,controller}.rs`; subdividir proveedores de formatos cuando se modifiquen. Mismos flujos visibles y suite actual correcta tras cada extracción. |
+| R09 | Coordinación incremental: `src/ui/mod.rs`, `src/ui/panels/`, `crates/application/src/commands.rs`, `crates/runtime/src/formats/`. | Extracción de workspace completada. Panel lateral y diálogos separados en `src/ui/panels/`; se mantienen contratos y recorridos visibles. A00/A07 cuantitativo conserva su evidencia pendiente. |
 | R10 | Punto de lectura: `crates/application/src/state.rs`, `crates/core/src/layout.rs`, `crates/core/src/reading_position.rs`, `crates/runtime/src/storage/profile.rs`, `src/ui/mod.rs`. | 0.3.4 implementa ancla normalizada y manga; `tests/reading_session.rs` y `examples/reading_session_smoke.rs` comprueban página larga con tamaño/escala distintos y prioridad CLI. Falta historial completo y equivalentes por plataforma. |
 | R11 | Planificación/escala: `crates/runtime/src/worker/`, `crates/core/src/layout.rs`, `src/ui/viewer.rs`. | `tests/search_scheduling.rs`, `tests/large_layout.rs`: dos búsquedas con progreso definido, cancelación por generación, precisión y coste medidos en libros extensos. |
 | R12 | Texto/enlaces: `crates/runtime/src/pdfium/`, `crates/core/src/document.rs`, `src/ui/viewer.rs`. | `src/selection.rs`, `tests/text_navigation.rs`: selección entre páginas/teclado, clusters/RTL, copiar texto/imagen/enlace y navegación accesible. |
@@ -124,8 +112,8 @@ Las versiones de distribución listadas como objetivo deben fijarse en R00/R24 j
 | Windows 11 x64 + app x86 | Ambos targets Windows; x86 bajo WOW64. | Ninguna ejecución Windows 11 documentada. | Probar ambos binarios y servicios del sistema. No prometer un Windows 11 de 32 bits. |
 | Ubuntu/Debian/Linux Mint x64 | `x86_64-unknown-linux-gnu`. | Desde 0.3.3: binario glibc 2.36 y paquetes tar/DEB; Ubuntu 24.04 en Docker con Xvfb. Debian/Mint sin ejecutar. | Elegir versiones objetivo/LTS y ABI; GNOME/Cinnamon, X11/Wayland donde existan, portales, fuentes, impresión y paquetes. |
 | Fedora/openSUSE/Arch x64 | Mismo target; bibliotecas y escritorios propios. | Sin validación. | Versiones/snapshot fechados, GNOME/KDE, X11/Wayland, Mesa y restricciones de empaquetado. No inferir soporte de Ubuntu. |
-| macOS Intel | `x86_64-apple-darwin`. | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF; sin interfaz ni otros formatos. | Versión mínima/SDK, `.app`, Retina/monitores, permisos, impresión, VoiceOver y herramientas x64. |
-| macOS Apple Silicon | `aarch64-apple-darwin`. | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF; sin interfaz ni otros formatos. | Herramientas arm64 nativas, mismos casos; no tratar Rosetta como prueba de binario arm64. |
+| macOS Intel | `x86_64-apple-darwin`. | CI de 0.4.1 (`6eb980a`): build y ocho pruebas nativas PDF; sin interfaz ni otros formatos. | Versión mínima/SDK, `.app`, Retina/monitores, permisos, impresión, VoiceOver y herramientas x64. |
+| macOS Apple Silicon | `aarch64-apple-darwin`. | CI de 0.4.1 (`6eb980a`): build y ocho pruebas nativas PDF; sin interfaz ni otros formatos. | Herramientas arm64 nativas, mismos casos; no tratar Rosetta como prueba de binario arm64. |
 
 Linux ARM/32 bits no se añaden como requisito: la petición de 32/64 bits se refiere explícitamente a Windows. Si se amplía ese alcance, incorporar targets y evidencia. Windows 10 sigue siendo objetivo técnico del usuario; esto no representa una afirmación sobre soporte comercial del sistema operativo.
 
@@ -183,4 +171,4 @@ R29 solo se cierra cuando R28, R26 y la matriz de distribución están completos
 
 ## Avance adicional 0.3.6
 
-La revisión [0.3.6](IMPLEMENTATION_PROGRESS_0_3_6.md) avanza parcialmente R10, R13 y R30: área nativa completa al entrar desde maximizada, favoritos del libro activo y duplicación por arrastre con ancla de lectura. Conserva los datos de otros libros y la vista al saltar a favoritos. Los criterios completos de estas rutas permanecen abiertos.
+La revisión [0.3.6](history/IMPLEMENTATION_PROGRESS_0_3_6.md) avanza parcialmente R10, R13 y R30: área nativa completa al entrar desde maximizada, favoritos del libro activo y duplicación por arrastre con ancla de lectura. Conserva los datos de otros libros y la vista al saltar a favoritos. Los criterios completos de estas rutas permanecen abiertos.

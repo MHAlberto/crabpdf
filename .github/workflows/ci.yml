@@ -4,19 +4,41 @@ on:
   push:
     branches: ['**']
     tags-ignore: ['v*']
-    paths-ignore:
-      - 'docs/index.html'
-      - 'docs/site/**'
-      - 'docs/package*.json'
-      - 'docs/WEBSITE.md'
-      - '.github/workflows/pages.yml'
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'build.rs'
+      - 'src/**'
+      - 'crates/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'assets/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/FORMATS_AND_ANNOTATIONS.md'
+      - 'docs/THIRD_PARTY_NOTICES.md'
+      - 'docs/dependencies.csv'
+      - 'docs/licenses-upstream/**'
+      - '.github/workflows/ci.yml'
   pull_request:
-    paths-ignore:
-      - 'docs/index.html'
-      - 'docs/site/**'
-      - 'docs/package*.json'
-      - 'docs/WEBSITE.md'
-      - '.github/workflows/pages.yml'
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'build.rs'
+      - 'src/**'
+      - 'crates/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'assets/**'
+      - 'installer/**'
+      - 'scripts/**'
+      - 'docs/FORMATS_AND_ANNOTATIONS.md'
+      - 'docs/THIRD_PARTY_NOTICES.md'
+      - 'docs/dependencies.csv'
+      - 'docs/licenses-upstream/**'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 permissions:

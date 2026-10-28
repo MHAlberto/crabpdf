@@ -1,6 +1,9 @@
 # CrabPDF 0.3.3 — pantalla completa y navegación por teclado
 
-Implementación: 14 de octubre de 2026; validación final: 15 de octubre. Esta revisión corrige los fallos de lectura reportados y avanza parcialmente R13 y R22 del [plan V1](V1_PLAN.md). Continúa [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md). La paridad completa y las demás plataformas siguen pendientes; no se creó repositorio remoto.
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
+Implementación: 14 de octubre de 2026; validación final: 15 de octubre. Esta revisión corrige los fallos de lectura reportados y avanza parcialmente R13 y R22 del [plan V1](../V1_PLAN.md). Continúa [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md). La paridad completa y las demás plataformas siguen pendientes; no se creó repositorio remoto.
 
 ## Cambios
 
@@ -24,9 +27,9 @@ Se reutilizan las acciones e iconos vectoriales existentes. La geometría compac
 
 ## Validación
 
-`cargo fmt --all -- --check`, `cargo clippy --locked --offline --all-targets -- -D warnings` y `cargo test --locked --offline` pasaron en Windows 10 x64. El test ordinario conserva las pruebas nativas ignoradas por defecto. [Registro de desarrollo](../artifacts/validation-fullscreen-20261014/development-checks.json). [Hashes de las fuentes, lockfile y scripts](../artifacts/validation-fullscreen-20261014/sources.json).
+`cargo fmt --all -- --check`, `cargo clippy --locked --offline --all-targets -- -D warnings` y `cargo test --locked --offline` pasaron en Windows 10 x64. El test ordinario conserva las pruebas nativas ignoradas por defecto. Registro de desarrollo (`artifacts/validation-fullscreen-20261014/development-checks.json`, registro local no versionado). Hashes de las fuentes, lockfile y scripts (`artifacts/validation-fullscreen-20261014/sources.json`, registro local no versionado).
 
-La ejecución del 14 de octubre se interrumpió durante la compilación x86 y no produjo informe consolidado; se conservan sus logs y capturas en `artifacts/validation-fullscreen-20261014`. El 15 se comprobó que los hashes de las fuentes seguían coincidiendo y se retomó la matriz con `scripts/Test-Local.ps1 -Architecture both -ReportRoot artifacts/validation-fullscreen-20261015`. Terminó con **17 comprobaciones aprobadas**: formato, Clippy, suite release con `--include-ignored`, compilación, CLI, búsqueda y recorridos de UI, refinamiento y formatos/marcas. Cada arquitectura produjo **25 + 46 + 16 capturas**. Se ejecutó sobre Windows 10 x64 build 19045; x86 corrió bajo WOW64. [Resultado consolidado y logs](../artifacts/validation-fullscreen-20261015/results.json).
+La ejecución del 14 de octubre se interrumpió durante la compilación x86 y no produjo informe consolidado; se conservan sus logs y capturas en `artifacts/validation-fullscreen-20261014`. El 15 se comprobó que los hashes de las fuentes seguían coincidiendo y se retomó la matriz con `scripts/Test-Local.ps1 -Architecture both -ReportRoot artifacts/validation-fullscreen-20261015`. Terminó con **17 comprobaciones aprobadas**: formato, Clippy, suite release con `--include-ignored`, compilación, CLI, búsqueda y recorridos de UI, refinamiento y formatos/marcas. Cada arquitectura produjo **25 + 46 + 16 capturas**. Se ejecutó sobre Windows 10 x64 build 19045; x86 corrió bajo WOW64. Resultado consolidado y logs (`artifacts/validation-fullscreen-20261015/results.json`, registro local no versionado).
 
 Se inspeccionaron las capturas x64 de pantalla completa sin controles, controles flotantes, edición del cursor en búsqueda, EPUB y resaltado; en la ejecución del 15 se revisaron de nuevo los controles flotantes y la restauración del panel. En x86 se inspeccionaron la lectura limpia en pantalla completa, el avance a la segunda página con la flecha derecha y la restauración de ventana/panel. Las capturas de desarrollo también comprobaron apertura del panel en pantalla completa y su restauración en ventana.
 
@@ -36,10 +39,10 @@ Se generaron con `Pack-Portable.ps1 -Architecture x64 -SkipBuild` y su equivalen
 
 | Paquete | Tamaño completo del ZIP |
 | --- | ---: |
-| [Windows x64](../artifacts/packages/crabpdf-0.3.3-win-x64.zip) | 43 556 286 bytes |
-| [Windows x86](../artifacts/packages/crabpdf-0.3.3-win-x86.zip) | 43 199 843 bytes |
+| Windows x64 (`artifacts/packages/crabpdf-0.3.3-win-x64.zip`, registro local no versionado) | 43 556 286 bytes |
+| Windows x86 (`artifacts/packages/crabpdf-0.3.3-win-x86.zip`, registro local no versionado) | 43 199 843 bytes |
 
-[SHA-256, plataforma y comandos](../artifacts/validation-fullscreen-20261015/packages.json). [Registro de verificación](../artifacts/validation-fullscreen-20261015/verify-packages.log). Los conversores no cambiaron y sus fuentes correspondientes siguen en [el archivo separado](../artifacts/packages/crabpdf-0.2.0-format-tools-sources.zip), también verificado. El inventario de dependencias mantiene 47 entradas sin texto de licencia propio entre todos los targets; la revisión de avisos para distribución pública sigue pendiente, como en 0.3.2. Son paquetes locales de desarrollo, sin instalador ni firma.
+SHA-256, plataforma y comandos (`artifacts/validation-fullscreen-20261015/packages.json`, registro local no versionado). Registro de verificación (`artifacts/validation-fullscreen-20261015/verify-packages.log`, registro local no versionado). Los conversores no cambiaron y sus fuentes correspondientes siguen en el archivo separado (`artifacts/packages/crabpdf-0.2.0-format-tools-sources.zip`, registro local no versionado), también verificado. El inventario de dependencias mantiene 47 entradas sin texto de licencia propio entre todos los targets; la revisión de avisos para distribución pública sigue pendiente, como en 0.3.2. Son paquetes locales de desarrollo, sin instalador ni firma.
 
 ## Límites
 

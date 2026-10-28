@@ -1,5 +1,8 @@
 # CrabPDF 0.3.6 — pantalla completa, favoritos y arrastre
 
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
 **Fecha:** 23 de octubre de 2026. Avance parcial de R10, R13 y R30 sobre [0.3.5](IMPLEMENTATION_PROGRESS_0_3_5.md). No declara paridad 1.0.
 
 ## Correcciones
@@ -61,7 +64,7 @@ Los programas de producción usan el perfil release habitual. Los ayudantes Linu
 
 La [CI del código de implementación](https://github.com/MHAlberto/crabpdf/actions/runs/39986835302), commit `4421085`, aprobó los cinco targets: Windows x64/x86, Ubuntu x64 y macOS Intel/ARM. Incluye Clippy, pruebas ordinarias, siete pruebas PDF por target, formatos/marcas en Windows y build release. El cierre de entrega añade documentación y sincronización del programa de pruebas, sin cambiar las fuentes del lector.
 
-[Captura de favoritos por libro](screenshots/favorites.png). La evidencia compacta de límites nativos se conserva en [mediciones Win32](parity/evidence/v0.3.6-window-geometry.json).
+[Captura de favoritos por libro](../screenshots/favorites.png). La evidencia compacta de límites nativos se conserva en [mediciones Win32](../parity/evidence/v0.3.6-window-geometry.json).
 
 
 ## Límites

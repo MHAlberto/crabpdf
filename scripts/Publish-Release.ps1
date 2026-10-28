@@ -1,7 +1,14 @@
 [CmdletBinding()]
-param([string]$Version = '0.4.0', [switch]$RequireSignedInstaller)
+param([ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')][string]$Version, [switch]$RequireSignedInstaller)
 $ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+if (!$Version) {
+    $metadata = & cargo metadata --manifest-path (Join-Path $workspace 'Cargo.toml') --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo leer la version del workspace.' }
+    $package = @($metadata.packages | Where-Object name -eq 'crabpdf')
+    if ($package.Count -ne 1) { throw 'Se esperaba exactamente el paquete crabpdf.' }
+    $Version = $package[0].version
+}
 $repo = 'MHAlberto/crabpdf'
 $tag = "v$Version"
 $notesPath = Join-Path $workspace "docs/releases/$tag.md"

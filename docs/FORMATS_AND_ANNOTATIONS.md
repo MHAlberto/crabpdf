@@ -1,6 +1,6 @@
-# CrabPDF 0.3.3 — formatos y marcas de texto
+# Formatos y anotaciones de CrabPDF
 
-Esta entrega añade lectura de los formatos básicos de SumatraPDF y anotaciones de texto. Sigue siendo una versión en desarrollo hacia la 1.0. La referencia de formatos es la [documentación de SumatraPDF](https://www.sumatrapdfreader.org/docs/Supported-document-formats); la lista actual de upstream también incluye formatos nuevos y servicios opcionales que todavía no se declaran implementados aquí.
+La versión pública 0.4.1 lee los siguientes formatos y admite marcas de texto. Sigue siendo una versión de desarrollo hacia la 1.0. La referencia de formatos es la [documentación de SumatraPDF](https://www.sumatrapdfreader.org/docs/Supported-document-formats); la lista actual de upstream también incluye formatos nuevos y servicios opcionales que todavía no se declaran implementados aquí.
 
 ## Formatos disponibles
 
@@ -42,7 +42,7 @@ En Windows, los decodificadores acompañan al ejecutable en `format-tools`: MuPD
 
 Las marcas se conservan automáticamente en el almacén local y reaparecen al abrir el mismo archivo en CrabPDF. No se sobrescribe el original. Para compartirlas, exporta la copia PDF. Las restricciones de selección/anotación del PDF se respetan. Un archivo sin texto seleccionable requiere una capa de texto u OCR antes de marcar palabras.
 
-Antes de exportar, CrabPDF refresca las marcas guardadas por otra instancia bajo el bloqueo del almacén. Cada cambio de marcas incrementa una revisión de contenido: se invalidan los rasters del motor y se ignoran respuestas anteriores. La caché visual conserva temporalmente la imagen compatible ya mostrada hasta recibir su reemplazo, dentro del mismo presupuesto, para evitar un fotograma blanco al marcar. Esas instantáneas no cuentan como renders actuales ni alteran lo exportado. [Corrección y evidencia](https://github.com/MHAlberto/crabpdf/blob/main/docs/INTERACTION_FIXES.md). Las pruebas nativas cubren dos motores abiertos a la vez y un refresco de varias páginas. La sincronización entre procesos, los conflictos y los fallos de escritura todavía requieren más pruebas; R01/R02 siguen abiertos. Véase [el avance](IMPLEMENTATION_PROGRESS.md).
+Antes de exportar, CrabPDF refresca las marcas guardadas por otra instancia bajo el bloqueo del almacén. Cada cambio de marcas incrementa una revisión de contenido: se invalidan los rasters del motor y se ignoran respuestas anteriores. La caché visual conserva temporalmente la imagen compatible ya mostrada hasta recibir su reemplazo, dentro del mismo presupuesto, para evitar un fotograma blanco al marcar. Esas instantáneas no cuentan como renders actuales ni alteran lo exportado. [Corrección y evidencia](https://github.com/MHAlberto/crabpdf/blob/main/docs/INTERACTION_FIXES.md). Las pruebas nativas cubren dos motores abiertos a la vez y un refresco de varias páginas. La sincronización entre procesos, los conflictos y los fallos de escritura todavía requieren más pruebas; R01/R02 siguen abiertos. Véase [el avance](history/IMPLEMENTATION_PROGRESS.md).
 
 El color elegido se guarda con las preferencias. La asociación de marcas incluye ruta, tamaño y fecha de modificación: un archivo cambiado externamente no recibe las marcas de una versión anterior. Una marca local dañada produce un aviso y no impide leer el documento; su archivo se conserva.
 

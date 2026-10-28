@@ -1,5 +1,8 @@
 # Auditoría de CrabPDF hacia 1.0
 
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
 Fecha: **13 de octubre de 2026, zona America/Mexico_City**. Base: código local **0.2.0**. Alcance: arquitectura, flujos de lectura/importación/anotaciones, persistencia, interfaz, pruebas, distribución y distancia respecto a la referencia de SumatraPDF. Esta entrega modifica documentación e inventario; **no corrige todavía los defectos descritos**.
 
 Esta auditoría conserva el estado histórico de 0.2. Los cambios posteriores y los riesgos que siguen abiertos se registran en [0.3.0](IMPLEMENTATION_PROGRESS.md) y [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md).
@@ -14,7 +17,7 @@ La primera ruta debe asegurar que abrir, marcar, cambiar de ventana y exportar c
 
 ## Base y grado de evidencia
 
-- **Referencia fija:** [`3316ad49c5c24f6f78a3849a28eea04517baa833`](https://github.com/sumatrapdfreader/sumatrapdf/tree/3316ad49c5c24f6f78a3849a28eea04517baa833), registrada en [parity/reference.json](parity/reference.json). Es una revisión de desarrollo, no la versión 3.5.2 mostrada en la captura del usuario. No se actualizó la referencia durante esta auditoría.
+- **Referencia fija:** [`3316ad49c5c24f6f78a3849a28eea04517baa833`](https://github.com/sumatrapdfreader/sumatrapdf/tree/3316ad49c5c24f6f78a3849a28eea04517baa833), registrada en [parity/reference.json](../parity/reference.json). Es una revisión de desarrollo, no la versión 3.5.2 mostrada en la captura del usuario. No se actualizó la referencia durante esta auditoría.
 - Se contrastaron fuentes fijadas de [comandos](https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/Commands.h), [menús](https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/MenuDefs.cpp), [atajos](https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/Accelerators.cpp), [despacho de motores](https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/shared/EngineCreate.cpp), `DisplayModel.h`, `DocController.h` y [notas de plataformas](https://github.com/sumatrapdfreader/sumatrapdf/blob/3316ad49c5c24f6f78a3849a28eea04517baa833/src/ng/README.md). Copias de consulta en `artifacts/audit/upstream/`.
 - Se inspeccionaron módulos Rust, scripts de preparación/empaquetado, CI, pruebas, ejemplos e informes locales. Al comenzar, los **85 archivos** del manifiesto histórico `artifacts/validation/source-files.json` coincidían por SHA-256. Ese informe describe la entrega anterior; los documentos de esta auditoría son posteriores.
 - El informe anterior `artifacts/validation/release.json`, de **2026-10-14 01:49 UTC** —todavía 13 de octubre en México—, registra **17 comprobaciones, 0 fallos y 124 capturas**, en Windows 10 x64, build 19045.
@@ -76,11 +79,11 @@ Las funciones recientes están en la revisión ya fijada; no se proponen como am
 | Texto/Markdown | Paginación fija. | Codificaciones, recursos locales, tipografía y navegación; evitar depender de recursos remotos. |
 | Formatos adicionales | No declarados en 0.2. | Completar el despacho fijado: PS/EPS, DVI, LIT, TCR, formatos Office/imágenes adicionales que admita el motor de referencia y carpetas de imágenes. Enumerar extensiones reales, opciones y dependencias antes de prometerlos. |
 
-La lista exacta de extensiones implementadas y sus límites permanece en [FORMATS_AND_ANNOTATIONS.md](FORMATS_AND_ANNOTATIONS.md). Las muestras existentes cubren familias; no acreditan todas sus variantes ni todos los documentos reales. Abrir PDF no necesita los decodificadores de libros; mantener esa independencia.
+La lista exacta de extensiones implementadas y sus límites permanece en [FORMATS_AND_ANNOTATIONS.md](../FORMATS_AND_ANNOTATIONS.md). Las muestras existentes cubren familias; no acreditan todas sus variantes ni todos los documentos reales. Abrir PDF no necesita los decodificadores de libros; mantener esa independencia.
 
 ## Hallazgos de código priorizados
 
-**Alta:** puede perder coherencia de datos o bloquear una operación central. **Media:** limita robustez, mantenimiento o fidelidad y debe resolverse para V1. Las líneas son orientativas para la base 0.2; la función citada es el localizador estable. Las rutas Rxx se desarrollan en [V1_PLAN.md](V1_PLAN.md) y [V1_BACKLOG.csv](V1_BACKLOG.csv).
+**Alta:** puede perder coherencia de datos o bloquear una operación central. **Media:** limita robustez, mantenimiento o fidelidad y debe resolverse para V1. Las líneas son orientativas para la base 0.2; la función citada es el localizador estable. Las rutas Rxx se desarrollan en [V1_PLAN.md](../V1_PLAN.md) y [V1_BACKLOG.csv](../V1_BACKLOG.csv).
 
 ### F01 — Alta: las portadas pueden bloquear al dueño de PDFium
 
@@ -231,4 +234,4 @@ Primero medir; después ajustar carga bajo demanda, colas, extracción increment
 
 Primero **R01–R07** para datos, importaciones y cancelación, junto a **R00** para una referencia medible. Después **R08–R14** para contratos y lectura completa; **R15–R23/R30** para familias funcionales faltantes. **R24–R29** se inician pronto y acompañan el desarrollo: plataformas, rendimiento, robustez y distribución no deben quedar para el último día.
 
-La secuencia detallada, archivos propuestos, dependencias y criterios de cierre están en [V1_PLAN.md](V1_PLAN.md). Esta auditoría identifica riesgos concretos y familias faltantes; no sustituye la verificación de cada comportamiento de la referencia.
+La secuencia detallada, archivos propuestos, dependencias y criterios de cierre están en [V1_PLAN.md](../V1_PLAN.md). Esta auditoría identifica riesgos concretos y familias faltantes; no sustituye la verificación de cada comportamiento de la referencia.

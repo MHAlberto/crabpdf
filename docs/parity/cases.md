@@ -1,8 +1,8 @@
 # Casos de lectura implementados y criterios pendientes
 
-Referencia: SumatraPDF `3316ad49c5c24f6f78a3849a28eea04517baa833`. Tras reconciliar el inventario con 0.2, los 83 comandos relacionados en `commands.csv` siguen en estado parcial. Estos casos describen evidencia inicial, sin certificar paridad ni excluir los demás casos de v1. [Auditoría y brechas](../AUDIT_V1.md).
+Referencia: SumatraPDF `3316ad49c5c24f6f78a3849a28eea04517baa833`. Tras reconciliar el inventario con 0.2, los 83 comandos relacionados en `commands.csv` siguen en estado parcial. Estos casos describen evidencia inicial, sin certificar paridad ni excluir los demás casos de v1. [Auditoría y brechas](../history/AUDIT_V1.md).
 
-La evidencia adicional de consistencia e importación de 0.3 consta en [0.3.0](../IMPLEMENTATION_PROGRESS.md), [0.3.1](../IMPLEMENTATION_PROGRESS_0_3_1.md) y [0.3.2](../IMPLEMENTATION_PROGRESS_0_3_2.md). [0.3.3](../IMPLEMENTATION_PROGRESS_0_3_3.md) registra pantalla completa y navegación por teclado. [0.3.4](../IMPLEMENTATION_PROGRESS_0_3_4.md) añade punto de lectura y manga persistentes. Estos avances no transforman ninguna entrada del inventario en paridad verificada.
+La evidencia adicional de consistencia e importación de 0.3 consta en [0.3.0](../history/IMPLEMENTATION_PROGRESS.md), [0.3.1](../history/IMPLEMENTATION_PROGRESS_0_3_1.md) y [0.3.2](../history/IMPLEMENTATION_PROGRESS_0_3_2.md). [0.3.3](../history/IMPLEMENTATION_PROGRESS_0_3_3.md) registra pantalla completa y navegación por teclado. [0.3.4](../history/IMPLEMENTATION_PROGRESS_0_3_4.md) añade punto de lectura y manga persistentes. Estos avances no transforman ninguna entrada del inventario en paridad verificada.
 
 | Caso | Secuencia y resultado verificable | Evidencia inicial | Pendiente de paridad |
 | --- | --- | --- | --- |
@@ -32,8 +32,8 @@ Los casos de impresión, editor completo de anotaciones, edición/formularios, f
 
 ## Regresión adicional de interfaz — 0.3.5
 
-`examples/transition_smoke.rs` comprueba avanzar/volver con flechas, inversión rápida, modo no continuo, Inicio y vuelta al documento, Marcas y la cruz real de cierre. Registra offsets y frames durante el desplazamiento; verifica monotonicidad, posiciones intermedias con animación, salto directo al reducir movimiento y ausencia del pie inferior. Windows y Ubuntu/Xvfb tienen informes separados. [Resultados y límites](../IMPLEMENTATION_PROGRESS_0_3_5.md). Este caso no cierra la paridad de lectura ni del editor de anotaciones.
+`examples/transition_smoke.rs` comprueba avanzar/volver con flechas, inversión rápida, modo no continuo, Inicio y vuelta al documento, Marcas y la cruz real de cierre. Registra offsets y frames durante el desplazamiento; verifica monotonicidad, posiciones intermedias con animación, salto directo al reducir movimiento y ausencia del pie inferior. Windows y Ubuntu/Xvfb tienen informes separados. [Resultados y límites](../history/IMPLEMENTATION_PROGRESS_0_3_5.md). Este caso no cierra la paridad de lectura ni del editor de anotaciones.
 
 ## Documento y ventana — 0.3.6
 
-`document_chrome_smoke` comprueba favoritos separados entre dos libros, guardar/quitar, salto sin cambiar zoom, duplicación por arrastre de una pestaña inactiva y cancelación al volver o pulsar Escape. `Test-WindowGeometry.ps1` compara el área cliente con el monitor desde ventana normal y maximizada, con barra propia y nativa. [Evidencia y límites](../IMPLEMENTATION_PROGRESS_0_3_6.md). El panel de favoritos por libro responde a la preferencia explícita del usuario; no certifica paridad de toda la gestión de favoritos de la referencia.
+`document_chrome_smoke` comprueba favoritos separados entre dos libros, guardar/quitar, salto sin cambiar zoom, duplicación por arrastre de una pestaña inactiva y cancelación al volver o pulsar Escape. `Test-WindowGeometry.ps1` compara el área cliente con el monitor desde ventana normal y maximizada, con barra propia y nativa. [Evidencia y límites](../history/IMPLEMENTATION_PROGRESS_0_3_6.md). El panel de favoritos por libro responde a la preferencia explícita del usuario; no certifica paridad de toda la gestión de favoritos de la referencia.

@@ -2,7 +2,7 @@
 
 Alcance actualizado por el usuario el **13 de octubre de 2026**.
 
-La [auditoría de la base 0.2](AUDIT_V1.md) identifica riesgos y brechas; los avances de [0.3.0](IMPLEMENTATION_PROGRESS.md), [0.3.1](IMPLEMENTATION_PROGRESS_0_3_1.md), [0.3.2](IMPLEMENTATION_PROGRESS_0_3_2.md), [0.3.3](IMPLEMENTATION_PROGRESS_0_3_3.md) y [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md), el [plan ejecutable](V1_PLAN.md) y el [backlog R00–R30](V1_BACKLOG.csv) distinguen cambios realizados de rutas pendientes. Este documento conserva el alcance del producto.
+La versión pública actual es **0.4.1**, de desarrollo. El [plan ejecutable](V1_PLAN.md), el [backlog R00–R30](V1_BACKLOG.csv) y la [validación](VALIDATION.md) distinguen lo realizado de lo pendiente. Los informes anteriores están en el [historial](history/README.md).
 
 ## Versión 1: paridad completa con SumatraPDF
 
@@ -72,7 +72,7 @@ Las exclusiones originales de anotaciones, EPUB, edición e IA correspondían a 
 | Windows 10 x86 | Build `i686-pc-windows-msvc`, PDFium x86 y pruebas en SO de 32 bits | Build y recorrido x86 bajo WOW64 en Windows 10 x64; falta SO x86. |
 | Windows 11 x64 | Ejecutable y pruebas funcionales propias | Sin prueba funcional. |
 | Aplicación x86 en Windows 11 x64 | Compatibilidad bajo WOW64 y bibliotecas x86 | Probada sólo bajo Windows 10 x64; falta Windows 11. Windows 11 no tiene una edición del sistema de 32 bits. |
-| macOS Intel y Apple Silicon | Builds x86_64/arm64, `.app`, paquete y pruebas | CI de 0.3.4 (`a6cdd22`): build y siete pruebas nativas PDF por arquitectura; sin UI, otros formatos ni paquete `.app`. |
+| macOS Intel y Apple Silicon | Builds x86_64/arm64, `.app`, paquete y pruebas | CI de 0.4.1 (`6eb980a`): build y ocho pruebas nativas PDF por arquitectura; sin UI, otros formatos ni paquete `.app`. |
 | Linux x64 | Ubuntu, Debian, Linux Mint, Fedora, Arch y openSUSE; versiones concretas en la matriz de pruebas | Desde 0.3.3: Ubuntu 24.04 en Docker con Xvfb; tar glibc 2.36 y DEB. Sin escritorio físico ni otras distros. |
 
 En Linux hay que probar X11 y Wayland, GNOME y KDE, portales, fuentes, impresión y compatibilidad de las bibliotecas empaquetadas. Las versiones mínimas de distro y macOS se fijarán al obtener evidencia de compilación y ejecución. Los paquetes pueden usar AppImage/Flatpak y, según la entrega, DEB/RPM; no se declara compatibilidad universal con Linux por producir un binario.
@@ -114,7 +114,7 @@ La validación local se automatiza con `scripts/Test-Local.ps1` y entornos Linux
 
 V1 requiere inventario exhaustivo, paridad funcional y visual verificada, diferencias de plataforma resueltas, pruebas de todos los formatos, evidencia de rendimiento y entrega instalable/portable validada. No basta que compile la UI. La revisión de dependencias y avisos debe corresponder a los paquetes concretos entregados.
 
-La implementación actual está marcada como **0.3.4 en desarrollo**. Las rutas H1, R10, R13, R22 y R24 avanzaron parcialmente; esta entrega no certifica cumplimiento de v1. [Resultados y límites](IMPLEMENTATION_PROGRESS_0_3_4.md).
+La entrega pública es **0.4.1, de desarrollo**. R09 se completó como extracción de arquitectura; la paridad funcional y la aceptación cuantitativa A00/A07 siguen abiertas. [Resultados y límites actuales](VALIDATION.md).
 
 ## Versión 2: extensiones opcionales en Rust y WebAssembly
 

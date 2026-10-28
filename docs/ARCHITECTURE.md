@@ -1,6 +1,6 @@
 # Arquitectura de CrabPDF
 
-CrabPDF usa un monolito modular en un workspace de cuatro paquetes Rust. La versión publicada sigue siendo 0.4.0; esta reorganización pertenece al desarrollo posterior y no cambia esa publicación. La decisión está en [ADR-0001](adr/0001-modular-architecture.md), el plan original en [ARCHITECTURE_MIGRATION.md](ARCHITECTURE_MIGRATION.md) y la ejecución final en [PHASE_6.md](architecture/PHASE_6.md).
+CrabPDF usa un monolito modular en un workspace de cuatro paquetes Rust. La versión pública 0.4.1 incorpora esta organización. Los cambios posteriores de mantenimiento se registran en la [revisión del repositorio](REPOSITORY_REVIEW.md). La decisión está en [ADR-0001](adr/0001-modular-architecture.md), el plan original en [ARCHITECTURE_MIGRATION.md](ARCHITECTURE_MIGRATION.md) y la ejecución final en [PHASE_6.md](architecture/PHASE_6.md).
 
 ```mermaid
 flowchart TD

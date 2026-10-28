@@ -1,10 +1,13 @@
 # CrabPDF 0.4.0
 
-Fecha: 26 de octubre de 2026. Cierre de la serie de mejoras posterior a 0.3.6, con paquetes Windows x64/x86 y Ubuntu/Linux x64. La versión 1.0 conserva sus criterios del [plan](V1_PLAN.md).
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
+Fecha: 26 de octubre de 2026. Cierre de la serie de mejoras posterior a 0.3.6, con paquetes Windows x64/x86 y Ubuntu/Linux x64. La versión 1.0 conserva sus criterios del [plan](../V1_PLAN.md).
 
 ## Alcance
 
-Esta entrega reúne las [correcciones de interacción](INTERACTION_FIXES.md), la extracción modular [A01/A02](architecture/PHASE_1.md), [A02b](architecture/PHASE_2.md), [A02c](architecture/PHASE_3.md), [A03a](architecture/PHASE_4.md) y [A03b](architecture/PHASE_5.md), y el [instalador de Windows](WINDOWS_INSTALLER.md).
+Esta entrega reúne las [correcciones de interacción](../INTERACTION_FIXES.md), la extracción modular [A01/A02](../architecture/PHASE_1.md), [A02b](../architecture/PHASE_2.md), [A02c](../architecture/PHASE_3.md), [A03a](../architecture/PHASE_4.md) y [A03b](../architecture/PHASE_5.md), y el [instalador de Windows](../WINDOWS_INSTALLER.md).
 
 No cambia las versiones de dependencias ni los esquemas de perfiles y marcas. La actualización conserva la lectura guardada y el comportamiento de importación. Las cachés mantienen sus presupuestos y el motor nativo sigue teniendo un único propietario.
 
@@ -22,7 +25,7 @@ La entrega sigue sin firma digital porque aún no existe certificado. Los hashes
 
 ## Validación de cierre
 
-Resultados locales y de la CI del candidato, registrados en [v0.4.0-validation.json](releases/v0.4.0-validation.json):
+Resultados locales y de la CI del candidato, registrados en [v0.4.0-validation.json](../releases/v0.4.0-validation.json):
 
 - Windows x64: formato, Clippy y 101 pruebas únicas, incluidas las nativas normalmente ignoradas. Los helpers de procesos hijos pertenecen a sus contratos.
 - Instaladores x64/x86: instalación, 609 archivos del manifiesto, actualización, rechazo de carpetas ajenas/ejecutable bloqueado, desinstalación y conservación de un archivo ajeno.

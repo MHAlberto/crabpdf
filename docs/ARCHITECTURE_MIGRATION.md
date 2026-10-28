@@ -31,7 +31,7 @@ Se inspeccionaron manifiestos, módulos, consumidores en tests/ejemplos, CI y sc
 
 El núcleo de geometría/lectura ya es independiente de egui/PDFium. Existen identidad de documento, revisión de contenido y generación de búsqueda; el motor corre fuera de la UI, con importación separada. Hay render por regiones, cachés por bytes, escrituras temporales, bloqueos, recuperación acotada y regresiones de lectura/ventana. La arquitectura nueva debe aprovechar y reforzar estas piezas.
 
-No se trasladan como vigentes todos los hallazgos de la auditoría histórica 0.2: sincronización de marcas, perfiles y otros puntos recibieron avances en 0.3.x. La evidencia actual se consulta en [0.3.6](IMPLEMENTATION_PROGRESS_0_3_6.md), los informes anteriores y sus pruebas.
+No se trasladan como vigentes todos los hallazgos de la auditoría histórica 0.2: sincronización de marcas, perfiles y otros puntos recibieron avances en 0.3.x. La evidencia actual se consulta en [0.3.6](history/IMPLEMENTATION_PROGRESS_0_3_6.md), los informes anteriores y sus pruebas.
 
 ## 2. Destino de código
 

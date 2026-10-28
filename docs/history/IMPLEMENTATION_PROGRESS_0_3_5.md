@@ -1,6 +1,9 @@
 # CrabPDF 0.3.5 — navegación e interfaz
 
-**Fecha:** 23 de octubre de 2026. Revisión de interfaz sobre [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md). Avanza parcialmente R13, R16 y R22 del [plan V1](V1_PLAN.md); no cierra esas rutas ni declara paridad 1.0.
+> Documento histórico. Describe una revisión anterior. Consulta el [índice actual](../README.md) para las instrucciones vigentes.
+
+
+**Fecha:** 23 de octubre de 2026. Revisión de interfaz sobre [0.3.4](IMPLEMENTATION_PROGRESS_0_3_4.md). Avanza parcialmente R13, R16 y R22 del [plan V1](../V1_PLAN.md); no cierra esas rutas ni declara paridad 1.0.
 
 ## Cambios y causas
 

@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("architecture", choices=("arm64", "x64"))
 args = parser.parse_args()
 machine = "arm64" if args.architecture == "arm64" else "x86_64"
-target = f"{machine}-apple-darwin"
+target = "aarch64-apple-darwin" if args.architecture == "arm64" else "x86_64-apple-darwin"
 version = re.search(r'^version = "([^"]+)"', (root / "Cargo.toml").read_text(), re.M)[1]
 out = root / "artifacts/packages"
 name = f"crabpdf-{version}-mac-{args.architecture}"

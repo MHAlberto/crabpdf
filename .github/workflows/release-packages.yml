@@ -49,6 +49,8 @@ jobs:
       - name: Install pinned Rust
         run: rustup show && rustup target add '${{ matrix.target }}'
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - name: Install optional system decoders for package tests
         run: brew install djvulibre sevenzip
       - name: Prepare verified PDFium

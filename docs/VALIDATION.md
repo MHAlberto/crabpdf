@@ -8,7 +8,9 @@ El [registro local de 0.4.2](releases/v0.4.2-validation.json) conserva la revisi
 
 El [registro de publicación](releases/v0.4.2-publication.json) identifica etiqueta, commit, hashes públicos y la [CI aprobada](https://github.com/MHAlberto/crabpdf/actions/runs/40737537305) en Windows x64/x86, Ubuntu x64 y macOS Intel/ARM. La CI también comprobó instalación, actualización y desinstalación en Windows; se publican los portables locales medidos y los [instaladores de CI con su evidencia](releases/v0.4.2-installers-validation.json).
 
-El recorrido sintético mostró un pico residente mediano de 261.5 a 169.2 MiB, sin acreditar una aceleración global. Véanse el método y los límites en [Rendimiento](PERFORMANCE.md). No hay paquetes Linux/macOS nuevos ni validación gráfica nueva de esos sistemas, ni prueba de un SO Windows de 32 bits nativo.
+El [paquete Ubuntu 0.4.2](releases/v0.4.2-linux-validation.json) se compiló con Rust 1.96.0 sobre Debian 12 y glibc 2.36. El [job Linux aprobado](https://github.com/MHAlberto/crabpdf/actions/runs/40745581751/job/123018362519) comprobó hashes y dependencias del DEB instalado en Ubuntu 24.04 limpio y capturó PDF, EPUB, DjVu y CBZ con Xvfb/Mesa. [Captura PDF](screenshots/0.4.2-linux-x64.png). El registro distingue el commit de empaquetado de la etiqueta de las fuentes de la aplicación.
+
+El recorrido sintético mostró un pico residente mediano de 261.5 a 169.2 MiB, sin acreditar una aceleración global. Véanse el método y los límites en [Rendimiento](PERFORMANCE.md). No se ha probado un SO Windows de 32 bits nativo.
 
 ## Entrega 0.4.1
 

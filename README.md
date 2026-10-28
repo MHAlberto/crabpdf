@@ -6,9 +6,9 @@ Lector local de PDF, libros electrónicos y cómics, desarrollado en Rust con eg
 
 [Web](https://mhalberto.github.io/crabpdf/) · [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.2) · [Documentación](docs/README.md) · [Contribuir](CONTRIBUTING.md)
 
-**Versión pública: 0.4.2, de desarrollo, con instaladores y portables para Windows.** La meta de 1.0 es la paridad de funciones con la revisión fijada de SumatraPDF. Ese objetivo todavía no se ha alcanzado.
+**Versión pública: 0.4.2, de desarrollo, para Windows y Ubuntu/Linux.** La meta de 1.0 es la paridad de funciones con la revisión fijada de SumatraPDF. Ese objetivo todavía no se ha alcanzado.
 
-[0.4.2](docs/releases/v0.4.2.md) reduce la memoria retenida al navegar y corrige las propiedades del documento. El recorrido sintético mostró un pico residente mediano un 35.3 % menor; no acredita una aceleración global. Los paquetes Linux anteriores siguen disponibles en 0.4.1.
+[0.4.2](docs/releases/v0.4.2.md) reduce la memoria retenida al navegar y corrige las propiedades del documento. El recorrido sintético mostró un pico residente mediano un 35.3 % menor; no acredita una aceleración global.
 
 ![CrabPDF con un documento de prueba abierto](docs/screenshots/light.png)
 
@@ -18,9 +18,9 @@ Lector local de PDF, libros electrónicos y cómics, desarrollado en Rust con eg
 | --- | --- |
 | Windows x64, 0.4.2 | [Instalador EXE](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-win-x64-setup.exe) · [ZIP portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-win-x64.zip) |
 | Windows x86, 0.4.2 | [Instalador EXE](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-win-x86-setup.exe) · [ZIP portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-win-x86.zip) |
-| Ubuntu 24.04 x64, 0.4.1 | [Paquete DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.1/crabpdf-0.4.1-ubuntu24.04-amd64.deb) |
-| Linux x64, 0.4.1 | [TAR.GZ](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.1/crabpdf-0.4.1-linux-x64.tar.gz), para glibc 2.36 o posterior |
-| macOS Intel / Apple Silicon | Compilación y pruebas PDF en CI; todavía sin instalador público |
+| Ubuntu 24.04 x64, 0.4.2 | [Paquete DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-ubuntu24.04-amd64.deb) |
+| Linux x64, 0.4.2 | [TAR.GZ](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-linux-x64.tar.gz), para glibc 2.36 o posterior |
+| macOS Intel / Apple Silicon | Sin paquetes publicados en esta entrega |
 
 [Notas de 0.4.2](docs/releases/v0.4.2.md) · [SHA-256](https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/SHA256SUMS-v0.4.2.txt) · [Procedencia de 0.4.2](docs/releases/v0.4.2-publication.json) · [Entrega anterior 0.4.1](docs/releases/v0.4.1.md)
 
@@ -29,7 +29,7 @@ La interfaz se ha comprobado en Windows 10 x64 y Ubuntu 24.04 con escritorio vir
 En Ubuntu:
 
 ```sh
-sudo apt install ./crabpdf-0.4.1-ubuntu24.04-amd64.deb
+sudo apt install ./crabpdf-0.4.2-ubuntu24.04-amd64.deb
 ```
 
 En Windows puedes usar el instalador 0.4.2 o descomprimir su ZIP portable. Conserva `pdfium.dll` y `format-tools/` junto al ejecutable portable. El tar de Linux incluye sus requisitos en `INSTALL-LINUX.md`.

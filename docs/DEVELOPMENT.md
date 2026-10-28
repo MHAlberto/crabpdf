@@ -69,7 +69,7 @@ cargo run --locked -- tests/fixtures/reading-sample.pdf
 
 También puedes extraer manualmente `lib/libpdfium.so` del [paquete Linux x64 de build 7881](https://github.com/bblanchon/pdfium-binaries/releases/tag/chromium%2F7881), conservar sus licencias y establecer `RUST_READER_PDFIUM` a la biblioteca.
 
-Para los importadores, [Build-LinuxFormatTools.sh](../scripts/Build-LinuxFormatTools.sh) compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. Se preparan originalmente con Get-FormatTools. DjVuLibre y 7-Zip se instalan desde la distribución. El lector PDF no necesita iniciar estos conversores.
+Para los importadores, [Build-LinuxFormatTools.sh](../scripts/Build-LinuxFormatTools.sh) compila MuPDF/libmobi desde los archivos fuente verificados de `native/format-downloads/`. `python3 scripts/Get-UnixFormatSources.py` los prepara desde el archivo de fuentes publicado y comprueba sus hashes. DjVuLibre y 7-Zip se instalan desde la distribución. El lector PDF no necesita iniciar estos conversores.
 
 ## macOS
 
@@ -83,7 +83,7 @@ cargo run --locked -- tests/fixtures/reading-sample.pdf
 
 El ejemplo de descarga usa PowerShell 7. En Intel usa `-Architecture x64`; también puedes extraer `lib/libpdfium.dylib` manualmente del paquete build 7881 y señalarlo con `RUST_READER_PDFIUM`. No se proporciona todavía un .app firmado o notarizado.
 
-La compilación y las pruebas PDF de Intel/ARM están aprobadas en la [CI de 0.4.1](https://github.com/MHAlberto/crabpdf/actions/runs/40565789343). Eso no valida su interfaz ni sus importadores en un Mac físico.
+La compilación y las pruebas PDF de Intel/ARM están aprobadas en la [CI de 0.4.2](https://github.com/MHAlberto/crabpdf/actions/runs/40737537305). Eso no valida su interfaz ni sus importadores en un Mac físico. macOS queda fuera de los paquetes publicados en esta entrega.
 
 ## Pruebas nativas e interacción
 
@@ -129,10 +129,13 @@ La batería Windows completa está en `scripts/Test-Local.ps1`. Ejecuta ambas ar
 | Instalación / actualización / desinstalación | `scripts/Test-Installer.ps1` |
 | Integridad de ZIP | `scripts/Verify-Portable.ps1` |
 | TAR y DEB Linux | `scripts/Pack-Linux.sh` y `scripts/Verify-Linux.sh` |
+| Instalación y capturas Ubuntu limpio | `scripts/Test-LinuxPackage.sh` dentro de Ubuntu 24.04 |
 | Fuentes de conversores | `scripts/Pack-FormatSources.ps1` |
 | Publicación GitHub | `scripts/Publish-Release.ps1` |
 
 Las salidas quedan en `artifacts/packages/`. El empaquetador Linux toma el ELF de `artifacts/crabpdf-linux-x64`, PDFium/conversores de `native/linux-x64/` y licencias generadas con `scripts/Export-RustLicenses.py`. Consulta los requisitos de cada script antes de ejecutar.
+
+El workflow manual [release-packages.yml](../.github/workflows/release-packages.yml), con `platforms: linux`, reproduce el empaquetado Linux. Compila en Debian 12 con glibc 2.36 e instala el DEB en un contenedor limpio Ubuntu 24.04. Antes de construir comprueba que las fuentes de la aplicación coinciden con la etiqueta solicitada. Los informes conservan también el commit de los scripts de empaquetado y el job que realmente pasó. La ruta experimental macOS no forma parte de los paquetes publicados en 0.4.2.
 
 El publicador usa la versión del Cargo.toml si no se especifica `-Version`. Requiere fuentes compatibles con la etiqueta, paquetes verificados, notas y CI aprobada para ese commit. Crea un borrador, verifica tamaños y digests de los uploads y después lo publica. No modifica una entrega pública ya existente. Los instaladores actuales están sin firma; [Windows](WINDOWS_INSTALLER.md) documenta la firma real y sus límites.
 

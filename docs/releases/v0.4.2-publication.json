@@ -1,10 +1,10 @@
 {
     "version":  "0.4.2",
     "tagged_commit":  "a30ea172979a3ec47967d6ba0af9bffdbd91d91c",
-    "origin":  "Local measured portable ZIPs plus clean CI Windows installers from the release tag; see both validation records.",
+    "origin":  "Measured local Windows portable builds, CI Windows installers, and CI Linux packages; platform-specific build commits and evidence are recorded separately.",
     "validated_ci":  "https://github.com/MHAlberto/crabpdf/actions/runs/40737537305",
     "limits":  [
-                   "Windows installers and portable ZIPs. Linux/macOS packages are being prepared separately.",
+                   "This release publishes Windows x64/x86 and Ubuntu/Linux x64 packages. No macOS packages are published.",
                    "Windows x86 tested under WOW64. No native 32-bit Windows OS claim.",
                    "Unsigned development builds; no independent security certification.",
                    "Memory comparison is synthetic. Readiness timings do not establish a global speedup.",
@@ -14,10 +14,28 @@
     "schema":  1,
     "assets":  [
                    {
+                       "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/0.4.2-linux-x64.png",
+                       "sha256":  "17683303a5fb68e54e55f77e4bb8fffff9dc75f3b000b2a9ba708b1f38c6966d",
+                       "name":  "0.4.2-linux-x64.png",
+                       "bytes":  114723
+                   },
+                   {
                        "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-format-tools-sources.zip",
                        "sha256":  "b42eb877fbcf8bcaf0f905ec7dc5b02bcc3feb1309280ab27739725f6cd472de",
                        "name":  "crabpdf-0.4.2-format-tools-sources.zip",
                        "bytes":  82302007
+                   },
+                   {
+                       "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-linux-x64.tar.gz",
+                       "sha256":  "ebc3bc70db1d971dffed4b90044916e604a924bd28bfa1d135f7dfe505830af2",
+                       "name":  "crabpdf-0.4.2-linux-x64.tar.gz",
+                       "bytes":  40647279
+                   },
+                   {
+                       "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-ubuntu24.04-amd64.deb",
+                       "sha256":  "159ecbad7ece1f659774a7d03c4db9de820be8ac1659506a9f207d420961a9cb",
+                       "name":  "crabpdf-0.4.2-ubuntu24.04-amd64.deb",
+                       "bytes":  30641640
                    },
                    {
                        "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/crabpdf-0.4.2-win-x64-setup.exe",
@@ -63,15 +81,21 @@
                    },
                    {
                        "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/SHA256SUMS-v0.4.2.txt",
-                       "sha256":  "c8af4e0c3f46bd3051cb6b294e2e13281f8fb12a624eb822d97d112917c60689",
+                       "sha256":  "df58b3a5969c311ae49f089aa61c16ad773c2eb1231babddce1a0f23195ef007",
                        "name":  "SHA256SUMS-v0.4.2.txt",
-                       "bytes":  977
+                       "bytes":  1361
                    },
                    {
                        "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/v0.4.2-installers-validation.json",
                        "sha256":  "d53fcbf913100b23bd6ba2b718b076b89691af660c340158ba2e73493b494425",
                        "name":  "v0.4.2-installers-validation.json",
                        "bytes":  6491
+                   },
+                   {
+                       "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/v0.4.2-linux-validation.json",
+                       "sha256":  "6d1af67a6197e1f434045ec06aab943c6278ab41a3645b7b426cea6ff45d15ba",
+                       "name":  "v0.4.2-linux-validation.json",
+                       "bytes":  847
                    },
                    {
                        "url":  "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.2/v0.4.2-validation.json",
@@ -112,5 +136,24 @@
                 ],
     "date":  "2026-10-28",
     "prerelease":  true,
-    "installers_validation":  "v0.4.2-installers-validation.json"
+    "installers_validation":  "v0.4.2-installers-validation.json",
+    "platform_packages":  [
+                              {
+                                  "artifact_sha256":  "209ab18481ec13ad2dd30ab6d040c2e2619160ed151b3814ceb83c37dd3bd07e",
+                                  "artifact_id":  12840883591,
+                                  "platform":  "linux-x64",
+                                  "job_url":  "https://github.com/MHAlberto/crabpdf/actions/runs/40745581751/job/123018362519",
+                                  "job_id":  123018362519,
+                                  "build_commit":  "936cb7e5efdd10385c19bc134cc9808af9c3c3da",
+                                  "application_source_tag":  "v0.4.2",
+                                  "run_id":  40745581751,
+                                  "validation":  "docs/releases/v0.4.2-linux-validation.json"
+                              }
+                          ],
+    "published_platforms":  [
+                                "windows-x64",
+                                "windows-x86",
+                                "ubuntu24.04-amd64",
+                                "linux-x64"
+                            ]
 }

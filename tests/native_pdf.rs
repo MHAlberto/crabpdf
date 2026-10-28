@@ -191,6 +191,41 @@ fn worker_loads_and_renders_real_document() {
 
 #[test]
 #[ignore = "Requires the native PDFium 7881 library"]
+fn displayed_raster_releases_cpu_copy_and_can_be_rendered_again() {
+    let worker = PdfWorker::spawn(|| {}).unwrap();
+    worker.open(42, fixture("reading-sample.pdf")).unwrap();
+    let mut request = key(1, Zoom::FitWidth);
+    request.document_id = 42;
+    worker.render(request).unwrap();
+    let first = loop {
+        match worker.events.recv_timeout(Duration::from_secs(15)).unwrap() {
+            WorkerEvent::Opened(42, Ok(_)) | WorkerEvent::Details(42, Ok(_)) => {}
+            WorkerEvent::Rendered(received, Ok(page)) => {
+                assert_eq!(received, request);
+                break page;
+            }
+            _ => panic!("Expected a successful open, details or raster"),
+        }
+    };
+    let hash = crc32fast::hash(&first.rgba);
+    let weak = std::sync::Arc::downgrade(&first);
+    drop(first);
+    // The worker's CPU cache is the only remaining owner before upload acknowledgement.
+    assert!(weak.upgrade().is_some());
+    worker.release_render(request).unwrap();
+    worker.render(request).unwrap();
+    match worker.events.recv_timeout(Duration::from_secs(15)).unwrap() {
+        WorkerEvent::Rendered(received, Ok(page)) => {
+            assert_eq!(received, request);
+            assert!(weak.upgrade().is_none(), "Old RGBA buffer must be freed");
+            assert_eq!(crc32fast::hash(&page.rgba), hash);
+        }
+        _ => panic!("Expected a new raster after release"),
+    }
+}
+
+#[test]
+#[ignore = "Requires the native PDFium 7881 library"]
 fn native_text_search_outline_links_password_and_save() {
     let pdfium = bind_pdfium().unwrap();
     let mut engine = PdfiumEngine::new(&pdfium);

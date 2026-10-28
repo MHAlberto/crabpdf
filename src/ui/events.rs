@@ -151,6 +151,11 @@ impl ReaderApp {
                 }
                 WorkerEvent::Rendered(key, result) => {
                     self.pending_pages.remove(&key);
+                    // Also release stale results and failures: only the display
+                    // cache needs to retain pixels after this event is consumed.
+                    if let Some(worker) = &self.worker {
+                        let _ = worker.release_render(key);
+                    }
                     if !self.tabs.iter().any(|tab| {
                         tab.reader.id == key.document_id
                             && tab.reader.state.content_revision == key.revision

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('x64','x86','both')][string]$Architecture='both', [switch]$SkipVisual, [string]$ReportRoot='')
+param([ValidateSet('x64','x86','both')][string]$Architecture='both', [switch]$SkipVisual, [switch]$DebugTests, [string]$ReportRoot='')
 $ErrorActionPreference='Stop'
 $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $reportRoot=if($ReportRoot){[IO.Path]::GetFullPath($ReportRoot)}else{Join-Path $workspace 'artifacts/validation'}
@@ -32,7 +32,11 @@ try {
         if (-not (Test-Path -LiteralPath $native)) {throw "Falta PDFium para $arch."}
         $env:RUST_READER_PDFIUM=$native
         Invoke-CargoCheck "$arch-clippy" @('clippy','--workspace','--locked','--offline','--all-targets','--target',$target,'--','-D','warnings')
-        Invoke-CargoCheck "$arch-tests" @('test','--workspace','--locked','--offline','--release','--target',$target,'--','--include-ignored','--test-threads=1')
+        # GUI examples are built in the next step only when visual checks are requested.
+        $testArguments=@('test','--workspace','--lib','--bins','--tests','--locked','--offline','--target',$target)
+        if (-not $DebugTests) { $testArguments+='--release' }
+        $testArguments+=@('--','--include-ignored','--test-threads=1')
+        Invoke-CargoCheck "$arch-tests" $testArguments
         $buildArguments=@('build','--locked','--offline','--release','--target',$target,'--bins')
         if (-not $SkipVisual) { $buildArguments+='--examples' }
         Invoke-CargoCheck "$arch-build" $buildArguments

@@ -139,6 +139,9 @@ pub(super) fn run(
                     break;
                 }
             }
+            Command::ReleaseRender(key) => {
+                rasters.remove(&key);
+            }
             Command::Content(id, page) => {
                 let Some(engine) = documents.get_mut(&id) else {
                     continue;

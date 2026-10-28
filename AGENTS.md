@@ -4,7 +4,7 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 
 ## Objetivo y alcance acordado
 
-- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo es **0.3.4**, no 1.0.
+- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo es **0.4.2**; la última publicación es 0.4.1. No es 1.0.
 - **V1:** todas las funciones y detalles visibles de la revisión de SumatraPDF fijada en `docs/parity/reference.json`, con equivalentes comprobados por plataforma. Un botón, una extensión reconocida o una compilación correcta no demuestran paridad.
 - **V2:** extensiones opcionales escritas en Rust y WebAssembly. No implementar todavía un runtime, tienda o ABI pública de plugins; tampoco trasladar requisitos de V1 a V2 para cerrar artificialmente la versión.
 - Sistemas objetivo: Windows 10 x64 y x86, Windows 11 x64 y ejecución de la app x86 bajo WOW64, Linux de distribuciones populares y macOS Intel/Apple Silicon. Windows 11 no tiene una edición de SO x86. Ver `docs/V1_PLAN.md` para la matriz y sus límites de evidencia.
@@ -17,7 +17,7 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 ## Dónde encontrar la verdad del proyecto
 
 1. `README.md`: uso y capacidades actuales.
-2. `docs/IMPLEMENTATION_PROGRESS_0_3_4.md`: avance actual; `docs/IMPLEMENTATION_PROGRESS_0_3_3.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_3_LINUX.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_2.md`, `docs/IMPLEMENTATION_PROGRESS_0_3_1.md` y `docs/IMPLEMENTATION_PROGRESS.md`: entregas históricas; `docs/AUDIT_V1.md`: auditoría de 0.2.
+2. `docs/releases/`, `docs/VALIDATION.md` y `docs/PERFORMANCE.md`: entregas y evidencia vigente. Los informes `IMPLEMENTATION_PROGRESS*` son históricos; `docs/AUDIT_V1.md` es la auditoría de 0.2.
 3. `docs/V1_PLAN.md` y `docs/V1_BACKLOG.csv`: rutas, dependencias, archivos propuestos y criterios de salida.
 4. `docs/ROADMAP.md`: alcance V1/V2; `docs/parity/reference.json`, `commands.csv` y `cases.md`: referencia y trazabilidad funcional.
 5. `docs/ARCHITECTURE.md`, `FORMATS_AND_ANNOTATIONS.md`, `VALIDATION.md`: contratos y límites actuales.
@@ -29,16 +29,16 @@ El backlog es trabajo pendiente, no código existente. No usar el número de ide
 | Ruta | Responsabilidad |
 | --- | --- |
 | `src/main.rs`, `src/cli.rs` | Arranque, opciones y errores de CLI. |
-| `src/document.rs`, `src/state.rs`, `src/layout.rs` | Datos independientes del SDK, navegación y geometría. |
-| `src/reading_position.rs` | Ancla versionada de lectura relativa a página y viewport; sin UI ni SDK. |
-| `src/engine.rs` | Adaptador PDFium; documento, texto, raster, marcas y exportación. |
-| `src/worker.rs`, `src/cache.rs` | Dueño de PDFium, colas, búsqueda y cachés con presupuesto. |
-| `src/formats.rs`, `src/djvu_text.rs`, `src/import_info.js` | Preparación local de formatos y recuperación de texto/metadatos. |
-| `src/annotations.rs` | Almacén local de marcas, bloqueo y persistencia. |
-| `src/app_paths.rs`, `src/config.rs`, `src/fileops.rs`, `src/platform.rs` | Perfil, preferencias, escritura atómica y servicios del sistema. |
+| `crates/core/src/` | Datos independientes del SDK, geometría y anclas de lectura. |
+| `crates/application/src/` | Navegación, pestañas, selección, búsqueda, preferencias y protocolo. |
+| `crates/runtime/src/pdfium/` | Adaptador PDFium; documento, texto, raster, marcas y exportación. |
+| `crates/runtime/src/worker/`, `crates/runtime/src/cache.rs` | Dueño de PDFium, colas, búsqueda y cachés con presupuesto. |
+| `crates/runtime/src/formats/` | Preparación local de formatos y recuperación de texto/metadatos. |
+| `crates/runtime/src/storage/` | Almacén local de marcas, perfil, bloqueo y persistencia. |
+| `crates/runtime/src/paths.rs`, `src/desktop/` | Rutas y servicios nativos del sistema. |
 | `src/ui/` | Interfaz; `mod.rs` coordina, `viewer.rs` dibuja/interactúa, `panels.rs` presenta controles. |
-| `src/commands.rs`, `docs/actions.csv` | Acciones de aplicación y documentación de atajos. |
-| `src/library.rs`, `src/ui/home.rs` | Portadas e Inicio. |
+| `crates/application/src/commands.rs`, `docs/actions.csv` | Acciones de aplicación y documentación de atajos. |
+| `crates/runtime/src/covers.rs`, `src/ui/home.rs` | Portadas e Inicio. |
 | `build.rs`, `src/branding.rs`, `crabpdf-logo.svg` | Iconos y recursos nativos. |
 | `tests/`, `examples/*smoke.rs`, `scripts/` | Regresiones, recorridos gráficos y distribución local. |
 

@@ -19,6 +19,7 @@ pub(super) enum Command {
     ),
     Close(DocumentId),
     Render(RenderKey),
+    ReleaseRender(RenderKey),
     Content(DocumentId, usize),
     Search(SearchRequest),
     SearchPage(SearchRequest, usize),
@@ -36,7 +37,7 @@ impl Command {
             | Self::Save(id, ..)
             | Self::Mark(id, ..)
             | Self::UndoMark(id) => *id,
-            Self::Render(key) => key.document_id,
+            Self::Render(key) | Self::ReleaseRender(key) => key.document_id,
             Self::Search(request) | Self::SearchPage(request, _) => request.document_id,
         }
     }

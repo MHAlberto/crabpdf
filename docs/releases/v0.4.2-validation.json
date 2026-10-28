@@ -1,0 +1,265 @@
+﻿{
+    "final_checks":  [
+                         {
+                             "command":  "cargo fmt --all -- --check",
+                             "name":  "final-format",
+                             "seconds":  1.1732418,
+                             "exit_code":  0
+                         },
+                         {
+                             "command":  "cargo clippy --workspace --locked --offline --all-targets --target x86_64-pc-windows-msvc -- -D warnings",
+                             "name":  "final-clippy-x86_64-pc-windows-msvc",
+                             "seconds":  14.180676499999999,
+                             "exit_code":  0
+                         },
+                         {
+                             "command":  "cargo clippy --workspace --locked --offline --all-targets --target i686-pc-windows-msvc -- -D warnings",
+                             "name":  "final-clippy-i686-pc-windows-msvc",
+                             "seconds":  16.3311873,
+                             "exit_code":  0
+                         },
+                         {
+                             "command":  "cargo test --locked --offline --target i686-pc-windows-msvc --lib long_property_values_use_the_window_width",
+                             "name":  "final-layout-x86",
+                             "seconds":  41.892706499999996,
+                             "exit_code":  0
+                         },
+                         {
+                             "command":  "cargo build --locked --offline --release --target x86_64-pc-windows-msvc --bin crabpdf --example memory_probe",
+                             "name":  "final-build-x64",
+                             "seconds":  478.6736674,
+                             "exit_code":  0
+                         },
+                         {
+                             "command":  "cargo build --locked --offline --release --target i686-pc-windows-msvc --bin crabpdf",
+                             "name":  "final-build-x86",
+                             "seconds":  279.69713229999996,
+                             "exit_code":  0
+                         }
+                     ],
+    "version":  "0.4.2",
+    "final_layout_x64":  {
+                             "command":  "cargo test --locked --offline --target x86_64-pc-windows-msvc --lib long_property_values_use_the_window_width -- --nocapture",
+                             "seconds":  0.09,
+                             "passed":  1
+                         },
+    "memory":  [
+                   {
+                       "median_navigation_ms":  119.83670000000001,
+                       "median_peak_private_bytes":  379101184,
+                       "median_cpu_seconds":  11.421875,
+                       "version":  "0.4.1",
+                       "fixture_sha256":  "74566DF9BEC7A9CD04BF630720ECA556071E55E1FD47EA5F4F0DAAA9BA338FDE",
+                       "name":  "before",
+                       "median_navigation_p95_ms":  145.6104,
+                       "runs":  [
+                                    {
+                                        "run":  1,
+                                        "peak_working_set_bytes":  274235392,
+                                        "peak_private_bytes":  380960768,
+                                        "first_sweep_peak_bytes":  271638528,
+                                        "second_sweep_peak_bytes":  274235392,
+                                        "after_close_bytes":  151592960,
+                                        "navigation_median_ms":  119.83670000000001,
+                                        "navigation_p95_ms":  145.6104,
+                                        "elapsed_seconds":  21.374561699999997,
+                                        "cpu_seconds":  9.875
+                                    },
+                                    {
+                                        "run":  2,
+                                        "peak_working_set_bytes":  280203264,
+                                        "peak_private_bytes":  378970112,
+                                        "first_sweep_peak_bytes":  276647936,
+                                        "second_sweep_peak_bytes":  280203264,
+                                        "after_close_bytes":  139739136,
+                                        "navigation_median_ms":  124.66755,
+                                        "navigation_p95_ms":  150.064,
+                                        "elapsed_seconds":  24.4845801,
+                                        "cpu_seconds":  11.421875
+                                    },
+                                    {
+                                        "run":  3,
+                                        "peak_working_set_bytes":  273108992,
+                                        "peak_private_bytes":  379101184,
+                                        "first_sweep_peak_bytes":  270307328,
+                                        "second_sweep_peak_bytes":  273108992,
+                                        "after_close_bytes":  151764992,
+                                        "navigation_median_ms":  119.7856,
+                                        "navigation_p95_ms":  131.27089999999998,
+                                        "elapsed_seconds":  21.4148648,
+                                        "cpu_seconds":  11.90625
+                                    }
+                                ],
+                       "median_peak_working_set_bytes":  274235392,
+                       "executable_sha256":  "7CB7C25D4B0D06219C9DBC9BC6A5C896243C5AA7617BCC388E8D06E6430A2567"
+                   },
+                   {
+                       "median_navigation_ms":  124.82965,
+                       "median_peak_private_bytes":  279781376,
+                       "median_cpu_seconds":  11.78125,
+                       "version":  "0.4.2",
+                       "fixture_sha256":  "74566DF9BEC7A9CD04BF630720ECA556071E55E1FD47EA5F4F0DAAA9BA338FDE",
+                       "name":  "after",
+                       "median_navigation_p95_ms":  141.4618,
+                       "runs":  [
+                                    {
+                                        "run":  1,
+                                        "peak_working_set_bytes":  179343360,
+                                        "peak_private_bytes":  281100288,
+                                        "first_sweep_peak_bytes":  173371392,
+                                        "second_sweep_peak_bytes":  179343360,
+                                        "after_close_bytes":  151310336,
+                                        "navigation_median_ms":  124.82965,
+                                        "navigation_p95_ms":  141.4618,
+                                        "elapsed_seconds":  22.167380899999998,
+                                        "cpu_seconds":  11.78125
+                                    },
+                                    {
+                                        "run":  2,
+                                        "peak_working_set_bytes":  177278976,
+                                        "peak_private_bytes":  279781376,
+                                        "first_sweep_peak_bytes":  175534080,
+                                        "second_sweep_peak_bytes":  177278976,
+                                        "after_close_bytes":  129982464,
+                                        "navigation_median_ms":  124.87075,
+                                        "navigation_p95_ms":  143.80100000000002,
+                                        "elapsed_seconds":  22.8691976,
+                                        "cpu_seconds":  12.015625
+                                    },
+                                    {
+                                        "run":  3,
+                                        "peak_working_set_bytes":  177451008,
+                                        "peak_private_bytes":  279478272,
+                                        "first_sweep_peak_bytes":  173019136,
+                                        "second_sweep_peak_bytes":  177451008,
+                                        "after_close_bytes":  152289280,
+                                        "navigation_median_ms":  123.35419999999999,
+                                        "navigation_p95_ms":  135.2995,
+                                        "elapsed_seconds":  21.4527555,
+                                        "cpu_seconds":  11.328125
+                                    }
+                                ],
+                       "median_peak_working_set_bytes":  177451008,
+                       "executable_sha256":  "81F72DED24C2AE4C6313E03541F3A253AAD60A68A91EE920F24D0BA6B4B8ED1E"
+                   }
+               ],
+    "artifacts":  [
+                      {
+                          "sha256":  "b42eb877fbcf8bcaf0f905ec7dc5b02bcc3feb1309280ab27739725f6cd472de",
+                          "name":  "crabpdf-0.4.2-format-tools-sources.zip",
+                          "bytes":  82302007
+                      },
+                      {
+                          "sha256":  "f41fba71831d727d2139b41a7eb04602bb128ee4b3f6300984404c8d5de04e2a",
+                          "name":  "crabpdf-0.4.2-win-x64.zip",
+                          "bytes":  43596492
+                      },
+                      {
+                          "sha256":  "35574d0355dae3664343a5dee62a9f9d002449aa02e50a87ce7dac9b1d5d2367",
+                          "name":  "crabpdf-0.4.2-win-x86.zip",
+                          "bytes":  43267065
+                      }
+                  ],
+    "schema":  1,
+    "notes":  [
+                  "Three release processes per version; three copies of one original 24-page PDF; two sweeps, 125% zoom, 1080x780 viewport.",
+                  "Working-set and private-byte peaks are sampled, with a nominal 25ms interval. GPU, converters, OS cache and other desktop workloads are uncontrolled.",
+                  "Readiness includes a 100ms stability interval. These observations do not establish a global speedup or rule out document-specific leaks.",
+                  "Full native suites preceded the final left-alignment adjustment; final layout tests, static analysis and native screenshot cover that adjustment.",
+                  "Windows x86 is tested under WOW64, not on a native 32-bit OS. Linux and macOS are not validated for this revision.",
+                  "Local uncommitted build; no GitHub publication and no installer validation are claimed."
+              ],
+    "memory_reduction_percent":  35.292448321185319,
+    "source_files":  [
+                         {
+                             "sha256":  "305e8c9789ca00946417c23e43543d48860963939a14b48f50631b7bbc2dab8e",
+                             "path":  "Cargo.toml"
+                         },
+                         {
+                             "sha256":  "b6fd0888fece324ffd76dada8455bb8b878cb5e97cba95ce17e1851b8d7be2c6",
+                             "path":  "Cargo.lock"
+                         },
+                         {
+                             "sha256":  "2d88fd727243578aa217cb977db7ae230394d41946805f2ab93f6065b00b5a60",
+                             "path":  "crates/core/Cargo.toml"
+                         },
+                         {
+                             "sha256":  "1898a9d5f226762549829e9ea1582f6a2a7bef607fabe69e7cfb9690f8586387",
+                             "path":  "crates/application/Cargo.toml"
+                         },
+                         {
+                             "sha256":  "126123686a8aa33280c203c027cb22deb0592717b5eb92f9dc4825e94b5b1ff4",
+                             "path":  "crates/runtime/Cargo.toml"
+                         },
+                         {
+                             "sha256":  "f9c8264055b738923d073b6e5e9d4ad3c42237fa7673848e61c22f1153161a8d",
+                             "path":  "crates/runtime/src/cache.rs"
+                         },
+                         {
+                             "sha256":  "307b7849584b7b2b918605537b55bd8871de2ad41379f59a9b9d6512643f3b72",
+                             "path":  "crates/runtime/src/worker/mod.rs"
+                         },
+                         {
+                             "sha256":  "8d7e681da1e91d570c6cbbd3da056c011092d3706bc19007d41788b852debec7",
+                             "path":  "crates/runtime/src/worker/renderer.rs"
+                         },
+                         {
+                             "sha256":  "9878ed4738f6e519fc71ca4535381193662d93f48f3e17e08fd29d1d8384f5a9",
+                             "path":  "crates/runtime/src/worker/scheduler.rs"
+                         },
+                         {
+                             "sha256":  "7a7b05fba5b31ce6fa45d93d465a9b02d2376477679c0e68063a196ad9e5e94d",
+                             "path":  "src/ui/events.rs"
+                         },
+                         {
+                             "sha256":  "35b2f87545698c1abe14cd07a7d8f5c96c59f3ffa328c52797b140826f562f2b",
+                             "path":  "src/ui/panels/dialogs.rs"
+                         },
+                         {
+                             "sha256":  "122651c9ce91aac2a8cbce520cf8a1c7456b7d21f633144d8fe68fd953554853",
+                             "path":  "tests/native_pdf.rs"
+                         },
+                         {
+                             "sha256":  "92123eba5030fff285a1d8a19e8cd16386bc4fc0222aeb84bc8760cc75630732",
+                             "path":  "examples/memory_probe.rs"
+                         },
+                         {
+                             "sha256":  "b36a0fde8bdfa5d947a704c5065b9f1f060287466e27299ed72ed1a991404806",
+                             "path":  "scripts/Test-Local.ps1"
+                         },
+                         {
+                             "sha256":  "bbb87a8c05ec20482deb12af2614a50865b05c2cf139752de92e64734aa09c2f",
+                             "path":  "scripts/Test-Memory.ps1"
+                         },
+                         {
+                             "sha256":  "dbb660ad7253a31f4d805f5ff608dd09cdd98a304dbc3781cf4b481ba98dc6f3",
+                             "path":  "scripts/New-FormatSamples.ps1"
+                         }
+                     ],
+    "tests":  [
+                  {
+                      "passed":  112,
+                      "architecture":  "x64",
+                      "log_sha256":  "d818bb1e526578f1474582e10eeb6b6cd867b74455659c3be5dbe50593c045c5",
+                      "profile":  "debug",
+                      "suites":  20,
+                      "includes_native_and_ignored":  true
+                  },
+                  {
+                      "passed":  112,
+                      "architecture":  "x86",
+                      "log_sha256":  "5f0f73b273e02c4330d2569c91911fa71cd71c2f61b3689770a4873e0d45a2c3",
+                      "profile":  "debug",
+                      "suites":  20,
+                      "includes_native_and_ignored":  true
+                  }
+              ],
+    "os":  "Microsoft Windows NT 10.0.19045.0",
+    "native_properties_capture":  {
+                                      "sha256":  "1196570878cf1c8d2c6aa23228b38455b3afcb12c1d4f605eb8b5f658d9504fe",
+                                      "path":  "docs/screenshots/properties-0.4.2.png"
+                                  },
+    "date":  "2026-10-28",
+    "source_commit":  "e7b131c31d3edc92bd272ddbe09903be49b4175f",
+    "source_dirty":  true
+}

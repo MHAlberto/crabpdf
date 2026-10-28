@@ -74,12 +74,15 @@ impl ReaderApp {
                 .state()
                 .details
                 .as_ref()
-                .map(|d| d.properties.clone())
+                .map(|d| d.properties.as_slice())
                 .unwrap_or_default();
-            let path = self.tabs.get(self.active).map(|t| t.reader.path.clone());
+            let path = self.tabs.get(self.active).map(|t| &t.reader.path);
             egui::Window::new("Propiedades del documento")
                 .open(&mut open)
-                .default_width(420.0)
+                .collapsible(false)
+                .default_width(560.0)
+                .min_width(320.0)
+                .default_height(420.0)
                 .show(ctx, |ui| {
                     if let Some(path) = &path {
                         ui.add(egui::Label::new(path.display().to_string()).wrap());
@@ -88,14 +91,10 @@ impl ReaderApp {
                         }
                     }
                     ui.separator();
-                    egui::Grid::new("document-properties")
-                        .striped(true)
+                    egui::ScrollArea::vertical()
+                        .auto_shrink([false, true])
                         .show(ui, |ui| {
-                            for (name, value) in properties {
-                                ui.label(name);
-                                ui.add(egui::Label::new(value).wrap());
-                                ui.end_row();
-                            }
+                            property_rows(ui, properties);
                         });
                 });
             self.properties_open = open;
@@ -286,6 +285,33 @@ impl ReaderApp {
         }
     }
 }
+// Give wrapped values an explicit share of the available width. A Grid's
+// default intrinsic sizing can otherwise collapse this column to a few letters.
+fn property_rows(ui: &mut egui::Ui, properties: &[(String, String)]) {
+    let width = ui.available_width();
+    let name_width = (width * 0.28).clamp(90.0, 150.0);
+    let value_width = (width - name_width - ui.spacing().item_spacing.x).max(1.0);
+    egui::Grid::new("document-properties")
+        .num_columns(2)
+        .striped(true)
+        .show(ui, |ui| {
+            for (name, value) in properties {
+                property_cell(ui, name, name_width, false);
+                property_cell(ui, value, value_width, true);
+                ui.end_row();
+            }
+        });
+}
+fn property_cell(ui: &mut egui::Ui, text: &str, width: f32, selectable: bool) {
+    ui.allocate_ui_with_layout(
+        egui::vec2(width, 0.0),
+        egui::Layout::top_down(egui::Align::Min),
+        |ui| {
+            ui.set_width(width);
+            ui.add(egui::Label::new(text).wrap().selectable(selectable));
+        },
+    );
+}
 fn fold(text: &str) -> String {
     text.to_lowercase()
         .chars()
@@ -298,4 +324,61 @@ fn fold(text: &str) -> String {
             other => other,
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn long_property_values_use_the_window_width() {
+        let producer = "Adobe Acrobat 9.4.1 Paper Capture Plug-in";
+        for width in [320.0, 420.0, 560.0] {
+            let ctx = egui::Context::default();
+            let mut output = ctx.run_ui(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(width, 600.0),
+                    )),
+                    ..Default::default()
+                },
+                |ui| {
+                    property_rows(
+                        ui,
+                        &[
+                            ("Productor".into(), producer.into()),
+                            ("Formato".into(), "PDF".into()),
+                        ],
+                    )
+                },
+            );
+            let text = output
+                .shapes
+                .iter()
+                .find_map(|shape| match &shape.shape {
+                    egui::Shape::Text(text) if text.galley.text() == producer => Some(text),
+                    _ => None,
+                })
+                .expect("Producer must be visible");
+            assert!(text.galley.size().x > width * 0.4);
+            assert!(
+                text.galley.rows.len() <= 2,
+                "Value collapsed at width {width}"
+            );
+            let short_value = output
+                .shapes
+                .iter()
+                .find_map(|shape| match &shape.shape {
+                    egui::Shape::Text(text) if text.galley.text() == "PDF" => Some(text),
+                    _ => None,
+                })
+                .expect("Format must be visible");
+            assert!(
+                short_value.pos.x < width * 0.4,
+                "Short values must start at the left of the value column"
+            );
+            output.textures_delta.clear();
+        }
+    }
 }

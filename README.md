@@ -8,6 +8,8 @@ Lector local de PDF, libros electrónicos y cómics, desarrollado en Rust con eg
 
 **Versión pública: 0.4.1, de desarrollo.** La meta de 1.0 es la paridad de funciones con la revisión fijada de SumatraPDF. Ese objetivo todavía no se ha alcanzado.
 
+**En preparación: [0.4.2](docs/releases/v0.4.2.md)**, con reducción de memoria al navegar y una ventana de propiedades que aprovecha el ancho disponible. Las descargas públicas de esta página siguen correspondiendo a 0.4.1.
+
 ![CrabPDF con un documento de prueba abierto](docs/screenshots/light.png)
 
 ## Descargar

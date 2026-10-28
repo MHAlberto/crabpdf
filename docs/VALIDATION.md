@@ -2,6 +2,12 @@
 
 Este documento orienta sobre la evidencia vigente. Los comandos reproducibles están en [Desarrollo](DEVELOPMENT.md); los resultados históricos se conservan por separado.
 
+## Preparación local de 0.4.2
+
+El [registro de 0.4.2](releases/v0.4.2-validation.json) conserva la revisión de fuentes, hashes, compilaciones release x64/x86, clippy, regresiones y comparación de memoria. Pasaron 112 pruebas por arquitectura con los casos nativos habilitados en debug; el ajuste final de alineación tiene además regresiones propias y una [captura nativa x64](screenshots/properties-0.4.2.png). Los ZIP y las fuentes de conversores se verificaron con `Verify-Portable.ps1`.
+
+El recorrido sintético mostró un pico residente mediano de 261.5 a 169.2 MiB, sin acreditar una aceleración global. Véanse el método y los límites en [Rendimiento](PERFORMANCE.md). Es una preparación local sin commit ni publicación; no hay validación nueva de Linux/macOS, instaladores o un SO Windows de 32 bits nativo.
+
 ## Entrega 0.4.1
 
 | Evidencia | Qué acredita | Qué no acredita |

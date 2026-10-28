@@ -56,6 +56,8 @@ El coordinador de importación prepara libros fuera del hilo PDFium. Cerrar un d
 
 Se conservan los presupuestos: raster CPU 96 MiB x64 / 32 MiB x86, texturas GPU 64 / 32 MiB y texto 16 MiB por caché. El PDF permanece respaldado por archivo; no se rasteriza completo al abrirlo. Las regiones visibles usan tiles de hasta 1024 × 1024, con tamaño lógico separado de densidad física. Los presupuestos no representan el máximo de memoria del proceso ni incluyen conversores.
 
+Desde 0.4.2 la interfaz confirma cada resultado raster recibido mediante `release_render`. El scheduler prioriza esa confirmación sobre nuevos renders y el motor retira su copia CPU; la textura sigue disponible en la caché visual. Esto evita acumular los mismos píxeles en ambas cachés. Los límites CPU permanecen para consumidores que no confirmen resultados. El contenido de texto se comparte entre cachés con `Arc`, no se copia.
+
 ## Persistencia e importación
 
 Los modelos de preferencias y su reconciliación viven en application. El adaptador conserva lectura, bloqueo interproceso y reemplazo atómico. Cada ventana mantiene su propio baseline; el escritor agrupa snapshots sin borrar cambios ajenos. `ProfileSession` inicia o reintenta el escritor y expone fallos; no usa un guardado síncrono como alternativa dentro de un frame. Al salir se vacían las solicitudes pendientes.

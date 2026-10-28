@@ -132,6 +132,11 @@ impl PdfWorker {
     pub fn render(&self, key: RenderKey) -> Result<(), ReaderError> {
         self.mailbox.render(key)
     }
+    /// The display has consumed this raster. Keep its texture in the UI cache
+    /// without retaining a second, identical RGBA buffer in the renderer.
+    pub fn release_render(&self, key: RenderKey) -> Result<(), ReaderError> {
+        self.enqueue(Command::ReleaseRender(key))
+    }
     /// Speculative work never delays a requested visible page.
     pub fn prefetch(&self, key: RenderKey) -> Result<(), ReaderError> {
         self.mailbox.prefetch(key)

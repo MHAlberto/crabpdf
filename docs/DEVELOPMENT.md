@@ -49,6 +49,8 @@ cargo run --locked --target i686-pc-windows-msvc -- tests/fixtures/reading-sampl
 
 PDFium y el ejecutable deben coincidir en arquitectura. Los conversores Windows preparados por Get-FormatTools son x86 y se comparten entre ambas builds. El script verifica sus fuentes y genera un manifiesto; no modifica instalaciones globales.
 
+`scripts/Test-Local.ps1 -Architecture both` ejecuta clippy, pruebas nativas, compilaciones release y recorridos visuales con datos aislados. `-DebugTests` ejecuta las mismas pruebas de contratos y motor sin la optimización LTO de release; las compilaciones de la aplicación y los recorridos visuales siguen usando release. `-SkipVisual` omite los recorridos y la compilación de sus ejemplos auxiliares. Para un cambio de interfaz, ejecuta además el recorrido visual pertinente o comprueba directamente la aplicación release.
+
 ## Ubuntu / Debian
 
 Instala las bibliotecas de compilación:

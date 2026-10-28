@@ -1,4 +1,6 @@
-# Rendimiento: primera revisión de 0.4.1
+# Rendimiento y memoria
+
+## Primera revisión de 0.4.1
 
 Fecha: 27 de octubre de 2026. Base de código: `b043142` (atajo F6), posterior a la publicación pública 0.4.0. Esta revisión combina el arreglo de la barra solicitado con cambios pequeños y verificables; no cambia motores, dependencias, presupuestos de memoria ni formatos admitidos.
 
@@ -64,3 +66,33 @@ El ejecutable x64 pasó de 11 400 192 a 11 366 400 bytes (−33 792 bytes, −0.
 El registro versionado de esta entrega está en [releases/v0.4.1-validation.json](releases/v0.4.1-validation.json). Los logs, capturas y mediciones detalladas quedan en `artifacts/performance-chrome/`, ignorado por Git. La sonda se ejecuta sin compilación ni recorridos gráficos simultáneos, con datos de prueba propios.
 
 La medición de apertura/navegación es disponibilidad después de enviar UI, no tiempo de presentación física. El observador sólo mide el proceso lector; no GPU ni recursos de conversores. Se registran min/mediana/max con un corpus sintético; la caché del sistema operativo no se controla. No hay una referencia de latencia equivalente anterior al arreglo de la sonda: una medición actual sirve de referencia para futuros cambios, no demuestra una aceleración respecto a 0.4.0. A00 y la aceptación cuantitativa completa de A07 siguen abiertas.
+
+## Revisión de memoria de 0.4.2
+
+28 de octubre de 2026, Windows x64. Se compararon tres procesos release de cada versión con tres copias del mismo PDF original de 24 páginas, zoom 125 %, viewport de 1080 × 780 puntos y dos recorridos completos: 144 visitas por proceso. El PDF procede del generador de `scripts/Measure-Architecture.ps1`. No se utilizaron documentos personales.
+
+| Medida | 0.4.1 | 0.4.2 |
+| --- | ---: | ---: |
+| Mediana del pico residente muestreado | 261.5 MiB | 169.2 MiB |
+| Rango de los picos residentes | 260.5–267.2 MiB | 169.1–171.0 MiB |
+| Mediana del pico de memoria privada comprometida | 361.5 MiB | 266.8 MiB |
+| Mediana de disponibilidad al navegar | 119.8 ms | 124.8 ms |
+| Mediana del p95 de disponibilidad por proceso | 145.6 ms | 141.5 ms |
+| Mediana de CPU total observada por proceso | 11.42 s | 11.78 s |
+
+La reducción del pico residente mediano fue de **92.3 MiB, un 35.3 %**. El motor libera el RGBA recibido por la interfaz mediante `release_render`, evitando conservar la misma página en la caché CPU y como textura. La caché visual sigue teniendo su presupuesto anterior. Los documentos nativos, el texto, las portadas y los recursos del controlador siguen ocupando memoria.
+
+Las medidas de disponibilidad incluyen una espera fija de estabilidad de 100 ms. La mediana aumentó aproximadamente 5 ms y el p95 disminuyó aproximadamente 4 ms; esta tanda no acredita una aceleración general. Tras expulsar una textura, volver a esa página puede necesitar otro render. El ahorro observado corresponde a este corpus, no establece un máximo de RAM y no descarta problemas específicos de otros documentos.
+
+El muestreo usa un intervalo objetivo de 25 ms. No incluye GPU ni conversores; las cachés del sistema y las demás cargas del escritorio no están controladas. Las compilaciones y capturas propias terminaron antes de medir. Una tanda incompleta por bloqueo del marcador de la sonda se descartó; el observador final abre ese marcador permitiendo escrituras concurrentes.
+
+Para repetir con un PDF de al menos 24 páginas:
+
+```powershell
+cargo build --locked --offline --release --target x86_64-pc-windows-msvc --example memory_probe
+./scripts/Test-Memory.ps1 -Fixture ruta/al/corpus.pdf -ReportRoot artifacts/memory-new -Runs 3
+```
+
+Con menos páginas, el recorrido es más corto. El ejecutable de referencia de 0.4.1 se compiló con la misma secuencia de navegación antes de cambiar el motor. La sonda de 0.4.2 añade un modo opcional `--properties` para capturar la ventana nativa, desactivado durante las mediciones. No se comparan estos números con la sonda breve de 0.4.1 descrita arriba, que no llenaba las cachés con este recorrido.
+
+El [registro de 0.4.2](releases/v0.4.2-validation.json) conserva hashes de ejecutables y corpus, valores por proceso, comandos y límites. Los informes completos quedan en `artifacts/release-0.4.2/memory-before-final/` y `memory-after-verified/`. La [captura de propiedades](screenshots/properties-0.4.2.png) y las pruebas de disposición cubren el cambio visual; la prueba nativa de liberación comprueba el último propietario del buffer y la igualdad de píxeles al renderizar de nuevo.

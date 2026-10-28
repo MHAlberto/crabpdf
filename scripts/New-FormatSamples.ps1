@@ -1,3 +1,4 @@
+﻿# Keep the UTF-8 BOM: Windows PowerShell 5.1 must preserve fixture accents.
 [CmdletBinding()]
 param([string]$Destination='artifacts/format-samples')
 $ErrorActionPreference='Stop'

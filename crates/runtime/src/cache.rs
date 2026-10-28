@@ -59,6 +59,11 @@ impl<K: Eq + Hash + Clone, V> ByteCache<K, V> {
             }
         });
     }
+    pub fn remove(&mut self, key: &K) {
+        if let Some((_, size, _)) = self.entries.remove(key) {
+            self.bytes -= size;
+        }
+    }
     pub fn bytes(&self) -> usize {
         self.bytes
     }

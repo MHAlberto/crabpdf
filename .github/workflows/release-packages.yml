@@ -1,0 +1,130 @@
+name: Cross-platform release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing application release tag (without v)
+        default: '0.4.2'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            architecture: arm64
+            target: aarch64-apple-darwin
+          - os: macos-15-intel
+            architecture: x64
+            target: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '13.0'
+      CARGO_BUILD_JOBS: '3'
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify unchanged tagged application sources
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          test "$RELEASE_VERSION" = '0.4.2'
+          git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+      - name: Install pinned Rust
+        run: rustup show && rustup target add '${{ matrix.target }}'
+      - uses: Swatinem/rust-cache@v2
+      - name: Install optional system decoders for package tests
+        run: brew install djvulibre sevenzip
+      - name: Prepare verified PDFium
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./scripts/Get-Pdfium.ps1 -Platform mac -Architecture '${{ matrix.architecture }}' -Destination 'native/mac-${{ matrix.architecture }}'
+      - name: Build bundled MuPDF and libmobi
+        run: bash scripts/Build-MacFormatTools.sh '${{ matrix.architecture }}'
+      - name: Build reader and package verification executable
+        run: |
+          cargo fmt --all -- --check
+          cargo build --locked --release --target '${{ matrix.target }}' --bin crabpdf --example package_smoke
+          python3 scripts/Export-RustLicenses.py --target '${{ matrix.target }}' --destination artifacts/mac-rust-licenses
+          python3 scripts/New-UnixFormatSamples.py
+      - name: Assemble app, capture native frames and verify ZIP and DMG
+        run: python3 scripts/Pack-Mac.py '${{ matrix.architecture }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crabpdf-mac-${{ matrix.architecture }}
+          path: |
+            artifacts/packages/*.dmg
+            artifacts/packages/*.zip
+            artifacts/packages/*-validation.json
+            artifacts/validation/**
+          if-no-files-found: warn
+
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify unchanged tagged application sources
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          test "$RELEASE_VERSION" = '0.4.2'
+          git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+      - name: Install pinned Rust for registry caching
+        run: rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: . -> target/linux-bookworm
+          key: linux-glibc-2.36
+      - name: Prepare verified PDFium and converter sources
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ./scripts/Get-Pdfium.ps1 -Platform linux -Architecture x64 -Destination native/linux-x64
+          python3 scripts/Get-UnixFormatSources.py
+      - name: Build Debian 12 toolchain container
+        run: docker build -t crabpdf-bookworm -f scripts/linux-package.Dockerfile scripts
+      - name: Build portable Linux and Ubuntu packages on glibc 2.36
+        run: |
+          docker run --rm -v "$PWD:/work" -v "$HOME/.cargo/registry:/usr/local/cargo/registry" \
+            -e CARGO_TARGET_DIR=/work/target/linux-bookworm -e CARGO_BUILD_JOBS=3 crabpdf-bookworm bash -euc '
+              bash scripts/Build-LinuxFormatTools.sh
+              cargo fetch --locked --target x86_64-unknown-linux-gnu
+              cargo build --locked --release --bin crabpdf --example package_smoke
+              cp target/linux-bookworm/release/crabpdf artifacts/crabpdf-linux-x64
+              python3 scripts/Export-RustLicenses.py
+              bash scripts/Pack-Linux.sh
+              bash scripts/Verify-Linux.sh
+              for file in artifacts/crabpdf-linux-x64 native/linux-x64/libpdfium.so native/linux-x64/format-tools/mutool native/linux-x64/format-tools/mobitool; do
+                max=$(readelf --version-info "$file" | grep -oE "GLIBC_[0-9.]+" | sort -Vu | tail -1 | cut -d_ -f2)
+                test "$(printf "%s\n%s\n" "$max" 2.36 | sort -V | tail -1)" = 2.36
+              done
+            '
+      - name: Install and capture reader frames in clean Ubuntu 24.04
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work -e CRABPDF_BUILD_COMMIT="$GITHUB_SHA" ubuntu:24.04 \
+            bash scripts/Test-LinuxPackage.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crabpdf-linux-x64
+          path: |
+            artifacts/packages/*.deb
+            artifacts/packages/*.tar.gz
+            artifacts/packages/*-validation.json
+            artifacts/validation/**
+            artifacts/linux-installed-hashes.log
+          if-no-files-found: warn

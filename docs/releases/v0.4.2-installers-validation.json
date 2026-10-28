@@ -1,0 +1,94 @@
+{
+    "version":  "0.4.2",
+    "ci_run":  "https://github.com/MHAlberto/crabpdf/actions/runs/40737537305",
+    "schema":  1,
+    "installers":  [
+                       {
+                           "file":  "crabpdf-0.4.2-win-x64-setup.exe",
+                           "validation":  {
+                                              "architecture":  "x64",
+                                              "uninstaller_authenticode":  "NotSigned",
+                                              "rejects_unrelated_directory":  true,
+                                              "registry_removed":  true,
+                                              "uninstall":  true,
+                                              "gui_reviewed":  false,
+                                              "upgrade":  true,
+                                              "manifest_verified":  true,
+                                              "rejects_locked_executable":  true,
+                                              "installer_sha256":  "d0ecb5849c223ee7ea2f9abcc953c229c9f88efd21c3cef36dc41a40e36f4ea9",
+                                              "payload_files":  609,
+                                              "preserves_unrelated_files":  true,
+                                              "installation":  true
+                                          },
+                           "architecture":  "x64",
+                           "build":  {
+                                         "architecture":  "x64",
+                                         "compiler":  "NSIS 3.12",
+                                         "requires_admin":  false,
+                                         "version":  "0.4.2",
+                                         "installer":  "crabpdf-0.4.2-win-x64-setup.exe",
+                                         "compiler_archive_sha256":  "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+                                         "payload_files":  610,
+                                         "target":  "x86_64-pc-windows-msvc",
+                                         "bytes":  31901215,
+                                         "source_dirty":  false,
+                                         "authenticode_status":  "NotSigned",
+                                         "security_certification":  false,
+                                         "source_commit":  "a30ea172979a3ec47967d6ba0af9bffdbd91d91c",
+                                         "signer":  null,
+                                         "sha256":  "d0ecb5849c223ee7ea2f9abcc953c229c9f88efd21c3cef36dc41a40e36f4ea9"
+                                     },
+                           "bytes":  31901215,
+                           "artifact_id":  12838397757,
+                           "artifact_archive_sha256":  "198cb2c1dc7d958e80e1af55d59d393192938cde94bcdcc449623e144c7d5f31",
+                           "sha256":  "d0ecb5849c223ee7ea2f9abcc953c229c9f88efd21c3cef36dc41a40e36f4ea9"
+                       },
+                       {
+                           "file":  "crabpdf-0.4.2-win-x86-setup.exe",
+                           "validation":  {
+                                              "architecture":  "x86",
+                                              "uninstall":  true,
+                                              "uninstaller_authenticode":  "NotSigned",
+                                              "upgrade":  true,
+                                              "gui_reviewed":  false,
+                                              "rejects_locked_executable":  true,
+                                              "installer_sha256":  "bfa450eab3e1616bc39e2b3dfd73fc942d9e660da3f5fa91dbff09620a5cef5e",
+                                              "rejects_unrelated_directory":  true,
+                                              "installation":  true,
+                                              "registry_removed":  true,
+                                              "payload_files":  609,
+                                              "preserves_unrelated_files":  true,
+                                              "manifest_verified":  true
+                                          },
+                           "architecture":  "x86",
+                           "build":  {
+                                         "source_commit":  "a30ea172979a3ec47967d6ba0af9bffdbd91d91c",
+                                         "architecture":  "x86",
+                                         "installer":  "crabpdf-0.4.2-win-x86-setup.exe",
+                                         "compiler":  "NSIS 3.12",
+                                         "version":  "0.4.2",
+                                         "sha256":  "bfa450eab3e1616bc39e2b3dfd73fc942d9e660da3f5fa91dbff09620a5cef5e",
+                                         "requires_admin":  false,
+                                         "authenticode_status":  "NotSigned",
+                                         "source_dirty":  false,
+                                         "payload_files":  610,
+                                         "bytes":  31692257,
+                                         "security_certification":  false,
+                                         "target":  "i686-pc-windows-msvc",
+                                         "signer":  null,
+                                         "compiler_archive_sha256":  "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f"
+                                     },
+                           "bytes":  31692257,
+                           "artifact_id":  12839535574,
+                           "artifact_archive_sha256":  "bea42c6a44e715a362b60da70e2895120d6de6406cbace139782ecb00b7a471a",
+                           "sha256":  "bfa450eab3e1616bc39e2b3dfd73fc942d9e660da3f5fa91dbff09620a5cef5e"
+                       }
+                   ],
+    "source_commit":  "a30ea172979a3ec47967d6ba0af9bffdbd91d91c",
+    "notes":  [
+                  "Installers are the clean GitHub Actions builds of the release tag.",
+                  "Portable ZIPs are the separately measured local builds; their binaries need not have identical hashes.",
+                  "CI installer tests do not constitute GUI review or a native 32-bit Windows OS test.",
+                  "Installers are unsigned."
+              ]
+}

@@ -2,18 +2,25 @@
 """Copy original Cargo dependency license texts into a portable bundle."""
 
 import json
+import argparse
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
-destination = root / "artifacts" / "linux-rust-licenses"
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--target", default="x86_64-unknown-linux-gnu")
+parser.add_argument("--destination", default="artifacts/linux-rust-licenses")
+options = parser.parse_args()
+destination = (root / options.destination).resolve()
+if root not in destination.parents:
+    raise SystemExit("License destination must be inside the project")
 metadata = json.loads(
     subprocess.check_output(
         [
             "cargo", "metadata", "--locked", "--offline", "--format-version", "1",
-            "--filter-platform", "x86_64-unknown-linux-gnu",
+            "--filter-platform", options.target,
         ],
         cwd=root,
     )
@@ -53,7 +60,7 @@ for package in sorted(metadata["packages"], key=lambda item: (item["name"], item
 (destination / "index.json").write_text(
     json.dumps(
         {
-            "scope": "Cargo.lock: Linux x86_64 normal, build and development dependencies",
+            "scope": f"Cargo.lock: {options.target} normal, build and development dependencies",
             "packages": records,
         },
         ensure_ascii=False,

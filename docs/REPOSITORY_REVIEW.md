@@ -42,6 +42,6 @@ La web conserva los mismos siete archivos públicos. Eliminar copias del reposit
 
 ## Verificación de esta revisión
 
-La revisión local aprobó formato y Clippy sin advertencias, 90 pruebas de bibliotecas e integración, 47 capturas de refinamiento, el recorrido de favoritos/pestañas y 243 referencias documentales locales. La comparación de la extracción confirma que los cuerpos de los métodos se conservaron. Se comprobó también la generación del sitio desde fuentes canónicas. La web se revisa en móvil y escritorio antes del despliegue. Los logs de trabajo están en artifacts/repository-review; no se presentan como descargas versionadas.
+La revisión local aprobó formato y Clippy sin advertencias, 90 pruebas de bibliotecas e integración, 46 capturas de refinamiento, el recorrido de favoritos/pestañas y 243 referencias documentales locales. La comparación de la extracción confirma que los cuerpos de los métodos se conservaron. Se comprobó también la generación del sitio desde fuentes canónicas. La web se revisa en móvil y escritorio antes del despliegue. Los logs de trabajo están en artifacts/repository-review; no se presentan como descargas versionadas.
 
 La evidencia de los binarios públicos sigue en [publicación 0.4.1](releases/v0.4.1-publication.json). Los cambios de mantenimiento posteriores se consultan en Git y en sus ejecuciones CI.

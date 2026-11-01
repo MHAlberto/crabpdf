@@ -1,0 +1,106 @@
+{
+  "verification": {
+    "public_assets": 10,
+    "linux_installed_files": 408,
+    "windows_zip_files_per_architecture": 607,
+    "linux_tar_files": 408,
+    "converter_source_files": 13,
+    "windows_installed_payload_files_per_architecture": 609
+  },
+  "version": "0.4.3",
+  "tagged_commit": "5452deff3fcdd4838adb001cde3d12019ae3b403",
+  "public_assets_verified": true,
+  "limits": [
+    "Unsigned development release; no code-signing certificate or independent security certification.",
+    "Windows x86 tested under WOW64; not a native 32-bit Windows OS.",
+    "Ubuntu GUI checked with Xvfb/Mesa, not physical Wayland or every Linux distribution.",
+    "macOS CI covers compilation and native PDF tests; no macOS packages published in this release.",
+    "Local optimized binaries are recorded separately and are not claimed byte-identical to CI outputs.",
+    "Arbitrary rotation or skew of text objects is not solved; page rotation is covered."
+  ],
+  "validated_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/41312566793",
+  "schema": 1,
+  "assets": [
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-format-tools-sources.zip",
+      "sha256": "36a623248e13edd5e177c910f023b6f1b3af1e333de484299ee6336f5e6e885b",
+      "name": "crabpdf-0.4.3-format-tools-sources.zip",
+      "bytes": 82302009,
+      "origin": "Pack-FormatSources.ps1 from pinned converter sources at the tagged application revision"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-linux-x64.tar.gz",
+      "sha256": "61a3920fb77800159f24dfe69aba64e11cabe2d743af34b0332ca69c7cb19eaf",
+      "name": "crabpdf-0.4.3-linux-x64.tar.gz",
+      "bytes": 40612967,
+      "origin": "GitHub package workflow 41312810740, artifact 13085963551"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-ubuntu24.04-amd64.deb",
+      "sha256": "819e40a5d76f4c2d22a948257af8e2a3cdcc657152982ea1da6e41dfaad53ec9",
+      "name": "crabpdf-0.4.3-ubuntu24.04-amd64.deb",
+      "bytes": 30603740,
+      "origin": "GitHub package workflow 41312810740, artifact 13085963551"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x64-setup.exe",
+      "sha256": "256a95d090b094922e7b42905234f772e9d4d4e3c8ef9d86b32e817de69e09aa",
+      "name": "crabpdf-0.4.3-win-x64-setup.exe",
+      "bytes": 31902743,
+      "origin": "GitHub CI 41312566793, artifact 13085899249"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x64-setup.exe.json",
+      "sha256": "6bc8b78b76680ec2ba4c97ab8b1303c3da08dc54b4d285ce6cf99070cf0d1826",
+      "name": "crabpdf-0.4.3-win-x64-setup.exe.json",
+      "bytes": 608,
+      "origin": "GitHub CI 41312566793, artifact 13085899249"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x64.zip",
+      "sha256": "8d9f55cd81eae68a409c41cdcbe3a76079ee8b6366bd134a48b6d85cf2b67890",
+      "name": "crabpdf-0.4.3-win-x64.zip",
+      "bytes": 44177906,
+      "origin": "GitHub CI 41312566793, artifact 13085899249"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x86-setup.exe",
+      "sha256": "913511b7a3cabf0edfb36da278e4786049453c620ec07852f57e3535c6a57057",
+      "name": "crabpdf-0.4.3-win-x86-setup.exe",
+      "bytes": 31696566,
+      "origin": "GitHub CI 41312566793, artifact 13085837661"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x86-setup.exe.json",
+      "sha256": "d64b0b7f3139fac331b5b1e5f1d5d88081e725c8bd621875d1fecf0bcaa286ef",
+      "name": "crabpdf-0.4.3-win-x86-setup.exe.json",
+      "bytes": 606,
+      "origin": "GitHub CI 41312566793, artifact 13085837661"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/crabpdf-0.4.3-win-x86.zip",
+      "sha256": "6d5724752a2d5e63be8864f93d5002c93cc6be231c9145bf19a43443f6ce70a7",
+      "name": "crabpdf-0.4.3-win-x86.zip",
+      "bytes": 43800560,
+      "origin": "GitHub CI 41312566793, artifact 13085837661"
+    },
+    {
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.4.3/SHA256SUMS-v0.4.3.txt",
+      "sha256": "221198dd1ed56cf68a58eda7ba986a7ff930b222532b3cf919115b5308be329b",
+      "name": "SHA256SUMS-v0.4.3.txt",
+      "bytes": 899,
+      "origin": "Publish-Release.ps1, checksums over the nine other local verified assets"
+    }
+  ],
+  "annotated_tag_object": "4e430c8bcfa29034d76698a0fe95b50648bc473d",
+  "release_url": "https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.3",
+  "published_at_utc": "2026-11-01T14:01:44Z",
+  "origin": "CI Windows installers and portable ZIPs, CI Linux packages, locally assembled pinned converter source archive and checksums.",
+  "evidence": {
+    "linux": "v0.4.3-linux-validation.json",
+    "local": "v0.4.3-validation.json",
+    "windows_installers": "v0.4.3-installers-validation.json"
+  },
+  "tag": "v0.4.3",
+  "linux_packages_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/41312810740"
+}

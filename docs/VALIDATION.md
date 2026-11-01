@@ -2,6 +2,14 @@
 
 Este documento orienta sobre la evidencia vigente. Los comandos reproducibles están en [Desarrollo](DEVELOPMENT.md); los resultados históricos se conservan por separado.
 
+## Entrega 0.4.3
+
+La [CI de la etiqueta](https://github.com/MHAlberto/crabpdf/actions/runs/41312566793) pasó en Windows x64/x86, Ubuntu x64 y macOS Intel/ARM, incluyendo las regresiones nativas de marcas. Los instaladores Windows se comprobaron mediante instalación, actualización, desinstalación y verificación de los archivos instalados.
+
+La [validación local](releases/v0.4.3-validation.json) recoge 116 pruebas por arquitectura Windows, fuentes/tamaños/giro/recorte en 36 combinaciones de subrayado y comprobaciones del resaltado y el evento Copiar. Los recorridos gráficos locales usan perfiles aislados; las capturas no son una medición global de velocidad.
+
+El [registro de publicación](releases/v0.4.3-publication.json) identifica los paquetes procedentes de CI, sus hashes y límites. Linux se compiló en Debian 12/glibc 2.36 y el DEB se instaló en Ubuntu 24.04 limpio, con capturas PDF, EPUB, DjVu y CBZ mediante Xvfb/Mesa. La validación macOS de esta entrega cubre compilación y motor nativo; no acredita una revisión gráfica física ni publica instaladores para macOS.
+
 ## Entrega 0.4.2
 
 El [registro local de 0.4.2](releases/v0.4.2-validation.json) conserva la revisión de fuentes, hashes, compilaciones release x64/x86, clippy, regresiones y comparación de memoria. Pasaron 112 pruebas por arquitectura con los casos nativos habilitados en debug; el ajuste final de alineación tiene además regresiones propias y una [captura nativa x64](screenshots/properties-0.4.2.png). Los ZIP y las fuentes de conversores se verificaron con `Verify-Portable.ps1`.

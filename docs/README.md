@@ -1,6 +1,6 @@
 # Documentación de CrabPDF
 
-La versión pública es **0.4.1**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.1) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
+La versión pública es **0.4.3**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.3) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
 
 ## Empezar
 
@@ -32,9 +32,10 @@ Una ruta completada de arquitectura no demuestra paridad de funciones. La impres
 
 ## Entregas y evidencia
 
-- [Notas 0.4.1](releases/v0.4.1.md): funciones y paquetes publicados.
-- [Publicación 0.4.1](releases/v0.4.1-publication.json): procedencia CI, hashes y comprobación Ubuntu.
-- [Validación local 0.4.1](releases/v0.4.1-validation.json): compilación local y referencia de rendimiento anterior a publicar los binarios CI. Sus hashes y tamaños no describen necesariamente los ejecutables distribuidos por GitHub.
+- [Notas 0.4.3](releases/v0.4.3.md): selección, portapapeles y geometría de marcas.
+- [Publicación 0.4.3](releases/v0.4.3-publication.json): paquetes CI, procedencia y SHA-256.
+- [Validación 0.4.3](releases/v0.4.3-validation.json): pruebas locales, regresiones de píxeles y recorrido gráfico.
+- [Entrega 0.4.2](releases/v0.4.2.md): revisión anterior de memoria y propiedades.
 - [Migración modular](architecture/PHASE_6.md): extracción de paquetes, pruebas y límites cuantitativos.
 
 Las notas de versiones anteriores permanecen en releases. Los [informes históricos](history/README.md) describen el código y los resultados de su fecha. Los logs de artifacts son archivos locales, no material descargable desde un clon limpio.

@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "version": "0.4.3",
+  "tagged_commit": "5452deff3fcdd4838adb001cde3d12019ae3b403",
+  "ci_run": "https://github.com/MHAlberto/crabpdf/actions/runs/41312566793",
+  "windows": [
+    {
+      "architecture": "x64",
+      "artifact_id": 13085899249,
+      "artifact_sha256": "1ad73731a87cf16e8fc7808951e61511bb2f9d7a5ecbd5f62fa19aaa45430523",
+      "artifact_bytes": 75251945,
+      "installer_checks": {
+        "gui_reviewed": false,
+        "upgrade": true,
+        "preserves_unrelated_files": true,
+        "installer_sha256": "256a95d090b094922e7b42905234f772e9d4d4e3c8ef9d86b32e817de69e09aa",
+        "uninstaller_authenticode": "NotSigned",
+        "manifest_verified": true,
+        "rejects_locked_executable": true,
+        "rejects_unrelated_directory": true,
+        "registry_removed": true,
+        "installation": true,
+        "uninstall": true,
+        "architecture": "x64",
+        "payload_files": 609
+      },
+      "portable_files_verified": 607
+    },
+    {
+      "architecture": "x86",
+      "artifact_id": 13085837661,
+      "artifact_sha256": "785d009d78c5447203b243490f468d0c30d6e3c24c5b9f8dfe7528f37bc39730",
+      "artifact_bytes": 74669598,
+      "installer_checks": {
+        "architecture": "x86",
+        "installer_sha256": "913511b7a3cabf0edfb36da278e4786049453c620ec07852f57e3535c6a57057",
+        "preserves_unrelated_files": true,
+        "rejects_locked_executable": true,
+        "uninstall": true,
+        "gui_reviewed": false,
+        "rejects_unrelated_directory": true,
+        "upgrade": true,
+        "uninstaller_authenticode": "NotSigned",
+        "installation": true,
+        "payload_files": 609,
+        "registry_removed": true,
+        "manifest_verified": true
+      },
+      "portable_files_verified": 607
+    }
+  ],
+  "limits": [
+    "Automated installer lifecycle checks; installer GUI was not manually reviewed in this run.",
+    "x86 executes under WOW64.",
+    "No signing certificate; NotSigned does not constitute a security certification."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "version": "0.4.3",
+  "target": "x86_64-unknown-linux-gnu",
+  "build_commit": "5452deff3fcdd4838adb001cde3d12019ae3b403",
+  "application_source_tag": "v0.4.3",
+  "builder": "Rust 1.96.0 on Debian 12 / glibc 2.36",
+  "installed_on": "Ubuntu 24.04 clean container",
+  "package_hashes_verified": true,
+  "dependency_resolution_verified": true,
+  "native_gui_formats_passed": [
+    "PDF",
+    "EPUB",
+    "DjVu",
+    "CBZ"
+  ],
+  "gui_environment": "Xvfb and Mesa software rendering",
+  "assets": [
+    {
+      "name": "crabpdf-0.4.3-linux-x64.tar.gz",
+      "bytes": 40612967,
+      "sha256": "61a3920fb77800159f24dfe69aba64e11cabe2d743af34b0332ca69c7cb19eaf"
+    },
+    {
+      "name": "crabpdf-0.4.3-ubuntu24.04-amd64.deb",
+      "bytes": 30603740,
+      "sha256": "819e40a5d76f4c2d22a948257af8e2a3cdcc657152982ea1da6e41dfaad53ec9"
+    }
+  ]
+}

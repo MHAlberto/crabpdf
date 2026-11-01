@@ -77,13 +77,13 @@ F11: pantalla completa sin barras; mover el puntero al borde superior muestra co
 F6: invertir/restaurar colores del documento (tambien Mayus+I). No modifica el archivo.
 F11 o Escape: salir. F12: panel lateral. Flechas izquierda/derecha: paginas o desplazar con zoom.
 PDF, EPUB, Kindle sin DRM, FB2, XPS, DjVu, CHM, comics e imagenes comunes.
-Seleccionar palabras con doble clic o arrastrando. Marcas: resaltar, subrayar y elegir color.
+Seleccionar palabras con doble clic o arrastrando. Ctrl+C copia la seleccion. Marcas: resaltar, subrayar y elegir color.
 Lectura sin pie inferior; transiciones breves. Preferencias: Reducir movimiento para desactivarlas.
 Favoritos del libro actual, ordenados por pagina. Arrastrar una pestana fuera de la barra abre otra ventana y conserva la posicion.
 Ctrl+Mayus+L resalta, Ctrl+Mayus+U subraya, Ctrl+Z deshace la ultima marca.
 Las marcas se conservan localmente. Ctrl+S exporta una copia PDF con las anotaciones.
 Version en desarrollo hacia la paridad de SumatraPDF; no es la version 1.0.
-No incluye instalador ni firma. Las preferencias se guardan en AppData.
+Los instaladores EXE se distribuyen por separado. Binarios sin firma digital. Preferencias en AppData.
 Para elegir su ubicacion, establecer RUST_READER_CONFIG antes de ejecutar.
 "@ | Set-Content -LiteralPath (Join-Path $package 'LEEME.txt') -Encoding UTF8
     $files = Get-ChildItem -LiteralPath $package -Recurse -File | Where-Object { $_.FullName -ne (Join-Path $package 'manifest.json') } | ForEach-Object {

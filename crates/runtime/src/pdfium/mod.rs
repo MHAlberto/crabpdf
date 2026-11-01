@@ -8,6 +8,7 @@ pub mod discovery;
 mod export;
 mod geometry;
 mod markup;
+mod markup_geometry;
 mod metadata;
 mod render;
 mod text;

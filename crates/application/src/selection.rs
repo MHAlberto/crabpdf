@@ -53,11 +53,16 @@ impl SelectionState {
         let mut start = first;
         let mut end = first;
         let word = |index: usize| {
-            content.glyphs[index]
-                .text
-                .chars()
-                .any(char::is_alphanumeric)
+            content.glyphs[index].text.chars().any(|c| {
+                c.is_alphanumeric() || c == '_'
+                    || matches!(c, '\u{0300}'..='\u{036f}' | '\u{1ab0}'..='\u{1aff}'
+                        | '\u{1dc0}'..='\u{1dff}' | '\u{20d0}'..='\u{20ff}' | '\u{fe20}'..='\u{fe2f}')
+            })
         };
+        if !word(first) {
+            self.select(page, index, index);
+            return;
+        }
         while start > 0 && word(start - 1) {
             start -= 1;
         }

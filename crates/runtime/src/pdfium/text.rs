@@ -75,8 +75,16 @@ impl<'a> PdfiumEngine<'a> {
                 bounds: c
                     .loose_bounds()
                     .ok()
+                    .filter(|r| r.width().value > 0.0 && r.height().value > 0.0)
+                    .or_else(|| c.tight_bounds().ok())
                     .map(|r| transform.bounds(r))
-                    .filter(|r| r.right >= r.left && r.bottom >= r.top),
+                    .filter(|r| {
+                        [r.left, r.right, r.top, r.bottom]
+                            .iter()
+                            .all(|v| v.is_finite())
+                            && r.right > r.left
+                            && r.bottom > r.top
+                    }),
             })
             .collect();
         let mut links = Vec::new();

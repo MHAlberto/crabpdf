@@ -18,6 +18,8 @@ struct Smoke {
     events: Vec<egui::Event>,
     capture: bool,
     baseline: usize,
+    copy_requested: bool,
+    clipboard_verified: bool,
     shots: usize,
     rows: Vec<serde_json::Value>,
     scroll: Vec<serde_json::Value>,
@@ -125,6 +127,12 @@ impl eframe::App for Smoke {
             self.finish(ctx, Err(error.to_string()));
             return;
         }
+        if self.copy_requested && !self.clipboard_verified {
+            let expected = self.app.selection_text().unwrap_or_default();
+            self.clipboard_verified = ctx.output(|output| output.commands.iter().any(|command| {
+                matches!(command, egui::OutputCommand::CopyText(text) if !expected.is_empty() && text == &expected)
+            }));
+        }
         let elapsed = self.started.elapsed().as_secs_f64() * 1000.0;
         let images = ctx.input(|input| {
             input
@@ -185,7 +193,14 @@ impl eframe::App for Smoke {
             0 if self.app.has_current_render() && self.app.text_hit_position().is_some() => {
                 self.enter(1, ctx)
             }
-            1 if self.app.selection_text().is_some() && !self.capture => {
+            1 if self.app.selection_text().is_some() && !self.copy_requested => {
+                // This is the event emitted by egui-winit for real Ctrl+C/Cmd+C,
+                // not a synthetic C key that bypasses the platform's clipboard path.
+                self.events.push(egui::Event::Copy);
+                self.copy_requested = true;
+                ctx.request_repaint();
+            }
+            1 if self.clipboard_verified && !self.capture => {
                 self.rows
                     .push(serde_json::json!({"word_selection_ms":elapsed}));
                 self.capture = true;
@@ -212,7 +227,7 @@ impl eframe::App for Smoke {
             8 if elapsed > 700.0 => self.enter(9, ctx),
             9 if elapsed > 220.0 => {
                 let report = serde_json::json!({"profile":if cfg!(debug_assertions) {"dev"} else {"release"},
-                    "mark_frames":self.rows,"scroll_frames":self.scroll,"baseline_text_edge_pixels":self.baseline,
+                    "clipboard_event_verified":self.clipboard_verified,"mark_frames":self.rows,"scroll_frames":self.scroll,"baseline_text_edge_pixels":self.baseline,
                     "limits":"Local native fixture; screenshots add overhead. These are regression observations, not global latency guarantees."});
                 std::fs::write(
                     self.output.join("interaction-report.json"),
@@ -361,6 +376,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 events: Vec::new(),
                 capture: false,
                 baseline: 0,
+                copy_requested: false,
+                clipboard_verified: false,
                 shots: 0,
                 rows: Vec::new(),
                 scroll: Vec::new(),

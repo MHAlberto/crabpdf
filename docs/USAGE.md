@@ -21,6 +21,8 @@ Los documentos nuevos empiezan en lectura continua ajustada al ancho. **Vertical
 
 Las marcas se conservan localmente y no modifican el archivo original al aplicarlas. La selección actual no atraviesa páginas. Los permisos del PDF pueden limitar la copia de texto. Si una conversión antigua carece de una firma de paginación compatible, se conservan las marcas y se muestra un aviso para evitar aplicarlas a otro texto.
 
+En Windows también puedes copiar con **Ctrl+Insert**. Los campos de búsqueda mantienen sus propios atajos; la selección del documento no reemplaza el texto que copies desde un campo.
+
 [Formatos y anotaciones](FORMATS_AND_ANNOTATIONS.md).
 
 ## Atajos
@@ -42,6 +44,7 @@ Las marcas se conservan localmente y no modifican el archivo original al aplicar
 | Pantalla completa / presentación | F11 / F5 |
 | Invertir / restaurar colores | F6, también Mayús+I |
 | Barra / menú / panel lateral | F8 / F9 / F12 |
+| Copiar selección / seleccionar toda la página | Ctrl+C / Ctrl+A |
 | Resaltar / subrayar selección | Ctrl+Mayús+L / Ctrl+Mayús+U |
 | Deshacer última marca | Ctrl+Z |
 

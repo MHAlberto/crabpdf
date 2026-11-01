@@ -333,3 +333,29 @@ fn reading_tab_selection_uses_one_path_for_cache_and_async_content_and_cancels_o
     assert_eq!(tab.selection.range().unwrap().page, 2);
     assert_eq!(tab.state.zoom, Zoom::Percent(150));
 }
+
+#[test]
+fn double_click_on_a_separator_does_not_swallow_neighboring_words() {
+    let content = content();
+    let mut selection = SelectionState::default();
+    for index in [9, 27] {
+        selection.word(0, &content, index);
+        let range = selection.range().unwrap();
+        assert_eq!((range.start, range.end), (index, index));
+    }
+    let content = PageContent {
+        glyphs: ["c", "a", "f", "e", "\u{0301}", "_", "2"]
+            .iter()
+            .enumerate()
+            .map(|(index, text)| Glyph {
+                index,
+                text: (*text).into(),
+                bounds: None,
+            })
+            .collect(),
+        ..Default::default()
+    };
+    selection.word(0, &content, 4);
+    let range = selection.range().unwrap();
+    assert_eq!(content.text(range.start, range.end), "cafe\u{0301}_2");
+}

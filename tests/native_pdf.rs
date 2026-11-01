@@ -455,3 +455,6 @@ fn typed_titles_prefer_import_metadata_and_fall_back_without_display_labels() {
         assert!(details.annotation_warning.is_none());
     }
 }
+
+#[path = "support/text_markup.rs"]
+mod text_markup;

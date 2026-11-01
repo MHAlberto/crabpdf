@@ -171,19 +171,7 @@ impl<'a> PdfiumEngine<'a> {
                     "Selección de texto fuera de rango o demasiado grande.",
                 ));
             }
-            let rects: Vec<PdfRect> = text
-                .segments_subset(start, end - start + 1)
-                .iter()
-                .map(|segment| segment.bounds())
-                .filter(|bounds| bounds.width().value > 0.0 && bounds.height().value > 0.0)
-                .collect();
-            let contents = text
-                .chars()
-                .iter()
-                .filter(|character| character.index() >= start && character.index() <= end)
-                .filter_map(|character| character.unicode_string())
-                .collect::<String>();
-            (rects, contents)
+            super::markup_geometry::selection_geometry(&text, start, end, mark.kind)?
         };
         if rects.is_empty() || rects.len() > 512 {
             return Err(ReaderError::new(
@@ -228,7 +216,11 @@ impl<'a> PdfiumEngine<'a> {
                 mark.color[0],
                 mark.color[1],
                 mark.color[2],
-                255,
+                if mark.kind == MarkupKind::Highlight {
+                    110
+                } else {
+                    255
+                },
             ))?;
             annotation.set_creator(crabpdf_core::APPLICATION_NAME)?;
             annotation.set_is_printed(true)?;

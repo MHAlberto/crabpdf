@@ -1,0 +1,64 @@
+{
+    "underline_geometry":  {
+                               "export_reopen_undo":  true,
+                               "fonts":  [
+                                             "Helvetica",
+                                             "Times-Italic",
+                                             "Courier"
+                                         ],
+                               "combinations":  36,
+                               "page_rotation_degrees":  [
+                                                             0,
+                                                             90,
+                                                             180,
+                                                             270
+                                                         ],
+                               "point_sizes":  [
+                                                   6,
+                                                   12,
+                                                   24
+                                               ]
+                           },
+    "limits":  [
+                   "Synthetic original fixtures; not a guarantee for every PDF or OCR layer.",
+                   "Page rotation covered; arbitrary rotation or skew of text objects is not solved.",
+                   "x86 executed under WOW64, not a native 32-bit Windows OS.",
+                   "Local GUI used debug builds; release binaries are built and packaged separately by CI.",
+                   "No global performance speedup claim; captures add overhead."
+               ],
+    "source_base":  "8f905afe5955dd4a7cdbbc4948cedfe12aa0a551",
+    "interaction":  {
+                        "captures":  16,
+                        "clipboard_event_verified":  true,
+                        "scroll_frames":  317
+                    },
+    "version":  "0.4.3",
+    "formats_ui_captures":  16,
+    "local_checks":  [
+                         {
+                             "profile":  "debug",
+                             "os_mode":  "Windows x64",
+                             "architecture":  "x64",
+                             "native_ignored_tests_included":  true,
+                             "passed":  116
+                         },
+                         {
+                             "profile":  "debug",
+                             "os_mode":  "WOW64",
+                             "architecture":  "x86",
+                             "native_ignored_tests_included":  true,
+                             "passed":  116
+                         }
+                     ],
+    "schema":  1,
+    "clippy":  {
+                   "x86":  true,
+                   "x64":  true
+               },
+    "highlight":  {
+                      "alpha":  110,
+                      "black_ink_preserved":  true,
+                      "column_and_line_gaps":  true
+                  },
+    "source_state":  "Worktree subsequently committed as the 0.4.3 source revision; no claim of byte-identical local and CI binaries."
+}

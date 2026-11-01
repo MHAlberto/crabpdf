@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         description: Existing application release tag (without v)
-        default: '0.4.2'
+        default: '0.4.3'
         required: true
         type: string
       platforms:
@@ -44,7 +44,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          test "$RELEASE_VERSION" = '0.4.2'
+          [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)" = "$RELEASE_VERSION"
           git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
       - name: Install pinned Rust
         run: rustup show && rustup target add '${{ matrix.target }}'
@@ -101,7 +102,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          test "$RELEASE_VERSION" = '0.4.2'
+          [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)" = "$RELEASE_VERSION"
           git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
       - name: Install pinned Rust for registry caching
         run: rustup show

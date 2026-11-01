@@ -318,6 +318,9 @@ impl ReaderApp {
             }
         }
         self.update_arrow_scroll(ctx, keyboard);
+        if consume_reader_copy(ctx, keyboard) {
+            self.execute(Action::Copy, ctx);
+        }
         if keyboard {
             return;
         }
@@ -461,6 +464,65 @@ impl ReaderApp {
             if consume_reader_key(ctx, modifiers, key) {
                 self.execute(action, ctx);
             }
+        }
+    }
+}
+
+/// Leave clipboard events available to text fields, menus and dialogs when they own focus.
+fn consume_reader_copy(ctx: &egui::Context, owns_keyboard: bool) -> bool {
+    if owns_keyboard {
+        return false;
+    }
+    ctx.input_mut(|input| {
+        let copy = input
+            .events
+            .iter()
+            .any(|event| matches!(event, egui::Event::Copy));
+        if copy {
+            input
+                .events
+                .retain(|event| !matches!(event, egui::Event::Copy));
+        }
+        copy
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn native_copy_is_consumed_once_and_left_for_focused_editors() {
+        for owns_keyboard in [false, true] {
+            let ctx = egui::Context::default();
+            let mut output = ctx.run_ui(
+                egui::RawInput {
+                    events: vec![egui::Event::Copy, egui::Event::Text("x".into())],
+                    ..Default::default()
+                },
+                |ui| {
+                    assert_eq!(consume_reader_copy(ui.ctx(), owns_keyboard), !owns_keyboard);
+                    assert_eq!(
+                        ui.input(|i| i.events.iter().any(|e| matches!(e, egui::Event::Copy))),
+                        owns_keyboard
+                    );
+                    assert!(
+                        ui.input(|i| i.events.iter().any(|e| matches!(e, egui::Event::Text(_))))
+                    );
+                    if !owns_keyboard {
+                        ui.ctx().copy_text("Selección café".into());
+                        assert!(!consume_reader_copy(ui.ctx(), false));
+                    }
+                },
+            );
+            assert_eq!(
+                output
+                    .platform_output
+                    .commands
+                    .iter()
+                    .any(|c| matches!(c,egui::OutputCommand::CopyText(t) if t=="Selección café")),
+                !owns_keyboard
+            );
+            output.textures_delta.clear();
         }
     }
 }

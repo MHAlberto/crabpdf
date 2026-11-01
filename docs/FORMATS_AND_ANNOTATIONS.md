@@ -26,6 +26,8 @@ En Windows, los decodificadores acompañan al ejecutable en `format-tools`: MuPD
 
 ## Seleccionar, resaltar y subrayar
 
+Desde 0.4.3 el subrayado se coloca bajo los límites de la tinta, el resaltado separa líneas y columnas y usa transparencia. Ctrl+C / ⌘C atiende el evento nativo Copiar. [Cambios y límites de geometría](releases/v0.4.3.md).
+
 1. Selecciona una palabra con doble clic, o arrastra para seleccionar una frase de una página.
 2. Abre **Marcas** en la barra, **Texto** en el menú o el menú contextual sobre la página.
 3. Elige **Resaltar selección** o **Subrayar selección**. Amarillo es el color inicial; también hay verde, azul, rosa, naranja, rojo y selector de color personalizado.

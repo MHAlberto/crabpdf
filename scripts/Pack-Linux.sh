@@ -121,7 +121,7 @@ Package: crabpdf
 Version: $version
 Architecture: amd64
 Maintainer: CrabPDF contributors <noreply@github.com>
-Depends: libc6 (>= 2.36), libssl3t64, libegl1, libgl1, libgl1-mesa-dri, libx11-6, libx11-xcb1, libxcb1, libxcursor1, libxi6, libxrandr2, libxinerama1, libxkbcommon0, libxkbcommon-x11-0, libwayland-client0, libwayland-cursor0, libdbus-1-3, djvulibre-bin, 7zip
+Depends: libc6 (>= 2.36), libssl3t64, libegl1, libgl1, libgl1-mesa-dri, libx11-6, libx11-xcb1, libxcb1, libxcursor1, libxi6, libxrandr2, libxinerama1, libxkbcommon0, libxkbcommon-x11-0, libwayland-client0, libwayland-cursor0, libdbus-1-3, djvulibre-bin, 7zip, curl, pkexec
 Section: graphics
 Priority: optional
 Homepage: https://github.com/MHAlberto/crabpdf

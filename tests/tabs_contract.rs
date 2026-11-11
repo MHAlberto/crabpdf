@@ -223,6 +223,7 @@ fn duplicate_tabs_keep_reading_search_and_selection_independent_when_reordered()
         tabs[1]
             .selection
             .range()
+            .and_then(|range| range.single_page())
             .map(|range| (range.page, range.start, range.end)),
         Some((7, 2, 12))
     );

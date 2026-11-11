@@ -244,6 +244,9 @@ impl ReaderApp {
                         self.menu_action(ui, action);
                     }
                 });
+                ui.menu_button("Ayuda", |ui| {
+                    self.menu_action(ui, Action::CheckUpdate);
+                });
             });
         });
     }

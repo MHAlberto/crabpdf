@@ -2,6 +2,7 @@
 param(
     [Parameter(Mandatory)][string]$Installer,
     [ValidateSet('x64','x86')][string]$Architecture = 'x64',
+    [string]$PreviousInstaller,
     [string]$Destination = 'artifacts/installer-tests'
 )
 $ErrorActionPreference = 'Stop'
@@ -12,6 +13,7 @@ function InWorkspace([string]$path) {
     return $full
 }
 $installerPath = InWorkspace $Installer
+$initialInstaller = if ($PreviousInstaller) { InWorkspace $PreviousInstaller } else { $installerPath }
 $destinationPath = InWorkspace $Destination
 $root = Join-Path $destinationPath ("$Architecture-" + [guid]::NewGuid().ToString('N'))
 $install = Join-Path $root 'Installed Reader'
@@ -38,14 +40,24 @@ New-Item -ItemType Directory -Path $unrelated | Out-Null
 [IO.File]::WriteAllText((Join-Path $unrelated 'keep.txt'), 'preserve')
 RunInstaller $installerPath ("/S /NOINTEGRATION /D=$unrelated") 3
 if ((Get-Content -Raw -LiteralPath (Join-Path $unrelated 'keep.txt')) -ne 'preserve' -or (Test-Path $key)) { throw 'La ruta ajena se modifico.' }
-RunInstaller $installerPath ("/S /NOINTEGRATION /D=$install")
-$count = CheckPayload
+RunInstaller $installerPath "/S /UPDATE" 3
+RunInstaller $initialInstaller ("/S /NOINTEGRATION /D=$install")
+CheckPayload | Out-Null
 if ((Get-ItemProperty -LiteralPath $key).InstallLocation -ne $install) { throw 'Registro de instalacion incorrecto.' }
 $signature = (Get-AuthenticodeSignature -LiteralPath (Join-Path $install 'uninstall.exe')).Status.ToString()
 [IO.File]::WriteAllText((Join-Path $install 'my-document.txt'), 'preserve')
-# Upgrade in place, preserving a file the application does not own.
-RunInstaller $installerPath ("/S /NOINTEGRATION /D=$install")
-CheckPayload | Out-Null
+# Simulate the reader closing after launching the in-app installer.
+$runningExe = [IO.File]::Open((Join-Path $install 'crabpdf.exe'),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+try {
+    $update = Start-Process -FilePath $installerPath -ArgumentList '/S /UPDATE' -PassThru -WindowStyle Hidden
+    if ($update.WaitForExit(1500)) { throw "La actualización no esperó al lector: $($update.ExitCode)" }
+    RunInstaller $installerPath '/S /UPDATE' 6
+} finally { $runningExe.Dispose() }
+if (!$update.WaitForExit(60000) -or $update.ExitCode -ne 0) { throw 'Falló la actualización desde CrabPDF.' }
+$count = CheckPayload
+$expectedVersion = (Get-Item -LiteralPath $installerPath).VersionInfo.FileVersion
+if ((Get-ItemProperty -LiteralPath $uninstallKey).DisplayVersion -ne $expectedVersion) { throw 'No se registró la versión instalada.' }
+if (Select-String -LiteralPath (Join-Path $install 'crabpdf-install.ini') -Pattern '^(Menu|Desktop|OpenWith)=1$' -Quiet) { throw 'La actualización activó integraciones que estaban deshabilitadas.' }
 if ((Get-Content -Raw -LiteralPath (Join-Path $install 'my-document.txt')) -ne 'preserve') { throw 'La actualizacion modifico archivos ajenos.' }
 # Keeping an open executable catches updates and uninstall while the app runs.
 $lockedExe = [IO.File]::Open((Join-Path $install 'crabpdf.exe'),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
@@ -60,7 +72,7 @@ $report = @{
     architecture=$Architecture; payload_files=$count
     installer_sha256=(Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
     uninstaller_authenticode=$signature
-    installation=$true; manifest_verified=$true; upgrade=$true
+    installation=$true; manifest_verified=$true; upgrade=$true; waits_for_reader=$true; rejects_concurrent_setup=$true
     rejects_unrelated_directory=$true; rejects_locked_executable=$true
     uninstall=$true; preserves_unrelated_files=$true; registry_removed=$true
     gui_reviewed=$false

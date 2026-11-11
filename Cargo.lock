@@ -415,13 +415,16 @@ dependencies = [
  "crc32fast",
  "eframe",
  "embed-resource",
+ "getrandom 0.4.3",
  "image",
  "pdfium-render",
  "resvg",
  "rfd",
+ "semver",
  "serde",
  "serde_json",
  "toml",
+ "winreg",
 ]
 
 [[package]]

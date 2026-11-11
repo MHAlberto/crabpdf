@@ -29,7 +29,9 @@ pub(super) struct TabViewState {
     pub(super) navigation_wait: Option<(usize, f64)>,
     pub(super) reveal: Option<(usize, crabpdf_core::document::Bounds)>,
     pub(super) password: String,
-    pub(super) selection_geometry: super::selection_geometry::SelectionGeometry,
+    pub(super) selection_geometry:
+        std::collections::HashMap<usize, super::selection_geometry::SelectionGeometry>,
+    pub(super) selection_drag: Option<super::text_selection::SelectionDrag>,
     pub(super) view_layout: Option<(LayoutSpec, Arc<PageLayout>)>,
 }
 

@@ -10,7 +10,9 @@ Ofrece acceso en Inicio, acceso de escritorio opcional y una entrada Abrir con p
 
 El payload contiene el mismo lector, PDFium, conversores y licencias que el ZIP portable, más los avisos de NSIS. No descarga componentes durante la instalación. El desinstalador conserva preferencias, marcas y archivos que no pertenecen a la distribución.
 
-Una actualización exige identificar una instalación de la misma arquitectura. Se rechaza una carpeta ajena o el ejecutable bloqueado, sin cerrar la aplicación por la fuerza. Los directorios sólo se eliminan si están vacíos; no se utiliza borrado recursivo.
+Para actualizar desde CrabPDF, abre **Ayuda → Buscar actualizaciones…**. La app descarga y verifica el instalador de la arquitectura en uso y lo abre en modo de actualización. El instalador espera a que CrabPDF se cierre y usa la ubicación y las opciones de integración registradas. Reemplaza los archivos del paquete y conserva el perfil y los archivos ajenos. Si el ejecutable sigue bloqueado, ofrece reintentar después de cerrar las demás ventanas.
+
+El instalador manual también admite la carpeta de una instalación existente de la misma arquitectura. El SHA-256 de GitHub verifica la integridad de la descarga. La firma Authenticode se documenta por separado.
 
 ## Construir y comprobar
 

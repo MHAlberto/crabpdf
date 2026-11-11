@@ -22,6 +22,7 @@ SetFont "Segoe UI" 9
 BrandingText "CrabPDF · ${VERSION} · ${ARCH}"
 ShowInstDetails show
 ShowUninstDetails show
+Var IsUpdate
 VIProductVersion "${VERSION}.0"
 VIAddVersionKey /LANG=1033 "ProductName" "CrabPDF"
 VIAddVersionKey /LANG=1033 "FileDescription" "CrabPDF installer (${ARCH})"
@@ -43,9 +44,13 @@ VIAddVersionKey /LANG=1033 "LegalCopyright" "CrabPDF contributors · MIT"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\crabpdf.exe"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
 !define MUI_FINISHPAGE_RUN_TEXT "$(LaunchText)"
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipForUpdate
 !insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipForUpdate
 !insertmacro MUI_PAGE_LICENSE "${LICENSE}"
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipForUpdate
 !insertmacro MUI_PAGE_COMPONENTS
+!define MUI_PAGE_CUSTOMFUNCTION_PRE SkipForUpdate
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -77,26 +82,38 @@ LangString UnsafePath ${LANG_SPANISH} "Elige una carpeta nueva o una instalació
 LangString UnsafePath ${LANG_ENGLISH} "Choose a new folder or a CrabPDF installation of the same architecture."
 LangString CloseReader ${LANG_SPANISH} "Cierra CrabPDF antes de actualizar o desinstalar y vuelve a intentarlo."
 LangString CloseReader ${LANG_ENGLISH} "Close CrabPDF before updating or uninstalling, then try again."
+LangString RetryUpdate ${LANG_SPANISH} "Cierra las demás ventanas de CrabPDF y vuelve a intentar la actualización."
+LangString RetryUpdate ${LANG_ENGLISH} "Close the other CrabPDF windows, then retry the update."
+LangString SetupBusy ${LANG_SPANISH} "Ya hay una instalación o desinstalación de CrabPDF en curso."
+LangString SetupBusy ${LANG_ENGLISH} "CrabPDF is already being installed or uninstalled."
 !ifdef SIGN_THUMBPRINT
 !uninstfinalize '"${POWERSHELL}" -NoProfile -ExecutionPolicy Bypass -File "${SIGN_SCRIPT}" -CertificateThumbprint "${SIGN_THUMBPRINT}" -Path "%1"' = 0
 !endif
+
+!macro LockSetup
+  ; Keep the mutex handle until this process exits.
+  System::Call 'kernel32::CreateMutexW(p 0, i 0, w "Local\CrabPDF-Setup-${ARCH}") p .r1 ?e'
+  Pop $2
+  ${If} $1 == 0
+  ${OrIf} $2 == 183
+    MessageBox MB_OK|MB_ICONSTOP "$(SetupBusy)" /SD IDOK
+    SetErrorLevel 6
+    Abort
+  ${EndIf}
+!macroend
 
 ; Sections precede callbacks so their numeric identifiers are defined.
 Section "$(ReaderName)" READER
   SectionIn RO
   Call ValidateDestination
-  IfFileExists "$INSTDIR\crabpdf.exe" 0 files
+  Call WaitForReader
   ClearErrors
-  FileOpen $0 "$INSTDIR\crabpdf.exe" a
-  ${If} ${Errors}
-    MessageBox MB_OK|MB_ICONSTOP "$(CloseReader)" /SD IDOK
-    SetErrorLevel 4
-    Abort
-  ${EndIf}
-  FileClose $0
-  files:
   SetOverwrite on
   !include "${INCLUDE_DIR}\install-files.nsh"
+  IfErrors 0 installed_files
+  SetErrorLevel 5
+  Abort
+  installed_files:
   SetOutPath "$INSTDIR"
   WriteINIStr "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Product" "CrabPDF"
   WriteINIStr "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Architecture" "${ARCH}"
@@ -153,8 +170,36 @@ Function .onInit
     Abort
   ${EndIf}
 !endif
-  ; Automated checks avoid user shortcuts. No default-file association is changed.
+  !insertmacro LockSetup
   ${GetParameters} $0
+  ClearErrors
+  ${GetOptions} $0 "/UPDATE" $1
+  ${IfNot} ${Errors}
+    StrCpy $IsUpdate 1
+    ReadRegStr $2 HKCU "${PRODUCT_KEY}" "InstallLocation"
+    ${If} $2 == ""
+    ${OrIf} $2 != $INSTDIR
+      MessageBox MB_OK|MB_ICONSTOP "$(UnsafePath)" /SD IDOK
+      SetErrorLevel 3
+      Abort
+    ${EndIf}
+  ${EndIf}
+  ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Architecture"
+  ReadINIStr $2 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Product"
+  ${If} $1 == "${ARCH}"
+  ${AndIf} $2 == "CrabPDF"
+    ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Menu"
+    SectionSetFlags ${MENU} $1
+    ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Desktop"
+    SectionSetFlags ${DESKTOP} $1
+    ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "OpenWith"
+    SectionSetFlags ${OPENWITH} $1
+  ${ElseIf} $IsUpdate == 1
+    MessageBox MB_OK|MB_ICONSTOP "$(UnsafePath)" /SD IDOK
+    SetErrorLevel 3
+    Abort
+  ${EndIf}
+  ; Automated checks avoid user shortcuts.
   ClearErrors
   ${GetOptions} $0 "/NOINTEGRATION" $1
   ${IfNot} ${Errors}
@@ -162,6 +207,38 @@ Function .onInit
     SectionSetFlags ${DESKTOP} 0
     SectionSetFlags ${OPENWITH} 0
   ${EndIf}
+FunctionEnd
+
+Function SkipForUpdate
+  ${If} $IsUpdate == 1
+    Abort
+  ${EndIf}
+FunctionEnd
+
+Function WaitForReader
+  IfFileExists "$INSTDIR\crabpdf.exe" 0 done
+  retry:
+  StrCpy $1 0
+  check:
+  ClearErrors
+  FileOpen $0 "$INSTDIR\crabpdf.exe" a
+  ${IfNot} ${Errors}
+    FileClose $0
+    Goto done
+  ${EndIf}
+  ${If} $IsUpdate == 1
+    ${If} $1 < 40
+      Sleep 250
+      IntOp $1 $1 + 1
+      Goto check
+    ${EndIf}
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(RetryUpdate)" /SD IDCANCEL IDRETRY retry
+  ${Else}
+    MessageBox MB_OK|MB_ICONSTOP "$(CloseReader)" /SD IDOK
+  ${EndIf}
+  SetErrorLevel 4
+  Abort
+  done:
 FunctionEnd
 
 Function .onVerifyInstDir
@@ -211,6 +288,7 @@ FunctionEnd
 Function un.onInit
   SetShellVarContext current
   SetRegView 32
+  !insertmacro LockSetup
   ReadINIStr $0 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Product"
   ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Architecture"
   ${If} $0 != "CrabPDF"

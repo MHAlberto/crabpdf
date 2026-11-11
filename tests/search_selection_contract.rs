@@ -225,29 +225,46 @@ fn word_selection_preserves_unicode_sparse_indices_and_original_boundaries() {
     let mut selection = SelectionState::default();
     let content = content();
     selection.word(4, &content, 18);
-    let range = selection.range().unwrap();
+    let range = selection.range().unwrap().single_page().unwrap();
     assert_eq!((range.page, range.start, range.end), (4, 12, 24));
     assert_eq!(content.text(range.start, range.end), "éxito");
     selection.word(4, &content, 30);
-    let range = selection.range().unwrap();
+    let range = selection.range().unwrap().single_page().unwrap();
     assert_eq!(content.text(range.start, range.end), "二");
     selection.word(4, &content, 999);
-    assert_eq!(selection.range(), Some(range));
+    assert_eq!(selection.range().and_then(|r| r.single_page()), Some(range));
     selection.word(4, &PageContent::default(), 0);
-    assert_eq!(selection.range(), Some(range));
+    assert_eq!(selection.range().and_then(|r| r.single_page()), Some(range));
 }
 
 #[test]
-fn backwards_drag_keeps_its_anchor_and_ignores_other_page_motion() {
+fn drag_extends_across_pages_and_back_to_its_original_anchor() {
     let mut selection = SelectionState::default();
-    selection.select(2, 24, 24);
-    selection.extend(3, 0);
-    assert_eq!(selection.range().unwrap().end, 24);
-    selection.extend(2, 12);
-    let range = selection.range().unwrap();
+    selection.select(4, 24, 24);
+    selection.extend(1, 12);
+    let backwards = selection.range().unwrap();
+    assert_eq!(backwards.pages(), 1..=4);
+    assert!(backwards.single_page().is_none());
+    assert!(backwards.on_page(0).is_none());
+    let text = |range: crabpdf::application::selection::TextRange, page| {
+        let bounds = range.on_page(page).unwrap();
+        content().text(bounds.start, bounds.end)
+    };
+    assert_eq!(text(backwards, 1), "éxito-二");
+    assert_eq!(text(backwards, 2), "Uno éxito-二");
+    assert_eq!(text(backwards, 4), "Uno éxito");
+
+    selection.extend(6, 18);
+    let forwards = selection.range().unwrap();
+    assert_eq!(forwards.pages(), 4..=6);
+    assert_eq!(text(forwards, 4), "o-二");
+    assert_eq!(text(forwards, 5), "Uno éxito-二");
+    assert_eq!(text(forwards, 6), "Uno éxi");
+
+    selection.extend(4, 12);
+    let range = selection.range().unwrap().single_page().unwrap();
     assert_eq!((range.start, range.end), (24, 12));
-    assert!(range.contains(12) && range.contains(24) && !range.contains(9));
-    assert_eq!(content().text(range.start, range.end), "éxito");
+    assert_eq!(text(selection.range().unwrap(), 4), "éxito");
 }
 
 #[test]
@@ -259,10 +276,13 @@ fn select_all_accepts_only_the_requested_document_and_page() {
     selection.accept_content(7, 3, Some(3), &content);
     assert!(selection.range().is_none());
     selection.accept_content(7, 2, Some(2), &content);
-    let selected = selection.range().unwrap();
+    let selected = selection.range().unwrap().single_page().unwrap();
     assert_eq!(content.text(selected.start, selected.end), "Uno éxito-二");
     selection.accept_content(7, 2, Some(2), &PageContent::default());
-    assert_eq!(selection.range(), Some(selected));
+    assert_eq!(
+        selection.range().and_then(|r| r.single_page()),
+        Some(selected)
+    );
 }
 
 #[test]
@@ -297,7 +317,7 @@ fn late_selection_content_after_a_page_change_cannot_select_a_new_page() {
     selection.accept_content(1, 1, Some(1), &content());
     assert!(selection.range().is_none());
     selection.accept_content(1, 2, Some(2), &content());
-    assert_eq!(selection.range().unwrap().page, 2);
+    assert_eq!(selection.range().unwrap().single_page().unwrap().page, 2);
 }
 
 #[test]
@@ -320,7 +340,10 @@ fn reading_tab_selection_uses_one_path_for_cache_and_async_content_and_cancels_o
     tab.state.zoom = Zoom::Percent(150);
     assert_eq!(tab.request_select_all(), Some(0));
     tab.accept_content(8, 0, &content()); // cached
-    assert_eq!(tab.selection.range().unwrap().page, 0);
+    assert_eq!(
+        tab.selection.range().unwrap().single_page().unwrap().page,
+        0
+    );
     tab.selection.clear();
     tab.request_select_all();
     tab.go_to(2, true);
@@ -330,7 +353,10 @@ fn reading_tab_selection_uses_one_path_for_cache_and_async_content_and_cancels_o
     tab.accept_content(9, 2, &content());
     assert!(tab.selection.range().is_none());
     tab.accept_content(8, 2, &content()); // async
-    assert_eq!(tab.selection.range().unwrap().page, 2);
+    assert_eq!(
+        tab.selection.range().unwrap().single_page().unwrap().page,
+        2
+    );
     assert_eq!(tab.state.zoom, Zoom::Percent(150));
 }
 
@@ -340,7 +366,7 @@ fn double_click_on_a_separator_does_not_swallow_neighboring_words() {
     let mut selection = SelectionState::default();
     for index in [9, 27] {
         selection.word(0, &content, index);
-        let range = selection.range().unwrap();
+        let range = selection.range().unwrap().single_page().unwrap();
         assert_eq!((range.start, range.end), (index, index));
     }
     let content = PageContent {
@@ -356,6 +382,6 @@ fn double_click_on_a_separator_does_not_swallow_neighboring_words() {
         ..Default::default()
     };
     selection.word(0, &content, 4);
-    let range = selection.range().unwrap();
+    let range = selection.range().unwrap().single_page().unwrap();
     assert_eq!(content.text(range.start, range.end), "cafe\u{0301}_2");
 }

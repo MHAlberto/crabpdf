@@ -13,13 +13,55 @@ impl TextSelection {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct TextPosition {
+    page: usize,
+    index: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextRange {
+    anchor: TextPosition,
+    focus: TextPosition,
+}
+impl TextRange {
+    pub fn pages(self) -> std::ops::RangeInclusive<usize> {
+        self.anchor.page.min(self.focus.page)..=self.anchor.page.max(self.focus.page)
+    }
+
+    pub fn on_page(self, page: usize) -> Option<TextSelection> {
+        if !self.pages().contains(&page) {
+            return None;
+        }
+        let first = self.anchor.min(self.focus);
+        let last = self.anchor.max(self.focus);
+        Some(TextSelection {
+            page,
+            start: if page == first.page { first.index } else { 0 },
+            end: if page == last.page {
+                last.index
+            } else {
+                usize::MAX
+            },
+        })
+    }
+
+    pub fn single_page(self) -> Option<TextSelection> {
+        (self.anchor.page == self.focus.page).then_some(TextSelection {
+            page: self.anchor.page,
+            start: self.anchor.index,
+            end: self.focus.index,
+        })
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct SelectionState {
-    range: Option<TextSelection>,
+    range: Option<TextRange>,
     pending: Option<(DocumentId, usize)>,
 }
 impl SelectionState {
-    pub fn range(&self) -> Option<TextSelection> {
+    pub fn range(&self) -> Option<TextRange> {
         self.range
     }
     pub fn clear(&mut self) {
@@ -36,15 +78,21 @@ impl SelectionState {
     }
     pub fn select(&mut self, page: usize, start: usize, end: usize) {
         self.pending = None;
-        self.range = Some(TextSelection { page, start, end });
+        self.range = Some(TextRange {
+            anchor: TextPosition { page, index: start },
+            focus: TextPosition { page, index: end },
+        });
     }
-    pub fn extend(&mut self, page: usize, index: usize) {
-        if let Some(range) = &mut self.range
-            && range.page == page
-        {
-            range.end = index;
+    pub fn extend(&mut self, page: usize, index: usize) -> bool {
+        if let Some(range) = &mut self.range {
+            let focus = TextPosition { page, index };
             self.pending = None;
+            if range.focus != focus {
+                range.focus = focus;
+                return true;
+            }
         }
+        false
     }
     pub fn word(&mut self, page: usize, content: &PageContent, index: usize) {
         let Some(first) = content.glyphs.iter().position(|glyph| glyph.index == index) else {
@@ -95,14 +143,9 @@ impl SelectionState {
         if current_page != Some(page) {
             return;
         }
-        self.range = content
-            .glyphs
-            .first()
-            .zip(content.glyphs.last())
-            .map(|(first, last)| TextSelection {
-                page,
-                start: first.index,
-                end: last.index,
-            });
+        match content.glyphs.first().zip(content.glyphs.last()) {
+            Some((first, last)) => self.select(page, first.index, last.index),
+            None => self.clear(),
+        }
     }
 }

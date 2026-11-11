@@ -363,7 +363,16 @@ impl ReaderApp {
                     state.offset = scroll;
                     state.store(ui.ctx(), ui.make_persistent_id(("pdf-scroll", id)));
                 }
+                let (pointer, primary_down) = ui.input(|input| {
+                    let down = input.focused && input.pointer.primary_down();
+                    let interacting = down || input.pointer.primary_released();
+                    (
+                        interacting.then(|| input.pointer.interact_pos()).flatten(),
+                        down,
+                    )
+                });
                 let mut pan = Vec2::ZERO;
+                let mut edge_scroll = 0.0;
                 let mut visible_current = current;
                 let mut best_visible = 0.0;
                 let mut displayed_keys = Vec::new();
@@ -387,6 +396,12 @@ impl ReaderApp {
                     .show_viewport(ui, |ui, viewport| {
                         let origin = ui.min_rect().min;
                         ui.set_min_size(egui::vec2(layout.width, layout.height));
+                        let clip = viewport.translate(origin.to_vec2());
+                        let pointer = pointer.map(|pos| (pos, clip.clamp(pos)));
+                        let mut target = None;
+                        let mut distance = f32::INFINITY;
+                        let mut first_visible = usize::MAX;
+                        let mut last_visible = 0;
                         for placement in &layout.placements {
                             let relative = Rect::from_min_size(
                                 egui::pos2(placement.left, placement.top),
@@ -398,6 +413,10 @@ impl ReaderApp {
                                 continue;
                             }
                             let visible = relative.intersect(viewport).area().max(0.0);
+                            if visible > 0.0 {
+                                first_visible = first_visible.min(placement.page);
+                                last_visible = last_visible.max(placement.page);
+                            }
                             if visible > best_visible {
                                 best_visible = visible;
                                 visible_current = placement.page;
@@ -518,6 +537,31 @@ impl ReaderApp {
                             if response.dragged_by(egui::PointerButton::Secondary) {
                                 pan -= ui.input(|i| i.pointer.delta());
                             }
+                            response.surrender_focus();
+                            if let Some((_, position)) = pointer
+                                && visible > 0.0
+                            {
+                                let delta = position - rect.clamp(position);
+                                let squared = delta.length_sq();
+                                if squared < distance {
+                                    target = Some((
+                                        placement.page,
+                                        normalized_point(rect, position, spec.rotation),
+                                    ));
+                                    distance = squared;
+                                }
+                            }
+                            if response.drag_started_by(egui::PointerButton::Primary)
+                                && let Some(start) = ui.input(|i| i.pointer.press_origin())
+                            {
+                                let tab = &mut self.tabs[self.active];
+                                tab.reader.selection.clear();
+                                tab.view.selection_drag =
+                                    Some(super::text_selection::SelectionDrag::new((
+                                        placement.page,
+                                        normalized_point(rect, start, spec.rotation),
+                                    )));
+                            }
                             if let Some(content) = self.need_content(id, placement.page) {
                                 self.page_interaction(
                                     ui,
@@ -551,6 +595,17 @@ impl ReaderApp {
                                 }
                             });
                         }
+                        if self.update_selection_drag(ui.ctx(), primary_down, target)
+                            && let Some((pointer, _)) = pointer
+                            && spec.continuous
+                        {
+                            edge_scroll =
+                                selection_scroll(pointer.y, clip, ui.input(|i| i.stable_dt));
+                        }
+                        self.tabs[self.active]
+                            .view
+                            .selection_geometry
+                            .retain(|page, _| (first_visible..=last_visible).contains(page));
                     });
                 // Warm the next/previous spread even in non-continuous mode.
                 // Only bounded previews are retained by the existing byte-budgeted cache.
@@ -587,6 +642,13 @@ impl ReaderApp {
                 {
                     let previous_scroll = tab.view.scroll;
                     tab.view.scroll = output.state.offset + pan;
+                    if edge_scroll != 0.0 {
+                        tab.view.scroll.y = (tab.view.scroll.y + edge_scroll)
+                            .clamp(0.0, (layout.height - output.inner_rect.height()).max(0.0));
+                        if tab.view.scroll.y != output.state.offset.y {
+                            ui.ctx().request_repaint();
+                        }
+                    }
                     tab.view.viewport = output.inner_rect.size();
                     tab.view.viewport_rect = Some(output.inner_rect);
                     tab.view.scroll.x = tab.view.scroll.x.max(0.0);
@@ -627,44 +689,16 @@ impl ReaderApp {
         content: &PageContent,
         rotation: u8,
     ) {
-        // A page is a pointer target, not a text editor. Keeping its widget focus
-        // would suppress copy, zoom and annotation shortcuts after selecting words.
-        response.surrender_focus();
-        let normalize = |position: egui::Pos2| {
-            let x = ((position.x - rect.left()) / rect.width()).clamp(0.0, 1.0);
-            let y = ((position.y - rect.top()) / rect.height()).clamp(0.0, 1.0);
-            match rotation % 4 {
-                1 => (y, 1.0 - x),
-                2 => (1.0 - x, 1.0 - y),
-                3 => (1.0 - y, x),
-                _ => (x, y),
-            }
-        };
         if let Some(position) = response.interact_pointer_pos() {
-            let (x, y) = normalize(position);
-            if response.double_clicked()
-                && let Some(index) = content.nearest_glyph(x, y)
-            {
-                self.tabs[self.active]
-                    .reader
-                    .selection
-                    .word(page, content, index);
-            } else if response.drag_started_by(egui::PointerButton::Primary) {
-                let (x, y) = normalize(ui.input(|i| i.pointer.press_origin()).unwrap_or(position));
+            let (x, y) = normalized_point(rect, position, rotation);
+            if response.double_clicked() {
                 if let Some(index) = content.nearest_glyph(x, y) {
                     self.tabs[self.active]
                         .reader
                         .selection
-                        .select(page, index, index);
+                        .word(page, content, index);
                 }
-            }
-            if response.dragged_by(egui::PointerButton::Primary)
-                && ui.input(|input| input.pointer.delta() != Vec2::ZERO)
-                && let Some(index) = content.nearest_glyph(x, y)
-            {
-                self.tabs[self.active].reader.selection.extend(page, index);
-            }
-            if response.clicked() && !response.double_clicked() {
+            } else if response.clicked() {
                 self.tabs[self.active].reader.selection.clear();
                 if let Some(link) = content.links.iter().find(|link| link.bounds.contains(x, y)) {
                     match &link.target {
@@ -699,12 +733,18 @@ impl ReaderApp {
             );
             ui.painter().rect_filled(highlight, 0, color);
         };
-        if let Some(selection) = self.tabs[self.active].reader.selection.range()
-            && selection.page == page
+        if rect.intersects(ui.clip_rect())
+            && let Some(selection) = self.tabs[self.active]
+                .reader
+                .selection
+                .range()
+                .and_then(|range| range.on_page(page))
         {
             for bounds in self.tabs[self.active]
                 .view
                 .selection_geometry
+                .entry(page)
+                .or_default()
                 .get(selection, content)
             {
                 paint_bounds(*bounds, Color32::from_rgba_unmultiplied(76, 136, 230, 85));
@@ -731,7 +771,7 @@ impl ReaderApp {
         if response.hovered()
             && let Some(position) = ui.input(|i| i.pointer.hover_pos())
         {
-            let (x, y) = normalize(position);
+            let (x, y) = normalized_point(rect, position, rotation);
             if let Some(link) = content.links.iter().find(|link| link.bounds.contains(x, y)) {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                 response.clone().on_hover_text(match &link.target {
@@ -743,4 +783,25 @@ impl ReaderApp {
             }
         }
     }
+}
+
+fn normalized_point(rect: Rect, position: egui::Pos2, rotation: u8) -> (f32, f32) {
+    let x = ((position.x - rect.left()) / rect.width()).clamp(0.0, 1.0);
+    let y = ((position.y - rect.top()) / rect.height()).clamp(0.0, 1.0);
+    match rotation % 4 {
+        1 => (y, 1.0 - x),
+        2 => (1.0 - x, 1.0 - y),
+        3 => (1.0 - y, x),
+        _ => (x, y),
+    }
+}
+
+fn selection_scroll(y: f32, viewport: Rect, dt: f32) -> f32 {
+    let edge = 36.0_f32.min(viewport.height() / 2.0);
+    let up = (viewport.top() + edge - y).clamp(0.0, edge);
+    let down = (y - viewport.bottom() + edge).clamp(0.0, edge);
+    if edge == 0.0 {
+        return 0.0;
+    }
+    (down - up) / edge * 1250.0 * dt.min(0.05)
 }

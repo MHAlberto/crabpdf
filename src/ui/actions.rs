@@ -32,7 +32,12 @@ impl ReaderApp {
         match action {
             Action::Highlight | Action::Underline => {
                 self.tabs.get(self.active).is_some_and(|tab| {
-                    tab.reader.selection.range().is_some() && !tab.reader.marking
+                    tab.reader
+                        .selection
+                        .range()
+                        .and_then(|range| range.single_page())
+                        .is_some()
+                        && !tab.reader.marking
                 }) && self
                     .state()
                     .details
@@ -56,14 +61,13 @@ impl ReaderApp {
             Action::Back => self.state().can_back(),
             Action::Forward => self.state().can_forward(),
             Action::Copy => {
-                self.tabs
-                    .get(self.active)
-                    .is_some_and(|t| t.reader.selection.range().is_some())
-                    && self
-                        .state()
-                        .details
-                        .as_ref()
-                        .is_some_and(|details| details.can_copy)
+                self.tabs.get(self.active).is_some_and(|t| {
+                    t.reader.selection.range().is_some() || t.view.selection_drag.is_some()
+                }) && self
+                    .state()
+                    .details
+                    .as_ref()
+                    .is_some_and(|details| details.can_copy)
             }
             Action::FindNext | Action::FindPrevious => self
                 .tabs
@@ -120,7 +124,11 @@ impl ReaderApp {
         match action {
             Action::Highlight | Action::Underline => {
                 let tab = &mut self.tabs[self.active];
-                if let Some(selection) = tab.reader.selection.range()
+                if let Some(selection) = tab
+                    .reader
+                    .selection
+                    .range()
+                    .and_then(|range| range.single_page())
                     && let Some(worker) = &self.worker
                 {
                     let mark = crabpdf_core::document::TextMarkup {
@@ -211,6 +219,7 @@ impl ReaderApp {
                 ctx.copy_text(self.tabs[self.active].reader.path.display().to_string())
             }
             Action::Exit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+            Action::CheckUpdate => self.updates.open(ctx),
             Action::DuplicateWindow => {
                 if let Some(saved) = self.tabs[self.active].stored()
                     && let Err(error) =
@@ -319,11 +328,7 @@ impl ReaderApp {
             }
             Action::FindNext => self.step_search(true),
             Action::FindPrevious => self.step_search(false),
-            Action::Copy => {
-                if let Some(text) = self.selected_text() {
-                    ctx.copy_text(text);
-                }
-            }
+            Action::Copy => self.copy_selection(ctx),
             Action::SelectAll => {
                 let tab = &mut self.tabs[self.active];
                 let id = tab.reader.id;

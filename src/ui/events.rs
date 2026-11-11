@@ -212,6 +212,9 @@ impl ReaderApp {
                     if !self.tabs.iter().any(|tab| tab.reader.id == id) {
                         continue;
                     }
+                    if let Some(copy) = &mut self.clipboard_copy {
+                        copy.accept(id, page, result.as_ref().map(Arc::as_ref));
+                    }
                     match result {
                         Ok(content) => {
                             if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
@@ -225,6 +228,14 @@ impl ReaderApp {
                             if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id)
                             {
                                 tab.reader.selection.content_failed(id, page);
+                                if tab
+                                    .view
+                                    .selection_drag
+                                    .as_ref()
+                                    .is_some_and(|drag| drag.needs(page))
+                                {
+                                    tab.view.selection_drag = None;
+                                }
                                 tab.reader.state.error = Some(error);
                             }
                         }

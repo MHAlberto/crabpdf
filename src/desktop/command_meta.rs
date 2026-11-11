@@ -23,6 +23,7 @@ impl ActionMetadata for Action {
             Self::DuplicateTab => "Duplicar en otra pestaña",
             Self::CopyPath => "Copiar ruta del archivo",
             Self::Exit => "Salir",
+            Self::CheckUpdate => "Buscar actualizaciones…",
             Self::Properties => "Propiedades del documento",
             Self::Reveal => "Mostrar en carpeta",
             Self::Previous => "Página anterior",

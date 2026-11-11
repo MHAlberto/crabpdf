@@ -41,6 +41,14 @@ impl Smoke {
             modifiers: egui::Modifiers::NONE,
         });
     }
+    fn pointer_button(&mut self, pos: egui::Pos2, pressed: bool) {
+        self.events.push(egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        });
+    }
     fn enter(&mut self, phase: usize, ctx: &egui::Context) {
         self.phase = phase;
         self.started = Instant::now();
@@ -78,6 +86,26 @@ impl Smoke {
             7 => self.key(egui::Key::ArrowDown, false),
             8 => self.key(egui::Key::ArrowUp, true),
             9 => self.key(egui::Key::ArrowUp, false),
+            10 => self.app.open_path(self.output.join("multipage.pdf")),
+            11 => {
+                let pos = self.app.text_hit_position().unwrap();
+                self.events.push(egui::Event::PointerMoved(pos));
+                self.pointer_button(pos, true);
+            }
+            12 => {
+                let viewport = self.app.reading_viewport().unwrap();
+                self.events.push(egui::Event::PointerMoved(egui::pos2(
+                    viewport.center().x,
+                    viewport.bottom() - 3.0,
+                )));
+            }
+            13 => {
+                let end = self.app.text_hit_position().unwrap() + egui::vec2(100.0, 0.0);
+                self.events.push(egui::Event::PointerMoved(end));
+                self.pointer_button(end, false);
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            }
+            14 => self.events.push(egui::Event::Copy),
             _ => {}
         }
     }
@@ -225,9 +253,18 @@ impl eframe::App for Smoke {
             }
             7 if elapsed > 220.0 => self.enter(8, ctx),
             8 if elapsed > 700.0 => self.enter(9, ctx),
-            9 if elapsed > 220.0 => {
+            9 if elapsed > 220.0 => self.enter(10, ctx),
+            10 if self.app.state().document.as_ref().is_some_and(|doc| doc.info.page_count == 6)
+                && self.app.has_current_render() && self.app.text_hit_position().is_some() => self.enter(11, ctx),
+            11 if elapsed > 120.0 => self.enter(12, ctx),
+            12 if self.app.state().document.as_ref().is_some_and(|doc| doc.page == 5)
+                && self.app.text_hit_position().is_some() => self.enter(13, ctx),
+            13 if elapsed > 160.0 => self.enter(14, ctx),
+            14 if ctx.output(|output| output.commands.iter().any(|cmd| {
+                matches!(cmd, egui::OutputCommand::CopyText(text) if text == "Page 1\n\nPage 2\n\nPage 4\n\nPage 5\n\nPage 6")
+            })) => {
                 let report = serde_json::json!({"profile":if cfg!(debug_assertions) {"dev"} else {"release"},
-                    "clipboard_event_verified":self.clipboard_verified,"mark_frames":self.rows,"scroll_frames":self.scroll,"baseline_text_edge_pixels":self.baseline,
+                    "clipboard_event_verified":self.clipboard_verified,"multipage_drag_and_copy_verified":true,"mark_frames":self.rows,"scroll_frames":self.scroll,"baseline_text_edge_pixels":self.baseline,
                     "limits":"Local native fixture; screenshots add overhead. These are regression observations, not global latency guarantees."});
                 std::fs::write(
                     self.output.join("interaction-report.json"),
@@ -332,6 +369,48 @@ fn hit_benchmark(output: &std::path::Path) {
         "limits":"Synthetic local hit-testing microbenchmark; not whole-app or PDF parsing speed."
     })).unwrap()).unwrap();
 }
+fn multipage_fixture() -> Vec<u8> {
+    let pages = 6;
+    let kids = (0..pages)
+        .map(|page| format!("{} 0 R", 4 + 2 * page))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mut objects = vec![
+        "<< /Type /Catalog /Pages 2 0 R >>".to_owned(),
+        format!("<< /Type /Pages /Kids [{kids}] /Count {pages} >>"),
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".to_owned(),
+    ];
+    for page in 0..pages {
+        let contents = 5 + 2 * page;
+        objects.push(format!("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 420] /Resources << /Font << /F1 3 0 R >> >> /Contents {contents} 0 R >>"));
+        let text = if page == 2 {
+            String::new()
+        } else {
+            format!("BT /F1 18 Tf 60 260 Td (Page {}) Tj ET", page + 1)
+        };
+        objects.push(format!(
+            "<< /Length {} >>\nstream\n{text}\nendstream",
+            text.len()
+        ));
+    }
+    let mut bytes = b"%PDF-1.4\n".to_vec();
+    let mut offsets = Vec::new();
+    for (index, object) in objects.iter().enumerate() {
+        offsets.push(bytes.len());
+        bytes.extend_from_slice(format!("{} 0 obj\n{object}\nendobj\n", index + 1).as_bytes());
+    }
+    let xref = bytes.len();
+    let size = offsets.len() + 1;
+    bytes.extend_from_slice(format!("xref\n0 {size}\n0000000000 65535 f \n").as_bytes());
+    for offset in offsets {
+        bytes.extend_from_slice(format!("{offset:010} 00000 n \n").as_bytes());
+    }
+    bytes.extend_from_slice(
+        format!("trailer\n<< /Size {size} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n").as_bytes(),
+    );
+    bytes
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = std::env::args_os()
         .nth(1)
@@ -339,6 +418,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|| "artifacts/interaction-fixes/native".into());
     std::fs::create_dir_all(&output)?;
     hit_benchmark(&output);
+    std::fs::write(output.join("multipage.pdf"), multipage_fixture())?;
     let source = output.join(format!("reading-{}.pdf", std::process::id()));
     std::fs::copy(
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/reading-sample.pdf"),

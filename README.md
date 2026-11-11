@@ -38,12 +38,12 @@ En Windows puedes usar el instalador 0.4.3 o descomprimir su ZIP portable. Conse
 
 - Leer PDF, EPUB, Kindle sin DRM, FictionBook, XPS, DjVu, CHM, cómics, imágenes y texto. [Extensiones y límites](docs/FORMATS_AND_ANNOTATIONS.md).
 - Navegar en lectura continua, página única, páginas enfrentadas, modo libro o manga, con zoom y precarga.
-- Seleccionar y copiar texto, buscar, resaltar y subrayar con distintos colores; exportar una copia PDF con las marcas.
+- Seleccionar y copiar texto entre páginas en lectura continua, buscar, resaltar y subrayar texto de una página y exportar un PDF con las marcas.
 - Abrir varios documentos en pestañas, separar una pestaña en otra ventana y retomar el punto de lectura.
 - Organizar recientes y frecuentes con portadas y guardar favoritos por libro.
 - Leer en pantalla completa, alternar temas o invertir los colores del documento con **F6**.
 
-La impresión, la edición general de formularios/anotaciones, SyncTeX y la accesibilidad completa siguen pendientes. La selección actual se limita a una página. [Alcance hacia 1.0](docs/ROADMAP.md).
+La impresión, la edición general de formularios/anotaciones, SyncTeX y la accesibilidad completa siguen pendientes. **Ayuda → Buscar actualizaciones…** ofrece el paquete de GitHub para la plataforma y el tipo de instalación. [Alcance hacia 1.0](docs/ROADMAP.md).
 
 ## Usar y desarrollar
 

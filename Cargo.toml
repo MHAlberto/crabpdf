@@ -17,10 +17,15 @@ crabpdf-runtime = { path = "crates/runtime" }
 eframe = { version = "=0.36.2", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
 rfd = "=0.17.2"
 serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+semver = "=1.0.28"
+getrandom = "=0.4.3"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "=0.55.0"
 
 [dev-dependencies]
 crc32fast = "=1.5.2"
-serde = { version = "1.0", features = ["derive"] }
 pdfium-render = { version = "=0.9.4", default-features = false, features = ["pdfium_7881", "thread_safe"] }
 image = { version = "0.25", default-features = false, features = ["png", "bmp", "ico", "tga"] }
 toml = "1.1.8"

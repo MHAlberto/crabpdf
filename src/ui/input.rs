@@ -187,6 +187,8 @@ impl ReaderApp {
             }
             if let Some(tab) = self.tabs.get_mut(self.active) {
                 tab.reader.selection.clear();
+                tab.view.selection_drag = None;
+                self.copy_after_drag = None;
                 tab.view.search.open = false;
                 tab.reader.password_needed = false;
                 tab.view.password.clear();
@@ -322,6 +324,15 @@ impl ReaderApp {
             self.execute(Action::Copy, ctx);
         }
         if keyboard {
+            if ctx.input(|input| {
+                input
+                    .events
+                    .iter()
+                    .any(|event| matches!(event, egui::Event::Copy))
+            }) {
+                self.clipboard_copy = None;
+                self.copy_after_drag = None;
+            }
             return;
         }
         let bindings = [

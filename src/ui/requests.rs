@@ -17,12 +17,12 @@ impl ReaderApp {
         None
     }
     pub(super) fn need_content(&mut self, id: DocumentId, page: usize) -> Option<Arc<PageContent>> {
-        // Text is requested only for pages that can receive interaction.
+        // Visible interaction and clipboard copying share the same bounded text cache.
         if let Some(content) = self.content.get(&(id, page)) {
             return Some(content);
         }
-        if self.pending_content.insert((id, page))
-            && let Some(worker) = &self.worker
+        if let Some(worker) = &self.worker
+            && self.pending_content.insert((id, page))
             && let Err(error) = worker.content(id, page)
         {
             self.pending_content.remove(&(id, page));
@@ -66,14 +66,5 @@ impl ReaderApp {
         {
             tab.reveal_search(destination);
         }
-    }
-    pub(super) fn selected_text(&mut self) -> Option<String> {
-        let tab = self.tabs.get(self.active)?;
-        let selection = tab.reader.selection.range()?;
-        Some(
-            self.content
-                .get(&(tab.reader.id, selection.page))?
-                .text(selection.start, selection.end),
-        )
     }
 }

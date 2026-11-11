@@ -12,7 +12,9 @@ mod requests;
 mod selection_geometry;
 mod session;
 mod tab_view;
+mod text_selection;
 mod theme;
+mod updates;
 mod viewer;
 
 use tab_view::Tab;
@@ -80,6 +82,8 @@ pub struct ReaderApp {
     content: ByteCache<(DocumentId, usize), PageContent>,
     pending_pages: HashSet<RenderKey>,
     pending_content: HashSet<(DocumentId, usize)>,
+    clipboard_copy: Option<text_selection::ClipboardCopy>,
+    copy_after_drag: Option<DocumentId>,
     frame_keys: Vec<RenderKey>,
     preferences: Preferences,
     profile: ProfileSession,
@@ -109,6 +113,7 @@ pub struct ReaderApp {
     zoom_value: u16,
     properties_open: bool,
     settings_open: bool,
+    updates: updates::UpdateDialog,
     notice: Option<String>,
     notice_started: Option<(String, Instant)>,
     last_title: Option<WindowTitleIdentity>,
@@ -261,6 +266,8 @@ impl ReaderApp {
             content: ByteCache::new(16 * 1024 * 1024),
             pending_pages: HashSet::new(),
             pending_content: HashSet::new(),
+            clipboard_copy: None,
+            copy_after_drag: None,
             frame_keys: Vec::new(),
             preferences,
             profile: services.profile,
@@ -290,6 +297,7 @@ impl ReaderApp {
             zoom_value: 100,
             properties_open: false,
             settings_open: false,
+            updates: updates::UpdateDialog::default(),
             notice: None,
             notice_started: None,
             entrance: motion::Entrance::default(),
@@ -504,6 +512,7 @@ impl eframe::App for ReaderApp {
         }
         self.poll_dialog(ctx);
         self.poll_worker(ctx);
+        self.updates.poll(ctx);
         if self.presentation && self.state().document.is_none() {
             self.leave_presentation(ctx);
         }
@@ -512,6 +521,7 @@ impl eframe::App for ReaderApp {
             self.execute(Action::Presentation, ctx);
         }
         self.shortcuts(ctx);
+        self.advance_copy(ctx);
         if let Some(tab) = self.tabs.get_mut(self.active)
             && let Some(due) = tab.view.search.due
         {
@@ -603,6 +613,7 @@ impl eframe::App for ReaderApp {
             self.fullscreen_controls = None;
         }
         self.dialogs(ui.ctx());
+        self.updates.show(ui.ctx());
         self.resize_edges(ui.ctx());
         if let Some(worker) = &self.worker {
             let _ = worker.retain_renders(&self.frame_keys);

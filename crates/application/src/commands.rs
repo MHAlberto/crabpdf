@@ -16,6 +16,7 @@ pub enum Action {
     DuplicateTab,
     CopyPath,
     Exit,
+    CheckUpdate,
     Properties,
     Reveal,
     Previous,
@@ -97,6 +98,7 @@ impl Action {
         Self::DuplicateTab,
         Self::CopyPath,
         Self::Exit,
+        Self::CheckUpdate,
         Self::Properties,
         Self::Reveal,
         Self::Previous,
@@ -168,6 +170,7 @@ impl Action {
                 | Self::NewWindow
                 | Self::Reopen
                 | Self::Exit
+                | Self::CheckUpdate
                 | Self::NextTab
                 | Self::PreviousTab
                 | Self::MoveTabLeft

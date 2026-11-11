@@ -12,14 +12,28 @@ Los documentos nuevos empiezan en lectura continua ajustada al ancho. **Vertical
 
 ![Favoritos del documento abierto](screenshots/favorites.png)
 
+## Actualizar CrabPDF
+
+Abre **Ayuda → Buscar actualizaciones…**. CrabPDF consulta las publicaciones del proyecto cuando eliges esta acción. Si aparece **Descargar e instalar**, la app verifica el tamaño y SHA-256 del paquete antes de abrir el instalador.
+
+- En Windows, la app guarda la sesión y se cierra para que el instalador actualice la carpeta registrada. Cierra también otras ventanas de CrabPDF si el instalador lo solicita.
+- En Ubuntu, el paquete DEB se instala con apt. Autoriza la operación en el diálogo del sistema y vuelve a abrir CrabPDF al finalizar.
+- En las ediciones portables, usa el enlace de descarga y extrae el paquete completo en una carpeta nueva. En Linux, la consulta usa curl.
+
+Las preferencias, los favoritos y las anotaciones se conservan en el perfil de usuario.
+
 ## Seleccionar y marcar
 
-1. Haz doble clic sobre una palabra o arrastra para seleccionar una frase de la página.
+En lectura continua, arrastra desde el primer carácter hasta la página que quieras. Mantén el botón presionado cerca del borde superior o inferior para seguir desplazándote. Pulsa **Ctrl+C** para copiar el texto en orden de documento y **Ctrl+V** para pegarlo en otra aplicación.
+
+Para marcar texto de una página:
+
+1. Haz doble clic sobre una palabra o arrastra para seleccionar el fragmento.
 2. Abre **Marcas** y elige resaltar, subrayar y color.
 3. Usa Ctrl+Z para deshacer la última marca.
 4. Usa **Guardar una copia** para exportar un PDF con las anotaciones.
 
-Las marcas se conservan localmente y no modifican el archivo original al aplicarlas. La selección actual no atraviesa páginas. Los permisos del PDF pueden limitar la copia de texto. Si una conversión antigua carece de una firma de paginación compatible, se conservan las marcas y se muestra un aviso para evitar aplicarlas a otro texto.
+Las marcas se conservan localmente y no modifican el archivo original al aplicarlas. Los permisos del PDF pueden limitar la copia de texto. Si una conversión antigua carece de una firma de paginación compatible, se conservan las marcas y se muestra un aviso para evitar aplicarlas a otro texto.
 
 En Windows también puedes copiar con **Ctrl+Insert**. Los campos de búsqueda mantienen sus propios atajos; la selección del documento no reemplaza el texto que copies desde un campo.
 

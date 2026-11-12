@@ -1,6 +1,6 @@
 # Guía de uso
 
-Versión pública: **0.4.3**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.3) · [Índice](README.md)
+Versión pública: **0.4.4**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.4) · [Índice](README.md)
 
 ## Abrir y leer
 
@@ -114,4 +114,4 @@ Las escrituras de preferencias ocurren fuera de la UI, combinan cambios de varia
 | Otras distribuciones Linux | TAR para glibc 2.36 o posterior | Validación propia por distribución |
 | macOS Intel / ARM | CI de compilación y pruebas PDF | Interfaz física, otros formatos e instalador |
 
-[Validación de la entrega](releases/v0.4.3-publication.json). Las funciones pendientes de 1.0 están en [ROADMAP.md](ROADMAP.md).
+[Validación de la entrega](releases/v0.4.4-publication.json). Las funciones pendientes de 1.0 están en [ROADMAP.md](ROADMAP.md).

@@ -1,0 +1,154 @@
+{
+  "tagged_commit": "083076f277238637155d561860e2eff87bf902ef",
+  "linux_installed_files": 410,
+  "validated_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/43248754570",
+  "linux_artifact_sha256": "261b6ee3cafc1fecc4e11e447baec7d2eabf873182db694fbfb7ddfd62134b4d",
+  "version": "0.4.4",
+  "linux_artifact_id": 13957613818,
+  "tag": "v0.4.4",
+  "windows": {
+    "x64": {
+      "installer_test": {
+        "uninstaller_authenticode": "NotSigned",
+        "gui_reviewed": false,
+        "preserves_unrelated_files": true,
+        "rejects_locked_executable": true,
+        "payload_files": 609,
+        "upgrade": true,
+        "installation": true,
+        "registry_removed": true,
+        "rejects_concurrent_setup": true,
+        "waits_for_reader": true,
+        "rejects_unrelated_directory": true,
+        "manifest_verified": true,
+        "installer_sha256": "ee61b71f8d51d312334bd521ed78f8f49555869f6b54eea5ca21a50e3fe1f7b7",
+        "architecture": "x64",
+        "uninstall": true
+      },
+      "build": {
+        "security_certification": false,
+        "source_dirty": false,
+        "payload_files": 610,
+        "compiler": "NSIS 3.12",
+        "authenticode_status": "NotSigned",
+        "version": "0.4.4",
+        "target": "x86_64-pc-windows-msvc",
+        "bytes": 31951966,
+        "signer": null,
+        "sha256": "ee61b71f8d51d312334bd521ed78f8f49555869f6b54eea5ca21a50e3fe1f7b7",
+        "architecture": "x64",
+        "compiler_archive_sha256": "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+        "installer": "crabpdf-0.4.4-win-x64-setup.exe",
+        "source_commit": "083076f277238637155d561860e2eff87bf902ef",
+        "requires_admin": false
+      },
+      "artifact_sha256": "ebab776a699d196ac8dcc5a411f57b95a52134f04974e6b0f0738e047060dfd7",
+      "portable_files_verified": 607,
+      "artifact_id": 13957324893
+    },
+    "x86": {
+      "installer_test": {
+        "installation": true,
+        "registry_removed": true,
+        "architecture": "x86",
+        "preserves_unrelated_files": true,
+        "rejects_concurrent_setup": true,
+        "uninstaller_authenticode": "NotSigned",
+        "waits_for_reader": true,
+        "manifest_verified": true,
+        "rejects_locked_executable": true,
+        "uninstall": true,
+        "rejects_unrelated_directory": true,
+        "gui_reviewed": false,
+        "upgrade": true,
+        "installer_sha256": "61eb01654327f9672472026691102a07e10fd71b57369363d9eacd0b25868479",
+        "payload_files": 609
+      },
+      "build": {
+        "sha256": "61eb01654327f9672472026691102a07e10fd71b57369363d9eacd0b25868479",
+        "version": "0.4.4",
+        "source_commit": "083076f277238637155d561860e2eff87bf902ef",
+        "authenticode_status": "NotSigned",
+        "compiler_archive_sha256": "56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f",
+        "security_certification": false,
+        "architecture": "x86",
+        "bytes": 31749750,
+        "requires_admin": false,
+        "payload_files": 610,
+        "source_dirty": false,
+        "signer": null,
+        "compiler": "NSIS 3.12",
+        "target": "i686-pc-windows-msvc",
+        "installer": "crabpdf-0.4.4-win-x86-setup.exe"
+      },
+      "artifact_sha256": "e9bae3ae98d6876916f0576f8bcb318babe6200a66b67d341295d4d24f87e416",
+      "portable_files_verified": 607,
+      "artifact_id": 13958708356
+    }
+  },
+  "linux": {
+    "version": "0.4.4",
+    "target": "x86_64-unknown-linux-gnu",
+    "build_commit": "083076f277238637155d561860e2eff87bf902ef",
+    "application_source_tag": "v0.4.4",
+    "builder": "Rust 1.96.0 on Debian 12 / glibc 2.36",
+    "installed_on": "Ubuntu 24.04 clean container",
+    "package_hashes_verified": true,
+    "dependency_resolution_verified": true,
+    "native_gui_formats_passed": [
+      "PDF",
+      "EPUB",
+      "DjVu",
+      "CBZ"
+    ],
+    "gui_environment": "Xvfb and Mesa software rendering",
+    "assets": [
+      {
+        "name": "crabpdf-0.4.4-linux-x64.tar.gz",
+        "bytes": 40678881,
+        "sha256": "a4c10672f4d155e6b6a1f748f887f9f563ebe52b36bc9718d60274b355b536cf"
+      },
+      {
+        "name": "crabpdf-0.4.4-ubuntu24.04-amd64.deb",
+        "bytes": 30647268,
+        "sha256": "ddfb31b84bf16af122f17edb5d385882c2056dc3f3c67d629c19b72032f34e54"
+      }
+    ]
+  },
+  "schema": 1,
+  "linux_packages_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/43248755067",
+  "asset_origins": {
+    "crabpdf-0.4.4-win-x64-setup.exe": "GitHub CI 43248754570, artifact 13957324893",
+    "crabpdf-0.4.4-win-x64-setup.exe.json": "GitHub CI 43248754570, artifact 13957324893",
+    "crabpdf-0.4.4-win-x64.zip": "GitHub CI 43248754570, artifact 13957324893",
+    "crabpdf-0.4.4-win-x86-setup.exe": "GitHub CI 43248754570, artifact 13958708356",
+    "crabpdf-0.4.4-win-x86-setup.exe.json": "GitHub CI 43248754570, artifact 13958708356",
+    "crabpdf-0.4.4-win-x86.zip": "GitHub CI 43248754570, artifact 13958708356",
+    "crabpdf-0.4.4-ubuntu24.04-amd64.deb": "GitHub Linux package workflow 43248755067, artifact 13957613818",
+    "crabpdf-0.4.4-linux-x64.tar.gz": "GitHub Linux package workflow 43248755067, artifact 13957613818",
+    "crabpdf-0.4.4-format-tools-sources.zip": "Pack-FormatSources.ps1 from pinned converter sources at the tagged application revision",
+    "SHA256SUMS-v0.4.4.txt": "Publish-Release.ps1, checksums over the verified distribution files"
+  },
+  "converter_source_files": 13,
+  "local_windows_interaction": [
+    {
+      "architecture": "x64",
+      "target": "x86_64-pc-windows-msvc",
+      "profile": "release",
+      "clipboard_event_verified": true,
+      "multipage_drag_and_copy_verified": true,
+      "fixture_sha256": "64849a410a87b5a9beb31c165c745148637d8fd4b197b350b7dd7f126ac37d60",
+      "local_report_sha256": "51f87e50fc19f950e89cf5d71154fb5d9dfa36fe0eae582330254b7940cfd54e"
+    },
+    {
+      "architecture": "x86",
+      "target": "i686-pc-windows-msvc",
+      "profile": "release",
+      "clipboard_event_verified": true,
+      "multipage_drag_and_copy_verified": true,
+      "fixture_sha256": "64849a410a87b5a9beb31c165c745148637d8fd4b197b350b7dd7f126ac37d60",
+      "local_report_sha256": "96718103f675dbe4f1a9685a466acb4fa3354eb5ed2b88735f79cf2d0612dfd1"
+    }
+  ],
+  "verified_at_utc": "2026-11-12T15:51:25.5773717Z"
+}

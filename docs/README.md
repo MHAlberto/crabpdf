@@ -1,6 +1,6 @@
 # Documentación de CrabPDF
 
-La versión pública es **0.4.3**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.3) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
+La versión pública es **0.4.4**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.4) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
 
 ## Empezar
 
@@ -31,6 +31,10 @@ La versión pública es **0.4.3**, de desarrollo. [Descargas](https://github.com
 Una ruta completada de arquitectura no demuestra paridad de funciones. La impresión, la edición general, SyncTeX y la accesibilidad completa siguen pendientes. V2 contempla extensiones; no se presenta como disponible.
 
 ## Entregas y evidencia
+
+- [Notas 0.4.4](releases/v0.4.4.md) sobre actualización desde la app y selección entre páginas.
+- [Publicación 0.4.4](releases/v0.4.4-publication.json) con los paquetes y sus hashes SHA-256.
+- [Validación 0.4.4](releases/v0.4.4-validation.json) de los paquetes CI y del recorrido gráfico local.
 
 - [Notas 0.4.3](releases/v0.4.3.md): selección, portapapeles y geometría de marcas.
 - [Publicación 0.4.3](releases/v0.4.3-publication.json): paquetes CI, procedencia y SHA-256.

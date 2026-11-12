@@ -2,6 +2,12 @@
 
 Este documento orienta sobre la evidencia vigente. Los comandos reproducibles están en [Desarrollo](DEVELOPMENT.md); los resultados históricos se conservan por separado.
 
+## Entrega 0.4.4
+
+La [CI de la etiqueta](https://github.com/MHAlberto/crabpdf/actions/runs/43248754570) pasó en Windows x64/x86, Ubuntu x64 y macOS Intel/ARM. Los instaladores Windows se comprobaron con instalación, actualización, desinstalación y validación de los archivos instalados. En recorridos release locales Windows x64/x86 se seleccionó y copió texto hasta la página seis.
+
+El [workflow Linux](https://github.com/MHAlberto/crabpdf/actions/runs/43248755067) compiló los paquetes sobre Debian 12 y glibc 2.36, instaló el DEB en Ubuntu 24.04 limpio y abrió PDF, EPUB, DjVu y CBZ mediante Xvfb/Mesa. El [registro de publicación](releases/v0.4.4-publication.json) y la [validación](releases/v0.4.4-validation.json) conservan la procedencia, los hashes y los límites de estas pruebas.
+
 ## Entrega 0.4.3
 
 La [CI de la etiqueta](https://github.com/MHAlberto/crabpdf/actions/runs/41312566793) pasó en Windows x64/x86, Ubuntu x64 y macOS Intel/ARM, incluyendo las regresiones nativas de marcas. Los instaladores Windows se comprobaron mediante instalación, actualización, desinstalación y verificación de los archivos instalados.

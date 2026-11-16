@@ -36,25 +36,29 @@ impl ReaderApp {
                 | Action::ScrollRightPage
                 | Action::ScrollDownHalf
         );
-        let fits_horizontally = tab.view.view_layout.as_ref().is_some_and(|(_, layout)| {
-            let Some(document) = &tab.reader.state.document else {
-                return false;
-            };
-            let spread = tab
-                .reader
-                .state
-                .layout
-                .spread(document.page, document.info.page_count);
-            let mut left = f32::INFINITY;
-            let mut right = f32::NEG_INFINITY;
-            for placement in &layout.placements {
-                if spread.contains(&placement.page) {
-                    left = left.min(placement.left);
-                    right = right.max(placement.left + placement.size.width);
+        let fits_horizontally = horizontal
+            && tab.view.view_layout.as_ref().is_some_and(|(_, layout)| {
+                let Some(document) = &tab.reader.state.document else {
+                    return false;
+                };
+                let spread = tab
+                    .reader
+                    .state
+                    .layout
+                    .spread_range(document.page, document.info.page_count);
+                let mut left = f32::INFINITY;
+                let mut right = f32::NEG_INFINITY;
+                let Some(row_top) = layout.top_of(document.page) else {
+                    return false;
+                };
+                for placement in layout.vertical_candidates(row_top, row_top) {
+                    if spread.contains(&placement.page) {
+                        left = left.min(placement.left);
+                        right = right.max(placement.left + placement.size.width);
+                    }
                 }
-            }
-            left.is_finite() && right - left <= tab.view.viewport.x + 1.0
-        });
+                left.is_finite() && right - left <= tab.view.viewport.x + 1.0
+            });
         if horizontal
             && (matches!(tab.reader.state.zoom, Zoom::FitWidth | Zoom::FitPage)
                 || fits_horizontally)

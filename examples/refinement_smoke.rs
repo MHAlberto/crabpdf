@@ -2,6 +2,7 @@
 use crabpdf::{
     commands::Action,
     document::{PageColors, Zoom},
+    layout::LayoutMode,
     ui::ReaderApp,
 };
 use eframe::egui;
@@ -11,7 +12,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const SHOTS: [&str; 46] = [
+const SHOTS: [&str; 53] = [
     "01-vertical-ready",
     "02-vertical-scroll",
     "03-zoom-anchor",
@@ -58,6 +59,13 @@ const SHOTS: [&str; 46] = [
     "44-fullscreen-sidebar",
     "45-fullscreen-sidebar-hidden",
     "46-window-sidebar-restored",
+    "47-window-two-pages",
+    "48-fullscreen-two-pages",
+    "49-fullscreen-two-page-control",
+    "50-fullscreen-one-page",
+    "51-fullscreen-two-pages-restored",
+    "52-window-two-pages-restored",
+    "53-window-one-page",
 ];
 
 struct Smoke {
@@ -74,6 +82,7 @@ struct Smoke {
     wheel_before: u16,
     mode_zoom: Zoom,
     pointer: Option<egui::Pos2>,
+    click: Option<egui::Pos2>,
     pan_before: f32,
     outcome: Arc<Mutex<Option<Result<(), String>>>>,
 }
@@ -217,6 +226,19 @@ impl Smoke {
             41 => self.key(egui::Key::ArrowRight),
             42 => self.key(egui::Key::ArrowLeft),
             43 | 44 => self.key(egui::Key::F12),
+            46 => {
+                self.app.execute(Action::First, ctx);
+                self.app.execute(Action::FitPage, ctx);
+                self.click = self.app.facing_button_rect().map(|rect| rect.center());
+            }
+            47 | 51 => {
+                self.pointer = Some(ctx.viewport_rect().center());
+                self.key(egui::Key::F11);
+            }
+            48 => self.pointer = Some(egui::pos2(ctx.viewport_rect().center().x, 1.0)),
+            49 | 50 | 52 => {
+                self.click = self.app.facing_button_rect().map(|rect| rect.center());
+            }
             _ => self.finish(ctx, Ok(())),
         }
     }
@@ -378,6 +400,26 @@ impl Smoke {
                         rect.top() < 1.0 && rect.width() < ctx.viewport_rect().width() - 150.0
                     })
             }
+            46..=52 => {
+                let fullscreen = (47..=50).contains(&self.phase);
+                let facing = !matches!(self.phase, 49 | 52);
+                rendered
+                    && self.app.state().layout
+                        == if facing {
+                            LayoutMode::Facing
+                        } else {
+                            LayoutMode::Single
+                        }
+                    && self.app.screen_modes() == (fullscreen, false)
+                    && ctx.input(|i| i.viewport().fullscreen.unwrap_or(false)) == fullscreen
+                    && (!fullscreen || full_canvas)
+                    && (!matches!(self.phase, 48..=50) || self.app.facing_button_rect().is_some())
+                    && (!facing
+                        || self
+                            .app
+                            .current_page_viewport()
+                            .is_some_and(|bounds| bounds.right - bounds.left > 1.9))
+            }
             _ => false,
         };
         Ok(ready)
@@ -393,6 +435,17 @@ impl eframe::App for Smoke {
             .retain(|event| matches!(event, egui::Event::Screenshot { .. }));
         if let Some(pointer) = self.pointer.take() {
             input.events.push(egui::Event::PointerMoved(pointer));
+        }
+        if let Some(pos) = self.click.take() {
+            input.events.push(egui::Event::PointerMoved(pos));
+            for pressed in [true, false] {
+                input.events.push(egui::Event::PointerButton {
+                    pos,
+                    button: egui::PointerButton::Primary,
+                    pressed,
+                    modifiers: egui::Modifiers::NONE,
+                });
+            }
         }
         if let Some(text) = self.text.take() {
             input.events.push(egui::Event::Text(text));
@@ -530,6 +583,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 wheel_before: 0,
                 mode_zoom: Zoom::FitWidth,
                 pointer: None,
+                click: None,
                 pan_before: 0.0,
                 outcome,
             }))

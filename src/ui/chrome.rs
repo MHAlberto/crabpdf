@@ -3,6 +3,31 @@ use crate::desktop::command_meta::ActionMetadata;
 use eframe::egui::{self, Align, Layout, Rect, Sense, Vec2};
 
 impl ReaderApp {
+    pub(super) fn facing_button(&mut self, ui: &mut egui::Ui) {
+        let facing = self.state().layout == crate::layout::LayoutMode::Facing;
+        let response = ui
+            .add_enabled(
+                self.enabled(Action::Facing),
+                egui::Button::new(Action::Facing.label()).selected(facing),
+            )
+            .on_hover_text(if facing {
+                "Volver a una página"
+            } else {
+                "Mostrar dos páginas lado a lado · Ctrl/⌘ + 7"
+            });
+        self.facing_button = Some(response.rect);
+        if response.clicked() {
+            self.execute(
+                if facing {
+                    Action::Single
+                } else {
+                    Action::Facing
+                },
+                ui.ctx(),
+            );
+        }
+    }
+
     pub(super) fn fullscreen_reading_controls(&mut self, ctx: &egui::Context) {
         let screen = ctx.viewport_rect();
         let visible = ctx.input(|input| {
@@ -62,6 +87,7 @@ impl ReaderApp {
                             {
                                 action = Some(Action::Next);
                             }
+                            self.facing_button(ui);
                             for (label, choice) in [
                                 ("Ajustar ancho", Action::FitWidth),
                                 ("Buscar", Action::Find),

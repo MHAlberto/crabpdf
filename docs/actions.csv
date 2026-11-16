@@ -44,7 +44,7 @@ CustomZoom,"Zoom personalizado","Ctrl/⌘ + Y",true,"Funcional: conectada al des
 RotateLeft,"Girar a la izquierda","",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 RotateRight,"Girar a la derecha","",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 Single,"Una página","Ctrl/⌘ + 6",true,"Funcional: conectada al despachador; disponibilidad según contexto"
-Facing,"Dos páginas","Ctrl/⌘ + 7",true,"Funcional: conectada al despachador; disponibilidad según contexto"
+Facing,"Dos páginas","Ctrl/⌘ + 7",true,"Disponible en la barra normal, controles de pantalla completa y menú Ver"
 Book,"Libro","Ctrl/⌘ + 8",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 Continuous,"Desplazamiento continuo","C",true,"Funcional: conectada al despachador; disponibilidad según contexto"
 VerticalReading,"Lectura vertical ajustada al ancho","",true,"Funcional: conectada al despachador; disponibilidad según contexto"

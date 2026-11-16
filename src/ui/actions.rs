@@ -50,10 +50,16 @@ impl ReaderApp {
                 .is_some_and(|tab| tab.reader.local_marks > 0 && !tab.reader.marking),
             Action::Reopen => !self.closed.is_empty(),
             Action::Open => self.worker.is_some() && self.dialog.is_none(),
-            Action::Previous | Action::First => {
-                self.state().document.as_ref().is_some_and(|d| d.page > 0)
-            }
-            Action::Next | Action::Last => self
+            Action::Previous | Action::Next => self.state().document.as_ref().is_some_and(|d| {
+                let spread = self.state().layout.spread_range(d.page, d.info.page_count);
+                if action == Action::Previous {
+                    spread.start > 0
+                } else {
+                    spread.end < d.info.page_count
+                }
+            }),
+            Action::First => self.state().document.as_ref().is_some_and(|d| d.page > 0),
+            Action::Last => self
                 .state()
                 .document
                 .as_ref()
@@ -294,13 +300,28 @@ impl ReaderApp {
                 .rotate(action == Action::RotateRight),
             Action::Single | Action::Facing | Action::Book => {
                 let tab = &mut self.tabs[self.active];
-                tab.reader.state.layout = match action {
+                let layout = match action {
                     Action::Facing => LayoutMode::Facing,
                     Action::Book => LayoutMode::Book,
                     _ => LayoutMode::Single,
                 };
-                tab.reader.state.invalidate();
-                tab.reader.state.scroll_to_page = true;
+                if tab.reader.state.layout != layout {
+                    let anchor = tab.anchor(None).filter(|anchor| {
+                        tab.reader.state.continuous
+                            || tab.reader.state.document.as_ref().is_some_and(|d| {
+                                layout
+                                    .spread_range(d.page, d.info.page_count)
+                                    .contains(&anchor.page)
+                            })
+                    });
+                    tab.reader.state.layout = layout;
+                    tab.reader.state.invalidate();
+                    tab.view.scroll_motion = None;
+                    tab.view.key_scroll.cancel();
+                    tab.view.navigation_wait = None;
+                    tab.view.zoom_anchor = anchor;
+                    tab.reader.state.scroll_to_page = anchor.is_none();
+                }
             }
             Action::Continuous => {
                 let tab = &mut self.tabs[self.active];

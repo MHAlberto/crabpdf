@@ -25,7 +25,7 @@ impl ReadingPosition {
         }
         let center = (scroll.0 + viewport.0 * 0.5, scroll.1 + viewport.1 * 0.5);
         let placement = layout
-            .placements
+            .vertical_candidates(scroll.1, scroll.1 + viewport.1)
             .iter()
             .filter(|p| {
                 p.left < scroll.0 + viewport.0

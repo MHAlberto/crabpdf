@@ -123,6 +123,7 @@ pub struct ReaderApp {
     titlebar_control_rects: Vec<egui::Rect>,
     entrance: motion::Entrance,
     markup_button: Option<egui::Rect>,
+    facing_button: Option<egui::Rect>,
     tab_drag: Option<u64>,
     tab_buttons: Vec<(u64, egui::Rect)>,
     favorite_buttons: Vec<(usize, egui::Rect)>,
@@ -138,6 +139,9 @@ impl ReaderApp {
     }
     pub fn markup_button_rect(&self) -> Option<egui::Rect> {
         self.markup_button
+    }
+    pub fn facing_button_rect(&self) -> Option<egui::Rect> {
+        self.facing_button
     }
     pub fn markup_count(&self) -> usize {
         self.tabs
@@ -302,6 +306,7 @@ impl ReaderApp {
             notice_started: None,
             entrance: motion::Entrance::default(),
             markup_button: None,
+            facing_button: None,
             tab_drag: None,
             tab_buttons: Vec::new(),
             favorite_buttons: Vec::new(),
@@ -563,6 +568,7 @@ impl eframe::App for ReaderApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.frame_keys.clear();
         self.markup_button = None;
+        self.facing_button = None;
         self.tab_buttons.clear();
         #[cfg(test)]
         {

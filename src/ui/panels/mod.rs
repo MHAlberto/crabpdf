@@ -364,6 +364,7 @@ impl ReaderApp {
                     {
                         self.execute(Action::VerticalReading, ui.ctx());
                     }
+                    self.facing_button(ui);
                     let marks = ui
                         .add_enabled_ui(count > 0, |ui| {
                             ui.menu_button("Marcas", |ui| {

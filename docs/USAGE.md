@@ -8,6 +8,8 @@ Abre archivos con el botón de carpeta, Ctrl+O o arrastrándolos a la ventana. C
 
 Los documentos nuevos empiezan en lectura continua ajustada al ancho. **Vertical** aplica ese modo a un documento que ya estaba abierto. Los modos guardados de otros documentos se conservan.
 
+Pulsa **Dos páginas** en la barra para mostrar las páginas lado a lado. Pulsa de nuevo para volver a una sola. En pantalla completa, lleva el puntero al borde superior para mostrar el mismo botón. **Ctrl+7** activa dos páginas y **Ctrl+6** vuelve a una página. Si quieres ver ambas completas, elige **Zoom → Ajustar a página**.
+
 **Inicio** vuelve a la biblioteca sin cerrar las pestañas. El contexto de una portada permite quitarla del historial; no borra el archivo original. Los favoritos del panel corresponden al documento activo.
 
 ![Favoritos del documento abierto](screenshots/favorites.png)

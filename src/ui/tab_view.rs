@@ -141,7 +141,7 @@ impl Tab {
             });
         let point = self.view.scroll + screen;
         let placement = layout
-            .placements
+            .vertical_candidates(point.y, point.y)
             .iter()
             .find(|p| {
                 point.x >= p.left

@@ -42,7 +42,7 @@ impl ReaderApp {
             .document
             .as_ref()
             .map_or(0, |document| document.info.page_count);
-        let spread = tab.reader.state.layout.spread(page, count);
+        let spread = tab.reader.state.layout.spread_range(page, count);
         let mut ready = true;
         for page in spread {
             let found = self
@@ -402,14 +402,15 @@ impl ReaderApp {
                         let mut distance = f32::INFINITY;
                         let mut first_visible = usize::MAX;
                         let mut last_visible = 0;
-                        for placement in &layout.placements {
+                        let preload = viewport.expand(height as f32);
+                        let near_viewport = viewport.expand(80.0);
+                        for placement in layout.vertical_candidates(preload.top(), preload.bottom())
+                        {
                             let relative = Rect::from_min_size(
                                 egui::pos2(placement.left, placement.top),
                                 egui::vec2(placement.size.width, placement.size.height),
                             );
-                            if !relative.intersects(viewport.expand(height as f32))
-                                && placement.page.abs_diff(current) > 1
-                            {
+                            if !relative.intersects(preload) {
                                 continue;
                             }
                             let visible = relative.intersect(viewport).area().max(0.0);
@@ -417,7 +418,11 @@ impl ReaderApp {
                                 first_visible = first_visible.min(placement.page);
                                 last_visible = last_visible.max(placement.page);
                             }
-                            if visible > best_visible {
+                            if visible > best_visible
+                                || visible == best_visible
+                                    && visible > 0.0
+                                    && placement.page == current
+                            {
                                 best_visible = visible;
                                 visible_current = placement.page;
                             }
@@ -440,7 +445,7 @@ impl ReaderApp {
                                 region: None,
                                 ..key
                             };
-                            if !relative.intersects(viewport.expand(80.0)) {
+                            if !relative.intersects(near_viewport) {
                                 self.prefetch_page(preview_key);
                                 continue;
                             }
@@ -472,10 +477,10 @@ impl ReaderApp {
                                 .page_sizes
                                 .get(placement.page)
                                 .is_some_and(Option::is_some);
-                            let mut regions = vec![None];
-                            if known_size && (pixel_width > 1024 || pixel_height > 1024) {
-                                let visible = relative.intersect(viewport.expand(80.0));
-                                regions = visible_tiles(
+                            let tiled = known_size && (pixel_width > 1024 || pixel_height > 1024);
+                            let tiles = if tiled {
+                                let visible = relative.intersect(near_viewport);
+                                visible_tiles(
                                     pixel_width,
                                     pixel_height,
                                     Bounds {
@@ -488,11 +493,12 @@ impl ReaderApp {
                                     },
                                     key.bitmap_side_limit,
                                 )
-                                .into_iter()
-                                .map(Some)
-                                .collect();
-                            }
-                            for region in regions {
+                            } else {
+                                Vec::new()
+                            };
+                            for region in
+                                tiles.into_iter().map(Some).chain((!tiled).then_some(None))
+                            {
                                 let key = crabpdf_core::document::RenderKey { region, ..key };
                                 displayed_keys.push(key);
                                 if let Some(display) = self.need_page(key).or_else(|| {
@@ -614,13 +620,13 @@ impl ReaderApp {
                     .document
                     .as_ref()
                     .map_or(0, |doc| doc.info.page_count);
-                let spread = self.state().layout.spread(current, count);
-                if let (Some(first), Some(last)) = (spread.first(), spread.last()) {
-                    for neighbor in [first.saturating_sub(1), last.saturating_add(1)] {
+                let spread = self.state().layout.spread_range(current, count);
+                if !spread.is_empty() {
+                    for neighbor in [spread.start.saturating_sub(1), spread.end] {
                         if neighbor >= count || spread.contains(&neighbor) {
                             continue;
                         }
-                        for page in self.state().layout.spread(neighbor, count) {
+                        for page in self.state().layout.spread_range(neighbor, count) {
                             if let Some(key) = self.state().render_key_for(
                                 page,
                                 cell_width,

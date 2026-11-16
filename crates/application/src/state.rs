@@ -98,21 +98,17 @@ impl AppState {
 
     pub fn navigate(&mut self, forward: bool) {
         if let Some(document) = &self.document {
-            let spread = self.layout.spread(document.page, document.info.page_count);
+            let spread = self
+                .layout
+                .spread_range(document.page, document.info.page_count);
             let page = if forward {
-                spread
-                    .last()
-                    .copied()
-                    .unwrap_or(document.page)
-                    .saturating_add(1)
+                (spread.end < document.info.page_count).then_some(spread.end)
             } else {
-                spread
-                    .first()
-                    .copied()
-                    .unwrap_or(document.page)
-                    .saturating_sub(1)
+                spread.start.checked_sub(1)
             };
-            self.go_to(page, true);
+            if let Some(page) = page {
+                self.go_to(page, true);
+            }
         }
     }
 

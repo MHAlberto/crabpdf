@@ -18,6 +18,10 @@ impl LayoutMode {
         }
     }
     pub fn spread(self, page: usize, count: usize) -> Vec<usize> {
+        self.spread_range(page, count).collect()
+    }
+
+    pub fn spread_range(self, page: usize, count: usize) -> std::ops::Range<usize> {
         let start = match self {
             Self::Single => page,
             Self::Facing => page / 2 * 2,
@@ -34,7 +38,7 @@ impl LayoutMode {
         } else {
             start + 2
         };
-        (start..end.min(count)).collect()
+        start..end.min(count)
     }
 }
 
@@ -137,54 +141,48 @@ impl PageLayout {
         let gutter = spec.gutter();
         let gap = spec.gap();
         let (cell_width, cell_height) = spec.cell_size();
-        let mut spreads = Vec::new();
-        let mut next = 0;
-        if spec.continuous {
-            while next < sizes.len() {
-                let spread = spec.mode.spread(next, sizes.len());
-                next = spread.last().copied().unwrap_or(next) + 1;
-                spreads.push(spread);
-            }
-        } else {
-            spreads.push(spec.mode.spread(spec.current, sizes.len()));
-        }
-        let mut placements = Vec::new();
+        let mut placements = Vec::with_capacity(if spec.continuous { sizes.len() } else { 2 });
         let mut top = gutter;
         let mut width = spec.width as f32;
         let mut rows = Vec::new();
-        for mut spread in spreads {
-            if spec.manga {
-                spread.reverse();
-            }
-            let measured = spread
-                .iter()
-                .map(|page| {
-                    page_size(
-                        sizes[*page].unwrap_or(fallback),
-                        spec.rotation,
-                        spec.zoom,
-                        cell_width.max(1.0),
-                        cell_height,
-                    )
-                })
-                .collect::<Vec<_>>();
-            let row_width = measured.iter().map(|s| s.width).sum::<f32>()
-                + gap * measured.len().saturating_sub(1) as f32;
-            let row_height = measured.iter().map(|s| s.height).fold(0.0, f32::max);
+        let mut page = if spec.continuous { 0 } else { spec.current };
+        while page < sizes.len() {
+            let spread = spec.mode.spread_range(page, sizes.len());
+            let mut row_width = 0.0;
+            let mut row_height: f32 = 0.0;
             let mut left = gutter;
             let start = placements.len();
-            for (page, size) in spread.into_iter().zip(measured) {
+            for column in 0..spread.len() {
+                let page = if spec.manga {
+                    spread.end - 1 - column
+                } else {
+                    spread.start + column
+                };
+                let size = page_size(
+                    sizes[page].unwrap_or(fallback),
+                    spec.rotation,
+                    spec.zoom,
+                    cell_width,
+                    cell_height,
+                );
                 placements.push(Placement {
                     page,
                     left,
                     top,
                     size,
                 });
+                row_width += size.width;
+                row_height = row_height.max(size.height);
                 left += size.width + gap;
             }
+            row_width += gap * spread.len().saturating_sub(1) as f32;
             rows.push((start, placements.len(), row_width));
             width = width.max(row_width + 2.0 * gutter);
             top += row_height + gutter;
+            if !spec.continuous {
+                break;
+            }
+            page = spread.end;
         }
         for (start, end, row_width) in rows {
             let offset = (width - row_width) / 2.0 - gutter;
@@ -198,6 +196,17 @@ impl PageLayout {
             height: top,
         }
     }
+    /// Candidates have sorted row tops. At most one row starts before the
+    /// lower bound and can still overlap it, with up to two pages in that row.
+    /// Callers check page bounds to exclude the extra candidates.
+    pub fn vertical_candidates(&self, top: f32, bottom: f32) -> &[Placement] {
+        let end = self.placements.partition_point(|page| page.top <= bottom);
+        let start = self.placements[..end]
+            .partition_point(|page| page.top < top)
+            .saturating_sub(2);
+        &self.placements[start..end]
+    }
+
     pub fn top_of(&self, page: usize) -> Option<f32> {
         self.placements
             .iter()
@@ -287,6 +296,59 @@ mod tests {
         assert!(((x + 500.0 - page.left) / page.size.width - 0.5).abs() < 0.0001);
         assert!(((y + 350.0 - page.top) / page.size.height - 0.5).abs() < 0.0001);
     }
+    #[test]
+    fn viewport_candidates_match_a_full_scan_in_all_page_modes() {
+        let pages: Vec<_> = (0..513)
+            .map(|page| {
+                (page % 7 != 0).then_some(PageSize {
+                    width: 250.0 + (page % 13) as f32 * 97.0,
+                    height: 180.0 + (page % 9) as f32 * 195.0,
+                })
+            })
+            .collect();
+        for mode in [LayoutMode::Single, LayoutMode::Facing, LayoutMode::Book] {
+            for manga in [false, true] {
+                for continuous in [false, true] {
+                    let layout = PageLayout::build(
+                        &pages,
+                        PageSize::default(),
+                        LayoutSpec {
+                            width: 1080,
+                            height: 780,
+                            mode,
+                            continuous,
+                            current: 199,
+                            zoom: Zoom::FitWidth,
+                            rotation: 1,
+                            manga,
+                            compact: true,
+                            revision: 0,
+                        },
+                    );
+                    for page in &layout.placements {
+                        for top in [page.top, page.top + page.size.height * 0.5] {
+                            let bottom = top + 780.0;
+                            let visible =
+                                |p: &&Placement| p.top <= bottom && p.top + p.size.height >= top;
+                            assert!(
+                                layout
+                                    .placements
+                                    .iter()
+                                    .filter(visible)
+                                    .map(|p| p.page)
+                                    .eq(layout
+                                        .vertical_candidates(top, bottom)
+                                        .iter()
+                                        .filter(visible)
+                                        .map(|p| p.page))
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn book_cover_and_last_spread_are_correct() {
         assert_eq!(LayoutMode::Book.spread(0, 5), vec![0]);

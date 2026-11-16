@@ -1,5 +1,20 @@
 # Rendimiento y memoria
 
+## Visor de 0.4.5 en Windows
+
+El visor y la captura de la posición de lectura consultan solo las filas cercanas a la vista. Al construir el diseño, cada página se mide una vez y las filas se preparan sin listas temporales por par. Las páginas sin mosaicos tampoco necesitan reservar una lista para dibujarse.
+
+Comparación local de las fuentes de 0.4.4 y 0.4.5 en Windows x64, Intel Core i5-9400, Rust 1.96.0 con optimización y LTO delgado. Se usaron páginas sintéticas de tamaños mixtos, vista continua de 1080 × 780 y nueve muestras alternadas por operación. Cada muestra midió 10 009 consultas o 100 construcciones. Se comprobó la igualdad de la geometría y de las páginas encontradas frente al recorrido completo.
+
+| Páginas y vista | Consulta 0.4.4 → 0.4.5 (µs) | Construcción 0.4.4 → 0.4.5 (µs) |
+| --- | ---: | ---: |
+| 1 000, una página | 0.617 → 0.073 | 184.726 → 18.935 |
+| 1 000, dos páginas | 0.607 → 0.082 | 101.163 → 10.171 |
+| 10 000, una página | 9.711 → 0.167 | 2873.549 → 213.128 |
+| 10 000, dos páginas | 9.467 → 0.171 | 1412.489 → 138.968 |
+
+Las cifras son medianas de las operaciones de diseño. La prueba excluye PDFium, la GPU y el tiempo de apertura del documento.
+
 ## Primera revisión de 0.4.1
 
 Fecha: 27 de octubre de 2026. Base de código: `b043142` (atajo F6), posterior a la publicación pública 0.4.0. Esta revisión combina el arreglo de la barra solicitado con cambios pequeños y verificables; no cambia motores, dependencias, presupuestos de memoria ni formatos admitidos.

@@ -21,7 +21,7 @@ try {
     New-Item -ItemType Directory -Force -Path $folder | Out-Null
     $exe=if ($Target -like '*windows*') { 'selection_info.exe' } else { 'selection_info' }
     Copy-Item -LiteralPath "target/$Target/release/examples/$exe" -Destination (Join-Path $folder $exe) -Force
-    if ($env:OS -ne "Windows_NT") { chmod +x -- (Join-Path $folder $exe); if ($LASTEXITCODE) { throw 'No se pudo marcar el ejemplo como ejecutable.' } }
+    if ($env:OS -ne "Windows_NT") { chmod +x (Join-Path $folder $exe); if ($LASTEXITCODE) { throw 'No se pudo marcar el ejemplo como ejecutable.' } }
     Copy-Item -LiteralPath LICENSE -Destination (Join-Path $folder 'LICENSE') -Force
 @"
 api_version = 1

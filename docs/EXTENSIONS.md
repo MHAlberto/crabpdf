@@ -16,7 +16,7 @@ Los paquetes se guardan en `extensions/` dentro del directorio de datos del perf
 
 ## Instalar por código
 
-Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/#extensiones) y copia el código de seis cifras. En CrabPDF 0.5.1, abre **Extensiones**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
+Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/#extensiones) y copia el código de seis cifras. En CrabPDF 0.5.2, abre **Extensiones**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
 
 La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recibe documentos ni selecciones. CrabPDF verifica el tamaño y SHA-256 del ZIP y compara el manifiesto con la ficha. Si instalas una versión nueva, puedes mantener la anterior activa hasta que decidas cambiarla.
 

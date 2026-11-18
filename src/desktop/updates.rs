@@ -1,9 +1,10 @@
 use super::downloads::{StagedPackage, http_get, is_sha256, sha256};
 use semver::Version;
 use serde::Deserialize;
+#[cfg(windows)]
+use std::{fs, path::PathBuf};
 use std::{
-    fs::{self, File},
-    path::PathBuf,
+    fs::File,
     process::{Command, Stdio},
 };
 
@@ -237,7 +238,7 @@ mod tests {
     fn hashes_a_staged_file_and_removes_it_on_drop() {
         let staged = StagedPackage::new("prueba ñ").unwrap();
         let path = staged.file.clone();
-        fs::write(&path, b"abc").unwrap();
+        std::fs::write(&path, b"abc").unwrap();
         assert_eq!(
             sha256(&path).unwrap(),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"

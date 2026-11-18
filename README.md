@@ -36,7 +36,7 @@ En Windows puedes usar el instalador 0.4.4 o descomprimir su ZIP portable. Conse
 
 ## Extensiones
 
-Desde CrabPDF 0.5.1 puedes instalar paquetes opcionales en Rust con un código del [catálogo web](https://mhalberto.github.io/crabpdf/#extensiones) o desde una carpeta. El código **100001** instala el ejemplo que describe una selección del PDF. El SDK permite añadir otros comandos, incluido el futuro OCR de ecuaciones a LaTeX. [Crear y cargar extensiones](docs/EXTENSIONS.md).
+Desde CrabPDF 0.5.2 puedes instalar paquetes opcionales en Rust con un código del [catálogo web](https://mhalberto.github.io/crabpdf/#extensiones) o desde una carpeta. El código **100001** instala el ejemplo que describe una selección del PDF. El SDK permite añadir otros comandos, incluido el futuro OCR de ecuaciones a LaTeX. [Crear y cargar extensiones](docs/EXTENSIONS.md).
 
 ## Qué puedes hacer
 

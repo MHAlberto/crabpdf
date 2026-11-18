@@ -1,5 +1,6 @@
 import { mkdir, copyFile, readFile, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { buildExtensions } from "./extensions.mjs";
 import { fileURLToPath } from "node:url";
 
 const docs = fileURLToPath(new URL("../", import.meta.url));
@@ -14,7 +15,9 @@ const megabytes = (suffix) => {
   if (!asset || !Number.isSafeInteger(asset.bytes) || asset.bytes <= 0) throw new Error("Missing release asset: " + suffix);
   return String(Math.round(asset.bytes / 1_000_000));
 };
+const extensions = await buildExtensions(docs, repo, output);
 const tokens = {
+  extension_cards: extensions.cards,
   version,
   windows_installer_mb: megabytes("-win-x64-setup.exe"),
   windows_zip_mb: megabytes("-win-x64.zip"),
@@ -43,7 +46,7 @@ for (const [source, relative] of assets) {
   await copyFile(source, destination);
 }
 // Tailwind writes its output here before this script runs.
-const files = ["index.html", "site/assets/site.css", ...assets.map(([, relative]) => relative)];
+const files = ["index.html", "site/assets/site.css", ...extensions.files, ...assets.map(([, relative]) => relative)];
 async function walk(folder, prefix = "") {
   const result = [];
   for (const entry of await readdir(folder, { withFileTypes: true })) {

@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [string]$Target = '',
-    [string]$Destination = 'artifacts/extensions/selection-info'
+    [string]$Destination = 'artifacts/extensions/selection-info',
+    [switch]$Archive
 )
 $ErrorActionPreference='Stop'
 $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -20,7 +21,7 @@ try {
     New-Item -ItemType Directory -Force -Path $folder | Out-Null
     $exe=if ($Target -like '*windows*') { 'selection_info.exe' } else { 'selection_info' }
     Copy-Item -LiteralPath "target/$Target/release/examples/$exe" -Destination (Join-Path $folder $exe) -Force
-    if (!$IsWindows) { chmod +x -- (Join-Path $folder $exe); if ($LASTEXITCODE) { throw 'No se pudo marcar el ejemplo como ejecutable.' } }
+    if ($env:OS -ne "Windows_NT") { chmod +x -- (Join-Path $folder $exe); if ($LASTEXITCODE) { throw 'No se pudo marcar el ejemplo como ejecutable.' } }
     Copy-Item -LiteralPath LICENSE -Destination (Join-Path $folder 'LICENSE') -Force
 @"
 api_version = 1
@@ -38,5 +39,22 @@ title = "Examinar el área seleccionada"
 input = "region"
 output = "text"
 "@ | Set-Content -LiteralPath (Join-Path $folder 'extension.toml') -Encoding utf8NoBOM
+    if ($Archive) {
+        $packages = Join-Path $workspace 'artifacts/site-extensions'
+        New-Item -ItemType Directory -Force -Path $packages | Out-Null
+        $archivePath = Join-Path $packages "selection-info-$Target.zip"
+        $stream = [IO.File]::Create($archivePath)
+        try {
+            $zip = [IO.Compression.ZipArchive]::new($stream, [IO.Compression.ZipArchiveMode]::Create, $true)
+            try {
+                foreach ($name in @('extension.toml', $exe, 'LICENSE')) {
+                    [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                        $zip, (Join-Path $folder $name), $name, [IO.Compression.CompressionLevel]::Optimal
+                    ) | Out-Null
+                }
+            } finally { $zip.Dispose() }
+        } finally { $stream.Dispose() }
+        Write-Output "ZIP del catálogo: $archivePath"
+    }
     Write-Output "Paquete listo para instalar desde Extensiones: $folder"
 } finally { Pop-Location }

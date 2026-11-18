@@ -1,6 +1,6 @@
-# Extensiones de CrabPDF 0.5.0
+# Extensiones de CrabPDF
 
-La 0.5.0 en desarrollo incorpora paquetes nativos opcionales y el SDK Rust `crabpdf-extension-api` 0.1.0. El protocolo inicial tiene `api_version = 1`. La aplicación descubre manifiestos y ejecuta un comando cuando el usuario lo solicita.
+CrabPDF 0.5 admite paquetes nativos opcionales y el SDK Rust `crabpdf-extension-api`. El SDK 0.2.0 añade los tipos del catálogo web. El protocolo inicial tiene `api_version = 1`. La aplicación descubre manifiestos y ejecuta un comando cuando el usuario lo solicita.
 
 ## Instalar y usar
 
@@ -13,6 +13,22 @@ La 0.5.0 en desarrollo incorpora paquetes nativos opcionales y el SDK Rust `crab
 En pantalla completa encontrarás Extensiones en la barra flotante del borde superior. Escape cancela la selección del área.
 
 Los paquetes se guardan en `extensions/` dentro del directorio de datos del perfil. Cada versión tiene su propia carpeta. Activar otra versión cambia el registro de ese paquete de forma atómica. La desinstalación retira la versión elegida. Los paquetes instalados empiezan desactivados.
+
+## Instalar por código
+
+Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/#extensiones) y copia el código de seis cifras. En CrabPDF 0.5.1, abre **Extensiones**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
+
+La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recibe documentos ni selecciones. CrabPDF verifica el tamaño y SHA-256 del ZIP y compara el manifiesto con la ficha. Si instalas una versión nueva, puedes mantener la anterior activa hasta que decidas cambiarla.
+
+## Publicar en el catalogo
+
+1. Compila un ZIP por plataforma. Coloca `extension.toml`, el ejecutable y los recursos en la raíz del ZIP o en sus subcarpetas. Usa letras ASCII, números, guiones, puntos y guiones bajos en las rutas. El ZIP puede ocupar hasta 512 MiB y expandirse a 2 GiB como máximo.
+2. Propón la extensión y sus fuentes al repositorio de CrabPDF. Una vez revisado, el mantenedor adjunta los ZIP a una entrega de GitHub del proyecto. Los paquetes siguen pudiendo desarrollarse en repositorios independientes.
+3. Agrega una entrada a [docs/site/extensions.json](site/extensions.json) con un código de seis cifras único y estable. Copia del manifiesto `id`, `version`, `name`, `description`, `api_version` y `host_version`. En `assets` agrega por plataforma `target`, `release_tag`, `file` (el nombre ZIP), `bytes` y `sha256`. Si actualizas un paquete, conserva su código y publica ZIP con nombres nuevos.
+4. GitHub Actions genera las fichas de la web y el endpoint `/extensions/catalog-v1.json` a partir del mismo catálogo. El SDK 0.2.0 expone el esquema en `crabpdf_extension_api::catalog`. El protocolo de ejecución mantiene su versión 1.
+
+El ejemplo oficial se construye dentro del flujo de Pages para las cinco plataformas y se incluye en el sitio. Para una vista previa local con el ZIP de tu plataforma, ejecuta `./scripts/Build-ExtensionExample.ps1 -Archive`. Desde `docs/`, usa `CRABPDF_CATALOG_PREVIEW=1` y `npm run build` con las dependencias de npm ya instaladas.
+
 
 ## Paquete independiente
 

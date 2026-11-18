@@ -1,18 +1,26 @@
 //! Extension manager and user-selected page regions.
 use super::*;
-use crate::desktop::extensions::{InstalledPackage, Invocation, Repository, RunningExtension};
+use crate::desktop::extensions::{
+    InstalledPackage, Invocation, Repository, RunningExtension,
+    catalog::{self, CatalogPackage},
+};
 use crabpdf_core::document::{Bounds, SelectionCapture};
+use crabpdf_extension_api::catalog::valid_code;
 use crabpdf_extension_api::{ExtensionCommand, ExtensionOutput, InputKind, Region};
 use eframe::egui::{Color32, Rect, Stroke, StrokeKind};
 use std::{path::PathBuf, sync::mpsc};
 
 enum ManagementResult {
     Packages(Vec<InstalledPackage>),
+    InstalledCatalog(Vec<InstalledPackage>),
+    Catalog(Box<CatalogPackage>),
     Preview(PathBuf, Box<crabpdf_extension_api::Manifest>),
 }
 #[derive(Default)]
 pub(super) struct Extensions {
     pub open: bool,
+    code: String,
+    catalog_preview: Option<Box<CatalogPackage>>,
     packages: Vec<InstalledPackage>,
     operation: Option<mpsc::Receiver<Result<ManagementResult, String>>>,
     picker: Option<crate::desktop::dialogs::PendingDialog>,
@@ -33,13 +41,17 @@ impl Extensions {
         self.output.as_ref().map(|output| output.text.as_str())
     }
     fn busy(&self) -> bool {
-        self.operation.is_some() || self.running.is_some() || self.pending.is_some()
+        self.operation.is_some()
+            || self.picker.is_some()
+            || self.running.is_some()
+            || self.pending.is_some()
     }
     fn manage(
         &mut self,
         ctx: &egui::Context,
         work: impl FnOnce() -> std::io::Result<ManagementResult> + Send + 'static,
     ) {
+        self.message = None;
         let (send, recv) = mpsc::channel();
         let ctx = ctx.clone();
         match std::thread::Builder::new()
@@ -52,6 +64,75 @@ impl Extensions {
             Err(e) => self.message = Some(e.to_string()),
         }
     }
+    fn show_catalog(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, repository: &Repository) {
+        ui.separator();
+        ui.strong("Instalar por código");
+        ui.hyperlink_to("Abrir catálogo de extensiones", catalog::CATALOG_URL);
+        ui.horizontal(|ui| {
+            let code = ui.add_enabled(
+                !self.busy(),
+                egui::TextEdit::singleline(&mut self.code)
+                    .hint_text("Código de 6 cifras")
+                    .char_limit(6)
+                    .desired_width(144.0),
+            );
+            let search = ui.add_enabled(
+                !self.busy() && valid_code(self.code.trim()),
+                egui::Button::new("Buscar"),
+            );
+            if !self.busy()
+                && valid_code(self.code.trim())
+                && (search.clicked()
+                    || (code.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter))))
+            {
+                let code = self.code.trim().to_owned();
+                self.catalog_preview = None;
+                self.preview = None;
+                self.manage(ctx, move || {
+                    catalog::lookup(&code)
+                        .map(|package| ManagementResult::Catalog(Box::new(package)))
+                });
+            }
+        });
+
+        if let Some(package) = &self.catalog_preview {
+            let entry = &package.entry;
+            ui.strong(format!("{} {}", entry.name, entry.version));
+            ui.label(&entry.description);
+            ui.label(format!(
+                "{} · {:.1} MiB",
+                package.asset.target,
+                package.asset.bytes as f64 / (1024.0 * 1024.0)
+            ));
+            ui.label("La extensión se ejecuta con los permisos de tu usuario.");
+            let installed = self.packages.iter().any(|existing| {
+                existing.manifest.id == entry.id && existing.manifest.version == entry.version
+            });
+            ui.horizontal(|ui| {
+                if installed {
+                    ui.label("Esta versión ya está instalada.");
+                }
+                if ui
+                    .add_enabled(
+                        !self.busy() && !installed,
+                        egui::Button::new("Descargar e instalar"),
+                    )
+                    .clicked()
+                {
+                    let package = self.catalog_preview.take().expect("a preview is displayed");
+                    let repository = repository.clone();
+                    self.manage(ctx, move || {
+                        catalog::install(&repository, &package)?;
+                        repository.list().map(ManagementResult::InstalledCatalog)
+                    });
+                }
+                if ui.button("Descartar").clicked() {
+                    self.catalog_preview = None;
+                }
+            });
+        }
+    }
+
     pub fn show(&mut self, ctx: &egui::Context, repository: Repository, can_select: bool) -> bool {
         let mut arm = false;
         if !self.open {
@@ -209,6 +290,7 @@ impl Extensions {
                             arm = true;
                         }
                         ui.label("También puedes usar Texto / Enviar selección a extensión.");
+                        self.show_catalog(ui, ctx, &repository);
                         if self.pending.is_some() {
                             ui.label("Preparando el recorte…");
                         }
@@ -367,7 +449,16 @@ impl ReaderApp {
                         self.extensions.packages = packages;
                         self.extensions.message = None;
                     }
+                    Ok(ManagementResult::InstalledCatalog(packages)) => {
+                        self.extensions.packages = packages;
+                        self.extensions.message =
+                            Some("Extensión instalada. Pulsa Activar para usarla.".into());
+                    }
+                    Ok(ManagementResult::Catalog(package)) => {
+                        self.extensions.catalog_preview = Some(package);
+                    }
                     Ok(ManagementResult::Preview(path, manifest)) => {
+                        self.extensions.catalog_preview = None;
                         self.extensions.preview = Some((path, *manifest))
                     }
                     Err(error) => self.extensions.message = Some(error),

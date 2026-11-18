@@ -9,6 +9,11 @@ on:
       - 'docs/screenshots/**'
       - 'docs/releases/*-publication.json'
       - 'docs/site/**'
+      - 'scripts/Build-ExtensionExample.ps1'
+      - 'crates/extension-api/**'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'LICENSE'
       - 'docs/package.json'
       - 'docs/package-lock.json'
       - '.github/workflows/pages.yml'
@@ -19,6 +24,11 @@ on:
       - 'docs/screenshots/**'
       - 'docs/releases/*-publication.json'
       - 'docs/site/**'
+      - 'scripts/Build-ExtensionExample.ps1'
+      - 'crates/extension-api/**'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'LICENSE'
       - 'docs/package.json'
       - 'docs/package-lock.json'
       - '.github/workflows/pages.yml'
@@ -32,7 +42,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  example-packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+          - os: windows-2022
+            target: i686-pc-windows-msvc
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - os: macos-15
+            target: aarch64-apple-darwin
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Rust and target
+        run: rustup target add '${{ matrix.target }}'
+      - name: Fetch locked SDK dependencies
+        run: cargo fetch --locked --target '${{ matrix.target }}'
+      - name: Build the example ZIP
+        shell: pwsh
+        run: ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -Archive
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-example-${{ matrix.target }}
+          path: artifacts/site-extensions/*.zip
+          if-no-files-found: error
+
   build:
+    needs: example-packages
     permissions:
       contents: read
       pages: read
@@ -44,6 +86,11 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: docs/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: catalog-example-*
+          merge-multiple: true
+          path: artifacts/site-extensions
       - name: Install website build tools
         working-directory: docs
         run: npm ci --no-audit --no-fund

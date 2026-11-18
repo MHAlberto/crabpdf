@@ -34,9 +34,9 @@ sudo apt install ./crabpdf-0.4.4-ubuntu24.04-amd64.deb
 
 En Windows puedes usar el instalador 0.4.4 o descomprimir su ZIP portable. Conserva `pdfium.dll` y `format-tools/` junto al ejecutable portable. El tar de Linux incluye sus requisitos en `INSTALL-LINUX.md`.
 
-## Extensiones en desarrollo para 0.5.0
+## Extensiones
 
-La 0.5.0 prepara paquetes opcionales en Rust, con instalación desde carpeta, activación por versión y comandos sobre una selección del PDF. El primer caso previsto es OCR de ecuaciones a LaTeX. El SDK y el paquete de ejemplo permiten probar la integración. [Crear y cargar extensiones](docs/EXTENSIONS.md).
+Desde CrabPDF 0.5.1 puedes instalar paquetes opcionales en Rust con un código del [catálogo web](https://mhalberto.github.io/crabpdf/#extensiones) o desde una carpeta. El código **100001** instala el ejemplo que describe una selección del PDF. El SDK permite añadir otros comandos, incluido el futuro OCR de ecuaciones a LaTeX. [Crear y cargar extensiones](docs/EXTENSIONS.md).
 
 ## Qué puedes hacer
 

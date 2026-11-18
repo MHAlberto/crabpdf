@@ -407,7 +407,7 @@ dependencies = [
 
 [[package]]
 name = "crabpdf"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "crabpdf-application",
  "crabpdf-core",
@@ -426,11 +426,12 @@ dependencies = [
  "serde_json",
  "toml",
  "winreg",
+ "zip",
 ]
 
 [[package]]
 name = "crabpdf-application"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "crabpdf-core",
  "serde",
@@ -438,14 +439,14 @@ dependencies = [
 
 [[package]]
 name = "crabpdf-core"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "crabpdf-extension-api"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -453,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "crabpdf-runtime"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "crabpdf-application",
  "crabpdf-core",
@@ -2606,6 +2607,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-path"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54ec2755506471f54baf5e4bb5499d8e510cc1caf271270e778a736bd2d7336c"
+
+[[package]]
 name = "unicode-general-category"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3470,6 +3477,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "zip"
+version = "8.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d04a6b5381502aa6087c94c669499eb1602eb9c5e8198e534de571f7154809b"
+dependencies = [
+ "crc32fast",
+ "flate2",
+ "indexmap",
+ "memchr",
+ "typed-path",
 ]
 
 [[package]]

@@ -45,6 +45,7 @@
       <nav id="main-nav" aria-label="Navegación principal" class="site-nav">
         <a class="nav-link" href="#lectura">La experiencia</a>
         <a class="nav-link" href="#formatos">Formatos</a>
+        <a class="nav-link" href="#extensiones">Extensiones</a>
         <a class="nav-link" href="#proyecto">El proyecto</a>
         <a class="nav-link flex items-center gap-2" href="https://github.com/MHAlberto/crabpdf">
           <svg class="icon" aria-hidden="true"><use href="#i-github"/></svg> GitHub
@@ -155,12 +156,23 @@
       </div>
     </section>
 
+    <section id="extensiones" class="shell py-16 sm:py-20" aria-labelledby="extensions-title">
+      <div class="grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-14">
+        <div>
+          <h2 id="extensions-title" class="text-3xl font-semibold tracking-tight sm:text-4xl">Extensiones</h2>
+          <p class="mt-4 max-w-sm leading-7 text-muted">Copia un código y búscalo en <strong class="text-ink">Extensiones → Instalar por código</strong>, desde CrabPDF 0.5.1.</p>
+          <a class="text-link mt-5 inline-block text-sm" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/EXTENSIONS.md#publicar-en-el-catalogo">Cómo publicar una extensión</a>
+        </div>
+        <div class="border-t border-line">{{extension_cards}}</div>
+      </div>
+    </section>
+
     <section id="descargas" class="border-y border-line bg-surface py-16 sm:py-20" aria-labelledby="downloads-title">
       <div class="shell grid gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
         <div>
           <h2 id="downloads-title" class="section-title">Haz espacio<br>a tu próxima lectura.</h2>
           <p class="section-copy">Descarga CrabPDF para tu escritorio. La versión pública actual es <strong class="font-medium text-ink">{{version}}</strong>, una entrega de desarrollo hacia la 1.0.</p>
-          <p class="mt-5 text-sm leading-7 text-muted">Consulta los <a class="text-link" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/releases/v{{version}}.md">cambios de {{version}}</a>: actualización desde Ayuda y selección de texto entre páginas con copia al portapapeles.</p>
+          <p class="mt-5 text-sm leading-7 text-muted">Consulta los <a class="text-link" href="https://github.com/MHAlberto/crabpdf/blob/main/docs/releases/v{{version}}.md">cambios de {{version}}</a>.</p>
           <div class="mt-7 flex flex-wrap gap-x-5 gap-y-3 text-sm">
             <a class="text-link" href="https://github.com/MHAlberto/crabpdf/releases/tag/v{{version}}">Notas de la entrega</a>
             <a class="text-link" href="https://github.com/MHAlberto/crabpdf/releases/download/v{{version}}/SHA256SUMS-v{{version}}.txt">Verificar SHA-256</a>

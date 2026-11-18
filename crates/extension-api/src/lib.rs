@@ -1,5 +1,7 @@
 //! API 1 for local extensions. Each invocation exchanges bounded JSON files.
 //! The host supplies selected data only after a user invokes a package command.
+pub mod catalog;
+
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,

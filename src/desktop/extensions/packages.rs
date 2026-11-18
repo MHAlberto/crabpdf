@@ -7,8 +7,8 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-const MAX_PACKAGE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
-const MAX_FILES: usize = 4096;
+pub(super) const MAX_PACKAGE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+pub(super) const MAX_FILES: usize = 4096;
 
 #[derive(Clone, Debug)]
 pub struct InstalledPackage {
@@ -36,10 +36,10 @@ pub fn target() -> String {
     };
     format!("{arch}-{platform}")
 }
-fn bad(message: impl std::fmt::Display) -> io::Error {
+pub(super) fn bad(message: impl std::fmt::Display) -> io::Error {
     io::Error::other(message.to_string())
 }
-fn identifier(value: &str) -> bool {
+pub(super) fn identifier(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 64
         && value.bytes().all(|c| {

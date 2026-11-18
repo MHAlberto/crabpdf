@@ -67,6 +67,18 @@
       });
     }
 
+    for (const button of document.querySelectorAll("[data-extension-code]")) {
+      button.addEventListener("click", async () => {
+        const status = button.parentElement.querySelector("[data-extension-status]");
+        try {
+          await navigator.clipboard.writeText(button.dataset.extensionCode);
+          status.textContent = "Código copiado.";
+        } catch {
+          status.textContent = "Selecciona y copia el código manualmente.";
+        }
+      });
+    }
+
     const copyButton = document.querySelector("#copy-install");
     copyButton.addEventListener("click", async () => {
       const command = document.querySelector("#ubuntu-command").textContent;

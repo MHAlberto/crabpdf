@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "extensions": [
+    {
+      "code": "100001",
+      "id": "org.crabpdf.selection-info",
+      "name": "Información de la selección",
+      "description": "Ejemplo Rust que informa la imagen y el texto recibidos.",
+      "version": "0.1.0",
+      "api_version": 1,
+      "host_version": ">=0.5.0, <0.6.0",
+      "example_targets": [
+        "x86_64-pc-windows-msvc",
+        "i686-pc-windows-msvc",
+        "x86_64-unknown-linux-gnu",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Documentación de CrabPDF
 
-La versión pública es **0.4.4**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.4) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
+La versión pública es **0.5.2**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.5.2) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
 
 ## Empezar
 
@@ -33,6 +33,8 @@ Una ruta completada de arquitectura no demuestra paridad de funciones. La impres
 
 ## Entregas y evidencia
 
+- [Notas 0.5.2](releases/v0.5.2.md) sobre el catálogo y la instalación por código.
+- [Publicación 0.5.2](releases/v0.5.2-publication.json) con la procedencia y los hashes de los paquetes.
 - [Notas 0.4.4](releases/v0.4.4.md) sobre actualización desde la app y selección entre páginas.
 - [Publicación 0.4.4](releases/v0.4.4-publication.json) con los paquetes y sus hashes SHA-256.
 - [Validación 0.4.4](releases/v0.4.4-validation.json) de los paquetes CI y del recorrido gráfico local.

@@ -69,7 +69,12 @@ Las plataformas usan triples Rust como `x86_64-pc-windows-msvc`, `i686-pc-window
 
 ## SDK Rust
 
-El crate está en [crates/extension-api](../crates/extension-api/). Un proyecto externo puede depender del paquete `crabpdf-extension-api` mediante Git fijando una revisión de CrabPDF que contenga la API 1. En el propio repositorio se puede usar una dependencia por ruta. El SDK se versiona independientemente de la aplicación.
+El crate está en [crates/extension-api](../crates/extension-api/). El SDK se versiona independientemente de la aplicación. En un proyecto externo, agrégalo a tu `Cargo.toml` con la etiqueta de CrabPDF que incluye el SDK 0.2.0.
+
+```toml
+[dependencies]
+crabpdf-extension-api = { git = "https://github.com/MHAlberto/crabpdf", tag = "v0.5.2" }
+```
 
 ```rust
 use crabpdf_extension_api::{serve, ExtensionOutput, OutputKind};

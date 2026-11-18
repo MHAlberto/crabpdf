@@ -42,7 +42,50 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  reuse-example:
+    # Reuse a verified build from main when only the website changed.
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      run: ${{ steps.artifacts.outputs.run }}
+      pattern: ${{ steps.artifacts.outputs.pattern }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'push'
+        with:
+          fetch-depth: 0
+      - name: Find a matching build on main
+        if: github.event_name == 'push'
+        id: artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          candidates=$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/pages.yml/runs?branch=main&status=success&per_page=10" \
+            --jq '.workflow_runs[] | [.id, .head_sha] | @tsv')
+          while IFS=$'\t' read -r run sha; do
+            [[ "$run" =~ ^[0-9]+$ && "$sha" =~ ^[0-9a-f]{40}$ ]] || continue
+            git merge-base --is-ancestor "$sha" HEAD || continue
+            git diff --quiet "$sha" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml LICENSE \
+              crates/extension-api scripts/Build-ExtensionExample.ps1 docs/site/extensions.json || continue
+            artifacts=$(gh api "/repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts" \
+              --jq '.artifacts[] | select(.expired == false) | .name')
+            if grep -Fxq 'catalog-bundle' <<< "$artifacts"; then
+              pattern=catalog-bundle
+            elif [[ $(grep -c '^catalog-example-' <<< "$artifacts") == 5 ]]; then
+              pattern='catalog-example-*'
+            else
+              continue
+            fi
+            printf 'run=%s\npattern=%s\n' "$run" "$pattern" >> "$GITHUB_OUTPUT"
+            break
+          done <<< "$candidates"
+
   example-packages:
+    needs: reuse-example
+    if: needs.reuse-example.outputs.run == ''
     strategy:
       fail-fast: false
       matrix:
@@ -74,9 +117,14 @@ jobs:
           if-no-files-found: error
 
   build:
-    needs: example-packages
+    needs: [reuse-example, example-packages]
+    if: >-
+      !cancelled() && needs.reuse-example.result == 'success' &&
+      (needs.example-packages.result == 'success' ||
+      (needs.example-packages.result == 'skipped' && needs.reuse-example.outputs.run != ''))
     permissions:
       contents: read
+      actions: read
       pages: read
     runs-on: ubuntu-24.04
     steps:
@@ -87,6 +135,15 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
       - uses: actions/download-artifact@v4
+        if: needs.reuse-example.outputs.run != ''
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.reuse-example.outputs.run }}
+          pattern: ${{ needs.reuse-example.outputs.pattern }}
+          merge-multiple: true
+          path: artifacts/site-extensions
+      - uses: actions/download-artifact@v4
+        if: needs.reuse-example.outputs.run == ''
         with:
           pattern: catalog-example-*
           merge-multiple: true
@@ -97,6 +154,12 @@ jobs:
       - name: Build static website and check references
         working-directory: docs
         run: npm run build && npm run check
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: catalog-bundle
+          path: artifacts/site-extensions/*.zip
+          if-no-files-found: error
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5

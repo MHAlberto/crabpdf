@@ -169,7 +169,7 @@ jobs:
         with:
           path: dist/site
   deploy:
-    if: github.event_name != 'pull_request'
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.build.result == 'success' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:

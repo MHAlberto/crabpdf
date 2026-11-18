@@ -224,6 +224,7 @@ impl ReaderApp {
                         Action::FindPrevious,
                         Action::SelectAll,
                         Action::Copy,
+                        Action::ExtensionSelection,
                         Action::Highlight,
                         Action::Underline,
                         Action::UndoMarkup,
@@ -243,6 +244,11 @@ impl ReaderApp {
                     ] {
                         self.menu_action(ui, action);
                     }
+                });
+                ui.menu_button("Extensiones", |ui| {
+                    self.menu_action(ui, Action::Extensions);
+                    self.menu_action(ui, Action::ExtensionArea);
+                    self.menu_action(ui, Action::ExtensionSelection);
                 });
                 ui.menu_button("Ayuda", |ui| {
                     self.menu_action(ui, Action::CheckUpdate);

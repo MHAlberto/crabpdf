@@ -407,10 +407,11 @@ dependencies = [
 
 [[package]]
 name = "crabpdf"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "crabpdf-application",
  "crabpdf-core",
+ "crabpdf-extension-api",
  "crabpdf-runtime",
  "crc32fast",
  "eframe",
@@ -429,7 +430,7 @@ dependencies = [
 
 [[package]]
 name = "crabpdf-application"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "crabpdf-core",
  "serde",
@@ -437,14 +438,22 @@ dependencies = [
 
 [[package]]
 name = "crabpdf-core"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
+name = "crabpdf-extension-api"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "crabpdf-runtime"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "crabpdf-application",
  "crabpdf-core",

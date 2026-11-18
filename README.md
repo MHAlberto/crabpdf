@@ -34,6 +34,10 @@ sudo apt install ./crabpdf-0.4.4-ubuntu24.04-amd64.deb
 
 En Windows puedes usar el instalador 0.4.4 o descomprimir su ZIP portable. Conserva `pdfium.dll` y `format-tools/` junto al ejecutable portable. El tar de Linux incluye sus requisitos en `INSTALL-LINUX.md`.
 
+## Extensiones en desarrollo para 0.5.0
+
+La 0.5.0 prepara paquetes opcionales en Rust, con instalación desde carpeta, activación por versión y comandos sobre una selección del PDF. El primer caso previsto es OCR de ecuaciones a LaTeX. El SDK y el paquete de ejemplo permiten probar la integración. [Crear y cargar extensiones](docs/EXTENSIONS.md).
+
 ## Qué puedes hacer
 
 - Leer PDF, EPUB, Kindle sin DRM, FictionBook, XPS, DjVu, CHM, cómics, imágenes y texto. [Extensiones y límites](docs/FORMATS_AND_ANNOTATIONS.md).

@@ -93,6 +93,7 @@ impl ReaderApp {
                                 ("Buscar", Action::Find),
                                 ("Panel", Action::ToggleSidebar),
                                 ("Comandos", Action::Palette),
+                                ("Extensiones", Action::Extensions),
                                 ("Salir · F11", Action::Fullscreen),
                             ] {
                                 if ui.button(label).clicked() {

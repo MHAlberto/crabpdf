@@ -8,6 +8,7 @@ La versión pública es **0.4.4**, de desarrollo. [Descargas](https://github.com
 | --- | --- |
 | Abrir documentos, marcar texto o consultar atajos | [Guía de uso](USAGE.md) |
 | Saber qué extensiones funcionan | [Formatos y anotaciones](FORMATS_AND_ANNOTATIONS.md) |
+| Crear o cargar extensiones Rust | [Extensiones 0.5.0](EXTENSIONS.md) |
 | Compilar, probar o empaquetar | [Desarrollo](DEVELOPMENT.md) |
 | Preparar una contribución | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Editar o desplegar la página | [Web](WEBSITE.md) |

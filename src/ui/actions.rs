@@ -66,7 +66,12 @@ impl ReaderApp {
                 .is_some_and(|d| d.page + 1 < d.info.page_count),
             Action::Back => self.state().can_back(),
             Action::Forward => self.state().can_forward(),
-            Action::Copy => {
+            Action::ExtensionArea => self
+                .state()
+                .details
+                .as_ref()
+                .is_some_and(|details| details.can_copy),
+            Action::ExtensionSelection | Action::Copy => {
                 self.tabs.get(self.active).is_some_and(|t| {
                     t.reader.selection.range().is_some() || t.view.selection_drag.is_some()
                 }) && self
@@ -226,6 +231,9 @@ impl ReaderApp {
             }
             Action::Exit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
             Action::CheckUpdate => self.updates.open(ctx),
+            Action::Extensions => self.extensions_open(ctx),
+            Action::ExtensionArea => self.start_extension_area(ctx),
+            Action::ExtensionSelection => self.extension_text_selection(ctx),
             Action::DuplicateWindow => {
                 if let Some(saved) = self.tabs[self.active].stored()
                     && let Err(error) =

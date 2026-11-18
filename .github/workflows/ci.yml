@@ -95,6 +95,15 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --locked --all-targets --target '${{ matrix.target }}' -- -D warnings
       - run: cargo test --workspace --locked --target '${{ matrix.target }}'
+      - name: Verify native extension package protocol
+        shell: pwsh
+        run: |
+          cargo build --locked --target '${{ matrix.target }}' -p crabpdf-extension-api --example protocol_fixture
+          if ($LASTEXITCODE) { throw 'Extension fixture build failed.' }
+          $exe = if ($IsWindows) { 'protocol_fixture.exe' } else { 'protocol_fixture' }
+          $env:CRABPDF_TEST_EXTENSION = (Resolve-Path "target/${{ matrix.target }}/debug/examples/$exe").Path
+          cargo test --locked --target '${{ matrix.target }}' --test extensions -- --ignored --test-threads=1
+          if ($LASTEXITCODE) { throw 'Extension protocol test failed.' }
       - name: Core and application without native libraries
         run: cargo test -p crabpdf-core -p crabpdf-application --locked --target '${{ matrix.target }}'
       - name: Install verified PDFium binary

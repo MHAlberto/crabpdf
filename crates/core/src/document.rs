@@ -96,6 +96,14 @@ pub struct RenderKey {
     pub region: Option<RasterRegion>,
 }
 
+/// Image and text from a user-selected region. The original file is never passed.
+pub struct SelectionCapture {
+    pub png: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+    pub text: String,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RasterRegion {
     pub x: u32,

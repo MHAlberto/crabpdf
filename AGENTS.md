@@ -4,9 +4,9 @@ Estas instrucciones se aplican a todo el proyecto. Las instrucciones explícitas
 
 ## Objetivo y alcance acordado
 
-- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo y última publicación es **0.4.4**, con instaladores/portables Windows y DEB/TAR Ubuntu/Linux. macOS queda fuera de esta entrega. No es 1.0.
+- CrabPDF es un lector de escritorio local, rápido y ligero, desarrollado principalmente en Rust. La versión en desarrollo es **0.5.0** y la última publicación de paquetes es **0.4.4**, con instaladores/portables Windows y DEB/TAR Ubuntu/Linux. macOS queda fuera de esta entrega. No es 1.0.
 - **V1:** todas las funciones y detalles visibles de la revisión de SumatraPDF fijada en `docs/parity/reference.json`, con equivalentes comprobados por plataforma. Un botón, una extensión reconocida o una compilación correcta no demuestran paridad.
-- **V2:** extensiones opcionales escritas en Rust y WebAssembly. No implementar todavía un runtime, tienda o ABI pública de plugins; tampoco trasladar requisitos de V1 a V2 para cerrar artificialmente la versión.
+- **Extensiones 0.5.0:** el usuario autorizó adelantar la base de paquetes independientes y APIs en Rust. El SDK `crabpdf-extension-api` y el host usan procesos nativos con protocolo versionado. OCR LaTeX será un paquete opcional. WebAssembly sigue siendo una posibilidad futura. Mantener los objetivos de paridad V1 con su evidencia propia. Ver `docs/EXTENSIONS.md`.
 - Sistemas objetivo: Windows 10 x64 y x86, Windows 11 x64 y ejecución de la app x86 bajo WOW64, Linux de distribuciones populares y macOS Intel/Apple Silicon. Windows 11 no tiene una edición de SO x86. Ver `docs/V1_PLAN.md` para la matriz y sus límites de evidencia.
 - La solicitud original autoriza bibliotecas PDF existentes: egui/eframe, pdfium-render/PDFium, rfd, serde/TOML y Cargo. **No exige reescribir PDFium ni traducir todo el C/C++ de SumatraPDF.** Informar con honestidad de los componentes nativos y su coste.
 - Conservar identidad CrabPDF, el logo `crabpdf-logo.svg` transparente, pestañas superiores, Inicio y lectura vertical continua ajustada al ancho con precarga.
@@ -28,6 +28,7 @@ El backlog es trabajo pendiente, no código existente. No usar el número de ide
 
 | Ruta | Responsabilidad |
 | --- | --- |
+| `crates/extension-api/`, `src/desktop/extensions/`, `src/ui/extensions.rs` | SDK, paquetes opcionales y administración de extensiones. |
 | `src/main.rs`, `src/cli.rs` | Arranque, opciones y errores de CLI. |
 | `crates/core/src/` | Datos independientes del SDK, geometría y anclas de lectura. |
 | `crates/application/src/` | Navegación, pestañas, selección, búsqueda, preferencias y protocolo. |

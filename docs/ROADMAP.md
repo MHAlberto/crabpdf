@@ -4,6 +4,10 @@ Alcance actualizado por el usuario el **13 de octubre de 2026**.
 
 La versión pública actual es **0.4.4**, de desarrollo. El [plan ejecutable](V1_PLAN.md), el [backlog R00–R30](V1_BACKLOG.csv) y la [validación](VALIDATION.md) distinguen lo realizado de lo pendiente. Los informes anteriores están en el [historial](history/README.md).
 
+## Extensiones adelantadas en 0.5.0
+
+El 18 de noviembre de 2026 el usuario priorizó una base de paquetes independientes para OCR de ecuaciones y otras herramientas. La 0.5.0 implementa un SDK Rust y comandos nativos instalables desde carpetas, con intercambio de selección e imagen y respuesta de texto o LaTeX. [Contrato y alcance](EXTENSIONS.md). El modelo OCR se desarrollará como paquete.
+
 ## Versión 1: paridad completa con SumatraPDF
 
 La v1 termina cuando CrabPDF reproduce todas las funciones y los comportamientos visibles de la revisión de SumatraPDF elegida como referencia. Incluye los detalles pequeños: menús contextuales, atajos, gestos, estados habilitados/deshabilitados, foco, tooltips, diálogos, navegación, persistencia y recuperación de errores. La apariencia conserva la identidad propia y el diseño discreto solicitado; la comparación de comportamiento se hace control por control.
@@ -128,7 +132,7 @@ Diseño previsto:
 - Acceso explícito a archivos, red y modificaciones del documento; un fallo de la extensión no debe bloquear la lectura.
 - Compatibilidad de plugins entre Windows, Linux y macOS y pruebas de cada punto de extensión.
 
-Se pueden preparar límites internos claros durante v1, pero no desarrollar todavía el runtime, una tienda o un sistema de plugins. La API pública se decide cuando existan casos reales de extensión y el núcleo haya alcanzado la paridad requerida.
+La solicitud del 18 de noviembre de 2026 adelanta la base nativa de paquetes a la 0.5.0. El caso OCR LaTeX guía la API 1. Las capacidades de WebAssembly, la ampliación de UI y el acceso mediado a más servicios permanecen como desarrollo futuro.
 
 ## Licencias y fuentes
 

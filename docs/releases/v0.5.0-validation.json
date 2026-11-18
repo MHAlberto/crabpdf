@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "version": "0.5.0",
+  "stage": "Extension foundation under development",
+  "date_utc": "2026-11-18T14:45:40.5779266Z",
+  "base_commit": "9fc5c1095977e988141b5299ab75e3973f9a5ca9",
+  "platform": "Microsoft Windows NT 10.0.19045.0",
+  "checks": [
+    {
+      "result": "passed",
+      "command": "cargo fmt --all -- --check"
+    },
+    {
+      "result": "passed",
+      "command": "cargo clippy --locked --offline --workspace --all-targets -- -D warnings"
+    },
+    {
+      "result": "passed; native tests remain opt-in",
+      "command": "cargo test --locked --offline --workspace"
+    },
+    {
+      "result": "4 passed, including the real subprocess fixture",
+      "command": "cargo test --locked --offline --test extensions -- --include-ignored --test-threads=1"
+    },
+    {
+      "result": "2 passed; native region capture with rotated CropBox, no text layer and stale revisions",
+      "command": "cargo test --locked --offline --test native_pdf extension_ -- --ignored --test-threads=1"
+    },
+    {
+      "result": "passed; rectangle selection, real package invocation and displayed response",
+      "command": "cargo run --locked --offline --example extension_smoke"
+    },
+    {
+      "result": "278 references checked",
+      "command": "node docs/tools/check-links.mjs"
+    }
+  ],
+  "sdk_example_sha256": "edc282bfff60ec78f9abd2c3120bc922ffbc039370127556f7cf6e05bd941b9d",
+  "ui_screenshot_sha256": "6fd84fcbdb8b48d413d305eff3b20b445b705b286b7777c4ee1443afa8d10571",
+  "protocol_fixture": "crabpdf-extension-api examples/protocol_fixture.rs",
+  "limits": [
+    "Validated locally on Windows x64.",
+    "The example reports input and does not implement equation recognition.",
+    "Native packages run with the account privileges of the reader.",
+    "No package release or website update is recorded by this validation."
+  ]
+}

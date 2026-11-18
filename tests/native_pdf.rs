@@ -458,3 +458,114 @@ fn typed_titles_prefer_import_metadata_and_fall_back_without_display_labels() {
 
 #[path = "support/text_markup.rs"]
 mod text_markup;
+
+#[test]
+#[ignore = "Requires PDFium; checks extension selection images on rotated CropBox pages"]
+fn extension_crop_carries_real_ink_and_selected_text() {
+    let pdfium = bind_pdfium().unwrap();
+    let mut engine = PdfiumEngine::new(&pdfium);
+    for name in ["reading-sample.pdf", "geometry-sample.pdf"] {
+        engine.open(&fixture(name)).unwrap();
+        let content = engine.page_content(0).unwrap();
+        let glyph = content
+            .glyphs
+            .iter()
+            .find(|glyph| glyph.text == "R")
+            .unwrap();
+        let b = glyph.bounds.unwrap();
+        let crop = crabpdf::document::Bounds {
+            left: (b.left - 0.005).max(0.0),
+            top: (b.top - 0.005).max(0.0),
+            right: (b.right + 0.005).min(1.0),
+            bottom: (b.bottom + 0.005).min(1.0),
+        };
+        let capture = engine.capture_selection(0, crop).unwrap();
+        assert!(capture.text.contains('R'), "{}", capture.text);
+        assert!(
+            capture.width > 0
+                && capture.width <= 2048
+                && capture.height > 0
+                && capture.height <= 2048
+        );
+        let image = image::load_from_memory(&capture.png).unwrap().to_rgba8();
+        assert_eq!(image.dimensions(), (capture.width, capture.height));
+        assert!(
+            image
+                .pixels()
+                .any(|p| p[0] < 180 && p[1] < 180 && p[2] < 180),
+            "Crop must contain rendered text"
+        );
+    }
+    let invalid = crabpdf::document::Bounds {
+        left: f32::NAN,
+        top: 0.1,
+        right: 0.8,
+        bottom: 0.8,
+    };
+    assert!(engine.capture_selection(0, invalid).is_err());
+}
+
+#[test]
+#[ignore = "Requires PDFium; exercises the extension capture worker and stale document revisions"]
+fn extension_capture_without_text_and_stale_worker_requests_are_handled() {
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(format!("artifacts/extension-worker-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let stream = "q 0 g 100 100 150 150 re f Q";
+    let objects = [
+        "<< /Type /Catalog /Pages 2 0 R >>".to_owned(),
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".to_owned(),
+        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Contents 4 0 R >>".to_owned(),
+        format!(
+            "<< /Length {} >>\nstream\n{stream}\nendstream",
+            stream.len()
+        ),
+    ];
+    let mut pdf = b"%PDF-1.4\n".to_vec();
+    let mut offsets = Vec::new();
+    for (index, object) in objects.iter().enumerate() {
+        offsets.push(pdf.len());
+        pdf.extend_from_slice(format!("{} 0 obj\n{object}\nendobj\n", index + 1).as_bytes());
+    }
+    let xref = pdf.len();
+    pdf.extend_from_slice(b"xref\n0 5\n0000000000 65535 f \n");
+    for offset in offsets {
+        pdf.extend_from_slice(format!("{offset:010} 00000 n \n").as_bytes());
+    }
+    pdf.extend_from_slice(
+        format!("trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n").as_bytes(),
+    );
+    let path = directory.join("no-text.pdf");
+    std::fs::write(&path, pdf).unwrap();
+    let worker = PdfWorker::spawn(|| {}).unwrap();
+    worker.open(800, path).unwrap();
+    let bounds = crabpdf::document::Bounds {
+        left: 0.0,
+        top: 0.0,
+        right: 1.0,
+        bottom: 1.0,
+    };
+    worker.capture(800, 17, 0, 0, bounds).unwrap();
+    loop {
+        if let WorkerEvent::Captured(id, token, result) =
+            worker.events.recv_timeout(Duration::from_secs(10)).unwrap()
+        {
+            assert_eq!((id, token), (800, 17));
+            let capture = result.unwrap();
+            assert!(capture.text.is_empty());
+            assert_eq!(capture.height, 2048);
+            let image = image::load_from_memory(&capture.png).unwrap().to_rgba8();
+            assert!(
+                image
+                    .pixels()
+                    .any(|pixel| pixel[0] < 80 && pixel[1] < 80 && pixel[2] < 80)
+            );
+            break;
+        }
+    }
+    worker.capture(800, 18, 99, 0, bounds).unwrap();
+    match worker.events.recv_timeout(Duration::from_secs(10)).unwrap() {
+        WorkerEvent::Captured(800, 18, Err(_)) => {}
+        _ => panic!("Expected a stale revision error"),
+    }
+}

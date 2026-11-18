@@ -17,6 +17,9 @@ pub enum Action {
     CopyPath,
     Exit,
     CheckUpdate,
+    Extensions,
+    ExtensionSelection,
+    ExtensionArea,
     Properties,
     Reveal,
     Previous,
@@ -99,6 +102,9 @@ impl Action {
         Self::CopyPath,
         Self::Exit,
         Self::CheckUpdate,
+        Self::Extensions,
+        Self::ExtensionSelection,
+        Self::ExtensionArea,
         Self::Properties,
         Self::Reveal,
         Self::Previous,
@@ -171,6 +177,7 @@ impl Action {
                 | Self::Reopen
                 | Self::Exit
                 | Self::CheckUpdate
+                | Self::Extensions
                 | Self::NextTab
                 | Self::PreviousTab
                 | Self::MoveTabLeft

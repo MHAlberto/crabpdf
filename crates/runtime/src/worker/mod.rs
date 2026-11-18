@@ -147,6 +147,16 @@ impl PdfWorker {
     pub fn content(&self, id: DocumentId, page: usize) -> Result<(), ReaderError> {
         self.enqueue(Command::Content(id, page))
     }
+    pub fn capture(
+        &self,
+        id: DocumentId,
+        token: u64,
+        revision: u64,
+        page: usize,
+        bounds: crate::document::Bounds,
+    ) -> Result<(), ReaderError> {
+        self.enqueue(Command::Capture(id, token, revision, page, bounds))
+    }
     pub fn cover(&self, path: PathBuf, cache: Option<PathBuf>) -> Result<(), ReaderError> {
         self.imports
             .try_send(ImportRequest::Cover(path, cache))

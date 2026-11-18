@@ -544,6 +544,13 @@ impl ReaderApp {
                                 pan -= ui.input(|i| i.pointer.delta());
                             }
                             response.surrender_focus();
+                            let extension_interaction = self.extension_page_interaction(
+                                ui,
+                                &response,
+                                rect,
+                                placement.page,
+                                spec.rotation,
+                            );
                             if let Some((_, position)) = pointer
                                 && visible > 0.0
                             {
@@ -557,7 +564,8 @@ impl ReaderApp {
                                     distance = squared;
                                 }
                             }
-                            if response.drag_started_by(egui::PointerButton::Primary)
+                            if !extension_interaction
+                                && response.drag_started_by(egui::PointerButton::Primary)
                                 && let Some(start) = ui.input(|i| i.pointer.press_origin())
                             {
                                 let tab = &mut self.tabs[self.active];
@@ -568,7 +576,9 @@ impl ReaderApp {
                                         normalized_point(rect, start, spec.rotation),
                                     )));
                             }
-                            if let Some(content) = self.need_content(id, placement.page) {
+                            if !extension_interaction
+                                && let Some(content) = self.need_content(id, placement.page)
+                            {
                                 self.page_interaction(
                                     ui,
                                     &response,
@@ -588,6 +598,8 @@ impl ReaderApp {
                                 ui.separator();
                                 for action in [
                                     Action::Copy,
+                                    Action::ExtensionSelection,
+                                    Action::Extensions,
                                     Action::SelectAll,
                                     Action::Find,
                                     Action::RotateLeft,

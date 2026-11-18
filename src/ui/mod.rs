@@ -1,6 +1,7 @@
 mod actions;
 mod chrome;
 mod events;
+mod extensions;
 mod home;
 mod icons;
 mod input;
@@ -114,6 +115,7 @@ pub struct ReaderApp {
     properties_open: bool,
     settings_open: bool,
     updates: updates::UpdateDialog,
+    extensions: extensions::Extensions,
     notice: Option<String>,
     notice_started: Option<(String, Instant)>,
     last_title: Option<WindowTitleIdentity>,
@@ -163,6 +165,9 @@ impl ReaderApp {
                     .as_ref()
                     .is_some_and(|error| error.kind == ErrorKind::Protected)
         })
+    }
+    pub fn extension_result(&self) -> Option<&str> {
+        self.extensions.result_text()
     }
     pub fn selection_text(&mut self) -> Option<String> {
         self.selected_text()
@@ -302,6 +307,7 @@ impl ReaderApp {
             properties_open: false,
             settings_open: false,
             updates: updates::UpdateDialog::default(),
+            extensions: extensions::Extensions::default(),
             notice: None,
             notice_started: None,
             entrance: motion::Entrance::default(),
@@ -518,6 +524,7 @@ impl eframe::App for ReaderApp {
         self.poll_dialog(ctx);
         self.poll_worker(ctx);
         self.updates.poll(ctx);
+        self.poll_extensions(ctx);
         if self.presentation && self.state().document.is_none() {
             self.leave_presentation(ctx);
         }
@@ -620,6 +627,19 @@ impl eframe::App for ReaderApp {
         }
         self.dialogs(ui.ctx());
         self.updates.show(ui.ctx());
+        let can_select = self
+            .state()
+            .details
+            .as_ref()
+            .is_some_and(|details| details.can_copy);
+        if self.extensions.show(
+            ui.ctx(),
+            crate::desktop::extensions::Repository::new(&self.app_paths.data),
+            can_select,
+        ) && let Some(tab) = self.tabs.get_mut(self.active)
+        {
+            tab.view.selection_drag = None;
+        }
         self.resize_edges(ui.ctx());
         if let Some(worker) = &self.worker {
             let _ = worker.retain_renders(&self.frame_keys);

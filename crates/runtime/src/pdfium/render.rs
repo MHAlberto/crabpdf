@@ -82,6 +82,86 @@ impl PdfEngine for PdfiumEngine<'_> {
     }
 }
 
+impl PdfiumEngine<'_> {
+    /// Render only the chosen crop. The same serialized PDFium owner handles it.
+    pub fn capture_selection(
+        &mut self,
+        index: usize,
+        bounds: Bounds,
+    ) -> Result<crate::document::SelectionCapture, ReaderError> {
+        let invalid = || ReaderError::new(ErrorKind::Render, "Área seleccionada fuera de rango.");
+        if ![bounds.left, bounds.top, bounds.right, bounds.bottom]
+            .iter()
+            .all(|v| v.is_finite() && (0.0..=1.0).contains(v))
+            || bounds.right <= bounds.left
+            || bounds.bottom <= bounds.top
+        {
+            return Err(invalid());
+        }
+        if !self.details()?.can_copy {
+            return Err(ReaderError::new(
+                ErrorKind::Protected,
+                "El documento restringe la copia de contenido.",
+            ));
+        }
+        let content = self.page_content(index)?;
+        let mut text = String::new();
+        for glyph in content.glyphs {
+            if glyph.bounds.is_some_and(|b| {
+                bounds.contains((b.left + b.right) * 0.5, (b.top + b.bottom) * 0.5)
+            }) {
+                if text.len().saturating_add(glyph.text.len()) > 256 * 1024 {
+                    return Err(invalid());
+                }
+                text.push_str(&glyph.text);
+            }
+        }
+        let page = self
+            .document()?
+            .pages()
+            .get(i32::try_from(index).map_err(|_| invalid())?)
+            .map_err(map_render_error)?;
+        let (w, h) = (page.width().value, page.height().value);
+        let crop_width = (bounds.right - bounds.left) * w;
+        let crop_height = (bounds.bottom - bounds.top) * h;
+        if !crop_width.is_finite()
+            || !crop_height.is_finite()
+            || crop_width <= 0.0
+            || crop_height <= 0.0
+        {
+            return Err(invalid());
+        }
+        let scale = 3.0_f32.min(2048.0 / crop_width.max(crop_height));
+        let width = (crop_width * scale).ceil().clamp(1.0, 2048.0) as u32;
+        let height = (crop_height * scale).ceil().clamp(1.0, 2048.0) as u32;
+        let mut bitmap = PdfBitmap::empty(width as i32, height as i32, PdfBitmapFormat::BGRA)
+            .map_err(map_render_error)?;
+        let config = PdfRenderConfig::new()
+            .scale_page_by_factor(scale)
+            .set_origin(
+                -(bounds.left * w * scale).floor() as i32,
+                -(bounds.top * h * scale).floor() as i32,
+            );
+        page.render_into_bitmap_with_config(&mut bitmap, &config)
+            .map_err(map_render_error)?;
+        let rgba = bitmap.as_rgba_bytes();
+        let mut png = Vec::new();
+        use image::ImageEncoder;
+        image::codecs::png::PngEncoder::new(&mut png)
+            .write_image(&rgba, width, height, image::ExtendedColorType::Rgba8)
+            .map_err(|error| {
+                ReaderError::new(ErrorKind::Render, "No se pudo preparar el recorte.")
+                    .with_details(error.to_string())
+            })?;
+        Ok(crate::document::SelectionCapture {
+            png,
+            width,
+            height,
+            text,
+        })
+    }
+}
+
 struct Sizing {
     pixel_width: u32,
     pixel_height: u32,

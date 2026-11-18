@@ -160,6 +160,23 @@ pub(super) fn run(
                     break;
                 }
             }
+            Command::Capture(id, token, revision, page, bounds) => {
+                let result = documents
+                    .get_mut(&id)
+                    .ok_or_else(|| ReaderError::new(ErrorKind::Render, "El documento se cerró."))
+                    .and_then(|engine| {
+                        if engine.annotation_state().revision != revision {
+                            return Err(ReaderError::new(
+                                ErrorKind::Render,
+                                "El documento cambió durante la selección.",
+                            ));
+                        }
+                        engine.capture_selection(page, bounds)
+                    });
+                if !send(WorkerEvent::Captured(id, token, result)) {
+                    break;
+                }
+            }
             Command::Search(request) => {
                 if request.query.is_empty() {
                     background.cancel_search();

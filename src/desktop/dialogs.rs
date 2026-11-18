@@ -76,6 +76,15 @@ impl PendingDialog {
             future: Box::pin(async move { future.await.map(|file| vec![file]) }),
         }
     }
+    pub fn extension_folder() -> Self {
+        let future = rfd::AsyncFileDialog::new()
+            .set_title("Carpeta del paquete de extensión")
+            .pick_folder();
+        Self {
+            document: None,
+            future: Box::pin(async move { future.await.map(|folder| vec![folder]) }),
+        }
+    }
     /// Some with an empty vector also signals dialog cancellation/completion.
     pub fn poll(&mut self, ctx: &egui::Context) -> Option<(Option<DocumentId>, Vec<PathBuf>)> {
         let waker = Waker::from(Arc::new(RepaintWake(ctx.clone())));

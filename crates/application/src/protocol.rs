@@ -12,6 +12,11 @@ pub enum WorkerEvent {
     Details(DocumentId, Result<DocumentDetails, ReaderError>),
     Rendered(RenderKey, Result<Arc<PageRaster>, ReaderError>),
     Content(DocumentId, usize, Result<Arc<PageContent>, ReaderError>),
+    Captured(
+        DocumentId,
+        u64,
+        Result<crate::document::SelectionCapture, ReaderError>,
+    ),
     Searched {
         id: DocumentId,
         generation: u64,

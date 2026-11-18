@@ -167,7 +167,11 @@ impl ReaderApp {
             if self.tab_drag.take().is_some() {
                 return;
             }
-            let dismissing = self.palette_open
+            if self.extensions.cancel_selection() {
+                return;
+            }
+            let dismissing = self.extensions.open
+                || self.palette_open
                 || self.go_to_open
                 || self.zoom_open
                 || self.properties_open
@@ -177,6 +181,7 @@ impl ReaderApp {
                         .tabs
                         .get(self.active)
                         .is_some_and(|tab| tab.reader.password_needed || tab.view.search.open);
+            self.extensions.open = false;
             self.palette_open = false;
             self.go_to_open = false;
             self.zoom_open = false;
@@ -211,6 +216,7 @@ impl ReaderApp {
             || self.zoom_open
             || self.properties_open
             || self.settings_open
+            || self.extensions.open
             || self
                 .tabs
                 .get(self.active)

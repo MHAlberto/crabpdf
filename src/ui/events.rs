@@ -241,6 +241,9 @@ impl ReaderApp {
                         }
                     }
                 }
+                WorkerEvent::Captured(id, token, result) => {
+                    self.accept_extension_capture(id, token, result)
+                }
                 WorkerEvent::Searched {
                     id,
                     generation,

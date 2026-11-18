@@ -21,6 +21,7 @@ pub(super) enum Command {
     Render(RenderKey),
     ReleaseRender(RenderKey),
     Content(DocumentId, usize),
+    Capture(DocumentId, u64, u64, usize, crate::document::Bounds),
     Search(SearchRequest),
     SearchPage(SearchRequest, usize),
     Save(DocumentId, PathBuf),
@@ -34,6 +35,7 @@ impl Command {
             Self::Open(id, ..)
             | Self::Close(id)
             | Self::Content(id, ..)
+            | Self::Capture(id, ..)
             | Self::Save(id, ..)
             | Self::Mark(id, ..)
             | Self::UndoMark(id) => *id,
@@ -64,11 +66,12 @@ impl Mailbox {
             if pending.stop {
                 return None;
             }
-            if let Some(index) = pending
-                .control
-                .iter()
-                .position(|command| !matches!(command, Command::Content(..) | Command::Cover(..)))
-            {
+            if let Some(index) = pending.control.iter().position(|command| {
+                !matches!(
+                    command,
+                    Command::Content(..) | Command::Capture(..) | Command::Cover(..)
+                )
+            }) {
                 return pending.control.remove(index);
             }
             if let Some(key) = pending.renders.pop_front() {
@@ -77,7 +80,7 @@ impl Mailbox {
             if let Some(index) = pending
                 .control
                 .iter()
-                .position(|command| matches!(command, Command::Content(..)))
+                .position(|command| matches!(command, Command::Content(..) | Command::Capture(..)))
             {
                 return pending.control.remove(index);
             }

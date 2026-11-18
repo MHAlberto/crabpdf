@@ -14,6 +14,10 @@ Pulsa **Dos páginas** en la barra para mostrar las páginas lado a lado. Pulsa 
 
 ![Favoritos del documento abierto](screenshots/favorites.png)
 
+## Extensiones en desarrollo
+
+La 0.5.0 incorpora **Extensiones → Extensiones…** para instalar y activar paquetes opcionales. Puedes seleccionar un área de la página y ejecutar un comando del paquete sobre su imagen y texto. [Instalación, SDK y ejemplo](EXTENSIONS.md).
+
 ## Actualizar CrabPDF
 
 Abre **Ayuda → Buscar actualizaciones…**. CrabPDF consulta las publicaciones del proyecto cuando eliges esta acción. Si aparece **Descargar e instalar**, la app verifica el tamaño y SHA-256 del paquete antes de abrir el instalador.

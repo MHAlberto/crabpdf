@@ -24,6 +24,15 @@ pub struct Manifest {
     pub executable: String,
     pub description: String,
     pub commands: Vec<ExtensionCommand>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timer: Option<TimerSpec>,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TimerSpec {
+    pub focus_minutes: u32,
+    pub break_minutes: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -40,6 +49,7 @@ pub struct ExtensionCommand {
 pub enum InputKind {
     Text,
     Region,
+    None,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

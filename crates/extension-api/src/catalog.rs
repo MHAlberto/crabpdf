@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub const CATALOG_VERSION: u32 = 1;
 pub const MAX_CATALOG_BYTES: u64 = 256 * 1024;
 pub const MAX_DOWNLOAD_BYTES: u64 = 512 * 1024 * 1024;
-pub const CATALOG_URL: &str = "https://mhalberto.github.io/crabpdf/#extensiones";
+pub const CATALOG_URL: &str = "https://mhalberto.github.io/crabpdf/extensions/";
 pub const CATALOG_ENDPOINT: &str = "https://mhalberto.github.io/crabpdf/extensions/catalog-v1.json";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

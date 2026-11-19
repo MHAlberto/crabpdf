@@ -37,20 +37,19 @@ impl RunningExtension {
         input: Invocation,
         repaint: impl FnOnce() + Send + 'static,
     ) -> io::Result<Self> {
+        let timeout = Duration::from_secs(if input.command.input == InputKind::None {
+            600
+        } else {
+            120
+        });
         let cancelled = Arc::new(AtomicBool::new(false));
         let flag = Arc::clone(&cancelled);
         let (sender, events) = mpsc::channel();
         let thread = thread::Builder::new()
             .name("crabpdf-extension".into())
             .spawn(move || {
-                let result = invoke(
-                    &repository,
-                    &package,
-                    input,
-                    &flag,
-                    Duration::from_secs(120),
-                )
-                .map_err(|e| e.to_string());
+                let result =
+                    invoke(&repository, &package, input, &flag, timeout).map_err(|e| e.to_string());
                 let _ = sender.send(result);
                 repaint();
             })?;
@@ -170,7 +169,7 @@ fn invoke(
         command: command.id.clone(),
         page: input.page,
         region: input.region,
-        text: Some(input.text),
+        text: (command.input != InputKind::None).then_some(input.text),
         image,
     };
     let request_path = work.0.join("request.json");
@@ -180,6 +179,10 @@ fn invoke(
     let mut process = Command::new(executable);
     process
         .current_dir(&package.directory)
+        .env(
+            "CRABPDF_EXTENSION_DATA",
+            repository.model_data(&package.manifest.id)?,
+        )
         .arg("--crabpdf-request")
         .arg(&request_path)
         .arg("--crabpdf-response")
@@ -199,9 +202,10 @@ fn invoke(
             return Err(io::Error::other("Operación cancelada."));
         }
         if started.elapsed() >= timeout {
-            return Err(io::Error::other(
-                "La extensión superó el límite de 120 segundos.",
-            ));
+            return Err(io::Error::other(format!(
+                "La extensión superó el límite de {} segundos.",
+                timeout.as_secs()
+            )));
         }
         if response_path.exists() {
             let meta = fs::symlink_metadata(&response_path)?;

@@ -1,6 +1,7 @@
 import { mkdir, copyFile, readFile, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { buildExtensions } from "./extensions.mjs";
+import { buildExtensions, escape } from "./extensions.mjs";
+import { sitePages } from "./pages.mjs";
 import { fileURLToPath } from "node:url";
 
 const docs = fileURLToPath(new URL("../", import.meta.url));
@@ -25,16 +26,22 @@ const tokens = {
   linux_tar_mb: megabytes("-linux-x64.tar.gz"),
 };
 const source = await readFile(path.join(docs, "index.html"), "utf8");
-const html = source.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, name) => {
-  if (!Object.hasOwn(tokens, name)) throw new Error("Unknown website token: " + name);
-  return tokens[name];
-});
-await mkdir(output, { recursive: true });
-await writeFile(path.join(output, "index.html"), html);
+const pages = await sitePages(source, docs, version, escape);
+for (const page of pages) {
+  const html = page.html.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, name) => {
+    if (!Object.hasOwn(tokens, name)) throw new Error("Unknown website token: " + name);
+    return tokens[name];
+  });
+  const destination = path.join(output, page.path);
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, html);
+}
 
 // One canonical source for the logo and screenshots; only public files are copied.
 const assets = [
   [path.join(docs, "site/app.js"), "site/app.js"],
+  [path.join(docs, "USAGE.md"), "documentacion/uso.md"],
+  [path.join(docs, "EXTENSIONS.md"), "documentacion/extensiones.md"],
   [path.join(repo, "assets/crabpdf-logo.svg"), "site/assets/crabpdf-logo.svg"],
   [path.join(docs, "screenshots/dark.png"), "site/assets/reading.png"],
   [path.join(docs, "screenshots/highlight.png"), "site/assets/marks.png"],
@@ -46,7 +53,7 @@ for (const [source, relative] of assets) {
   await copyFile(source, destination);
 }
 // Tailwind writes its output here before this script runs.
-const files = ["index.html", "site/assets/site.css", ...extensions.files, ...assets.map(([, relative]) => relative)];
+const files = [...pages.map((page) => page.path), "site/assets/site.css", ...extensions.files, ...assets.map(([, relative]) => relative)];
 async function walk(folder, prefix = "") {
   const result = [];
   for (const entry of await readdir(folder, { withFileTypes: true })) {

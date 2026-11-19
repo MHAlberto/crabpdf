@@ -10,6 +10,11 @@ on:
       - 'docs/releases/*-publication.json'
       - 'docs/site/**'
       - 'scripts/Build-ExtensionExample.ps1'
+      - 'scripts/Build-ToolExtensions.ps1'
+      - 'extensions/**'
+      - 'docs/EXTENSIONS.md'
+      - 'docs/USAGE.md'
+      - 'docs/releases/*.md'
       - 'crates/extension-api/**'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
@@ -25,6 +30,11 @@ on:
       - 'docs/releases/*-publication.json'
       - 'docs/site/**'
       - 'scripts/Build-ExtensionExample.ps1'
+      - 'scripts/Build-ToolExtensions.ps1'
+      - 'extensions/**'
+      - 'docs/EXTENSIONS.md'
+      - 'docs/USAGE.md'
+      - 'docs/releases/*.md'
       - 'crates/extension-api/**'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
@@ -69,7 +79,7 @@ jobs:
             [[ "$run" =~ ^[0-9]+$ && "$sha" =~ ^[0-9a-f]{40}$ ]] || continue
             git merge-base --is-ancestor "$sha" HEAD || continue
             git diff --quiet "$sha" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml LICENSE \
-              crates/extension-api scripts/Build-ExtensionExample.ps1 docs/site/extensions.json || continue
+              crates/extension-api scripts/Build-ExtensionExample.ps1 scripts/Build-ToolExtensions.ps1 extensions docs/site/extensions.json || continue
             artifacts=$(gh api "/repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts" \
               --jq '.artifacts[] | select(.expired == false) | .name')
             if grep -Fxq 'catalog-bundle' <<< "$artifacts"; then
@@ -103,13 +113,24 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Prepare Rust and target
         run: rustup target add '${{ matrix.target }}'
       - name: Fetch locked SDK dependencies
         run: cargo fetch --locked --target '${{ matrix.target }}'
-      - name: Build the example ZIP
+      - name: Install OCR build dependencies
+        if: matrix.target == 'x86_64-pc-windows-msvc' || matrix.target == 'x86_64-unknown-linux-gnu'
+        run: python -m pip install --only-binary=:all: -r extensions/math-ocr/requirements.txt
+      - name: Build extension packages
         shell: pwsh
-        run: ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -Archive
+        run: |
+          ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -Archive
+          ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}'
+          if ('${{ matrix.target }}' -in @('x86_64-pc-windows-msvc', 'x86_64-unknown-linux-gnu')) {
+            ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}' -Ocr
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: catalog-example-${{ matrix.target }}

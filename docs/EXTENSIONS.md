@@ -4,7 +4,7 @@ CrabPDF 0.5 admite paquetes nativos opcionales y el SDK Rust `crabpdf-extension-
 
 ## Instalar y usar
 
-1. Abre **Extensiones → Extensiones…**.
+1. Abre **Extensiones → Gestor de extensiones…**.
 2. Pulsa **Instalar desde carpeta…** y elige la carpeta que contiene `extension.toml`.
 3. Revisa el nombre, versión y comandos. Pulsa **Instalar paquete** y después **Activar**.
 4. Pulsa **Seleccionar área del PDF…** y arrastra un rectángulo sobre una ecuación. También puedes seleccionar texto de una página y elegir **Texto → Enviar selección a extensión**.
@@ -13,6 +13,13 @@ CrabPDF 0.5 admite paquetes nativos opcionales y el SDK Rust `crabpdf-extension-
 En pantalla completa encontrarás Extensiones en la barra flotante del borde superior. Escape cancela la selección del área.
 
 Los paquetes se guardan en `extensions/` dentro del directorio de datos del perfil. Cada versión tiene su propia carpeta. Activar otra versión cambia el registro de ese paquete de forma atómica. La desinstalación retira la versión elegida. Los paquetes instalados empiezan desactivados.
+
+## OCR de ecuaciones y Pomodoro
+
+Desde la 0.5.5, busca **100002** para OCR o **100003** para Pomodoro en **Extensiones → Gestor de extensiones → Catálogo**. Confirma la descarga y pulsa **Activar**. Cada paquete activo aparece con su nombre en **Extensiones**. En su ventana, abre **Atajos de teclado** para asignar con Alt+Mayús una tecla a **Abrir** y otra a **Cerrar**.
+
+- **OCR.** En Windows x64 o Linux x64, pulsa **Descargar modelo (179 MB)**. Luego selecciona el área que contiene una ecuación y pulsa **Reconocer como LaTeX**. RapidLaTeXOCR procesa la imagen localmente. [Fuentes del modelo](https://github.com/RapidAI/RapidLaTeXOCR/releases/tag/v0.0.0).
+- **Pomodoro.** Pulsa **Iniciar** en el panel sobre el PDF. Puedes pausar o reiniciar la sesión. Al terminar, el lector muestra un aviso y solicita atención al sistema. El reloj sigue en marcha al cerrar su ventana.
 
 ## Instalar por código
 
@@ -69,11 +76,11 @@ Las plataformas usan triples Rust como `x86_64-pc-windows-msvc`, `i686-pc-window
 
 ## SDK Rust
 
-El crate está en [crates/extension-api](../crates/extension-api/). El SDK se versiona independientemente de la aplicación. En un proyecto externo, agrégalo a tu `Cargo.toml` con la etiqueta de CrabPDF que incluye el SDK 0.2.0.
+El crate está en [crates/extension-api](../crates/extension-api/). El SDK se versiona independientemente de la aplicación. En un proyecto externo, agrégalo a tu `Cargo.toml` con la etiqueta de CrabPDF que incluye el SDK 0.3.0.
 
 ```toml
 [dependencies]
-crabpdf-extension-api = { git = "https://github.com/MHAlberto/crabpdf", tag = "v0.5.2" }
+crabpdf-extension-api = { git = "https://github.com/MHAlberto/crabpdf", tag = "v0.5.5" }
 ```
 
 ```rust

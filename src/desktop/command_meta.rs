@@ -24,7 +24,7 @@ impl ActionMetadata for Action {
             Self::CopyPath => "Copiar ruta del archivo",
             Self::Exit => "Salir",
             Self::CheckUpdate => "Buscar actualizaciones…",
-            Self::Extensions => "Extensiones…",
+            Self::Extensions => "Gestor de extensiones…",
             Self::ExtensionSelection => "Enviar selección a extensión",
             Self::ExtensionArea => "Seleccionar área para extensión",
             Self::Properties => "Propiedades del documento",

@@ -27,6 +27,7 @@ fn manifest() -> Manifest {
         target: target(),
         executable: "tool".into(),
         description: "Fixture".into(),
+        timer: None,
         commands: vec![ExtensionCommand {
             id: "latex".into(),
             title: "Ecuación de prueba".into(),

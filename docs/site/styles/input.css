@@ -2,6 +2,7 @@
 @source "../../index.html";
 @source "../app.js";
 @source "../extensions.mjs";
+@source "../pages.mjs";
 
 @theme inline {
   --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
@@ -116,4 +117,18 @@
 @media (max-width: 30rem) {
   .extension-entry { grid-template-columns: 1fr; }
   .extension-code { justify-self: start; justify-items: start; }
+}
+.nav-link[aria-current="page"] { color: var(--accent); text-decoration: underline; text-underline-offset: .4em; }
+.timeline-item {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) 1fr;
+  gap: 1rem;
+  padding: 1.4rem 0;
+  border-top: 1px solid var(--line);
+}
+.timeline-meta { display: grid; align-content: start; gap: .25rem; }
+.timeline-meta time { font-size: .85rem; color: var(--muted); }
+.timeline-item .text-link { display: inline-block; margin-top: .45rem; }
+@media (max-width: 30rem) {
+  .timeline-item { grid-template-columns: 1fr; gap: .4rem; }
 }

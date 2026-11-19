@@ -13,7 +13,7 @@ const platforms = new Map([
 const identifier = /^[a-z0-9_-](?:[a-z0-9._-]{0,62}[a-z0-9_-])?$/;
 const version = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const maxDownload = 512 * 1024 * 1024;
-const escape = (text) => text.replace(/[&<>"']/g, (char) => ({
+export const escape = (text) => text.replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
 })[char]);
 
@@ -24,13 +24,13 @@ async function digest(filename) {
 }
 
 function card(entry) {
-  const { code, name, description, version, assets } = entry;
+  const { code, name, description, version, assets, host_version } = entry;
   const targets = assets.map(({ target }) => platforms.get(target)).join(" · ");
   return `<article class="extension-entry">
     <div>
       <h3 class="text-lg font-semibold tracking-tight">${escape(name)}</h3>
       <p class="mt-2 text-sm leading-6 text-muted">${escape(description)}</p>
-      <p class="mt-3 text-xs leading-5 text-muted">Versión ${version} · ${escape(targets)}</p>
+      <p class="mt-3 text-xs leading-5 text-muted">Versión ${version} · ${escape(targets)} · CrabPDF ${escape(host_version)}</p>
     </div>
     <div class="extension-code">
       <code aria-label="Código de extensión ${code}">${code}</code>
@@ -72,24 +72,30 @@ export async function buildExtensions(docs, repo, output) {
       done.add(asset.target);
       assets.push(asset);
     }
+    const prefix = new Map([
+      ["org.crabpdf.selection-info", "selection-info"],
+      ["org.crabpdf.math-ocr", "math-ocr"],
+      ["org.crabpdf.pomodoro", "pomodoro"],
+    ]).get(entry.id);
     for (const target of entry.example_targets ?? []) {
-      if (entry.id !== "org.crabpdf.selection-info" || !platforms.has(target) || done.has(target)) {
+      if (!prefix || !platforms.has(target) || done.has(target)) {
         throw new Error("Invalid target for bundled SDK example: " + target);
       }
       done.add(target);
-      const file = `selection-info-${target}.zip`;
-      const source = path.join(repo, "artifacts/site-extensions", file);
+      const source = path.join(repo, "artifacts/site-extensions", `${prefix}-${target}.zip`);
       const bytes = (await stat(source).catch((error) => {
         if (!preview || error.code !== "ENOENT") throw error;
         return { size: 0 };
       })).size;
       if (preview && bytes === 0) continue;
       if (bytes < 1 || bytes > maxDownload) throw new Error("Invalid size: " + source);
+      const sha256 = await digest(source);
+      const file = `${prefix}-${target}-${sha256.slice(0, 12)}.zip`;
       const relative = "extensions/packages/" + file;
       const destination = path.join(output, relative);
       await mkdir(path.dirname(destination), { recursive: true });
       await copyFile(source, destination);
-      assets.push({ target, file, bytes, sha256: await digest(destination) });
+      assets.push({ target, file, bytes, sha256 });
       files.push(relative);
     }
     if (assets.length === 0 && !preview) throw new Error("Missing assets for " + entry.code);

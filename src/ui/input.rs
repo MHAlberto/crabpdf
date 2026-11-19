@@ -170,7 +170,9 @@ impl ReaderApp {
             if self.extensions.cancel_selection() {
                 return;
             }
-            let dismissing = self.extensions.open
+            let extension_panel_closed = self.extensions.close_tool();
+            let dismissing = extension_panel_closed
+                || self.extensions.open
                 || self.palette_open
                 || self.go_to_open
                 || self.zoom_open

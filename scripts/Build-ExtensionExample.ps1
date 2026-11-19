@@ -27,7 +27,7 @@ try {
 api_version = 1
 id = "org.crabpdf.selection-info"
 name = "Información de la selección"
-version = "0.1.0"
+version = "0.1.1"
 host_version = ">=0.5.0, <0.6.0"
 target = "$Target"
 executable = "$exe"

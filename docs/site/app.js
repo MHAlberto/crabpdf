@@ -48,7 +48,12 @@
         }
         if (focus) current.focus();
       };
-      const initial = tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0];
+      const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent;
+      const systemTab = /Win/i.test(platform) ? "tab-windows"
+        : /Linux|X11/i.test(platform) && !/Android/i.test(navigator.userAgent) ? "tab-linux"
+        : /Mac/i.test(platform) ? "tab-macos" : "";
+      const initial = tabs.find((tab) => tab.id === systemTab)
+        || tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0];
       activate(initial);
       tablist.addEventListener("click", (event) => {
         const tab = event.target.closest('[role="tab"]');
@@ -80,7 +85,7 @@
     }
 
     const copyButton = document.querySelector("#copy-install");
-    copyButton.addEventListener("click", async () => {
+    copyButton?.addEventListener("click", async () => {
       const command = document.querySelector("#ubuntu-command").textContent;
       const status = document.querySelector("#copy-status");
       try {

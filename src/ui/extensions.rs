@@ -1,4 +1,6 @@
 //! Extension manager and user-selected page regions.
+mod panels;
+
 use super::*;
 use crate::desktop::extensions::{
     InstalledPackage, Invocation, Repository, RunningExtension,
@@ -12,6 +14,7 @@ use std::{path::PathBuf, sync::mpsc};
 
 enum ManagementResult {
     Packages(Vec<InstalledPackage>),
+    Updates(Vec<CatalogPackage>),
     InstalledCatalog(Vec<InstalledPackage>),
     Catalog(Box<CatalogPackage>),
     Preview(PathBuf, Box<crabpdf_extension_api::Manifest>),
@@ -19,7 +22,12 @@ enum ManagementResult {
 #[derive(Default)]
 pub(super) struct Extensions {
     pub open: bool,
+    panels: panels::Panels,
+    loaded: bool,
+    show_catalog_tab: bool,
+    operation_label: &'static str,
     code: String,
+    updates: Vec<CatalogPackage>,
     catalog_preview: Option<Box<CatalogPackage>>,
     packages: Vec<InstalledPackage>,
     operation: Option<mpsc::Receiver<Result<ManagementResult, String>>>,
@@ -64,8 +72,33 @@ impl Extensions {
             Err(e) => self.message = Some(e.to_string()),
         }
     }
+    pub(super) fn menu_entries(&mut self, ui: &mut egui::Ui) {
+        if self.packages.iter().any(|package| package.enabled) {
+            ui.separator();
+        }
+        for package in self.packages.iter().filter(|package| package.enabled) {
+            ui.menu_button(&package.manifest.name, |ui| {
+                if ui.button("Abrir").clicked() {
+                    self.panels.open(package);
+                    self.output = None;
+                    self.open = false;
+                    ui.close();
+                }
+                if ui
+                    .add_enabled(
+                        self.panels.active.as_deref() == Some(&package.manifest.id),
+                        egui::Button::new("Cerrar"),
+                    )
+                    .clicked()
+                {
+                    self.panels.close();
+                    ui.close();
+                }
+            });
+        }
+    }
+
     fn show_catalog(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, repository: &Repository) {
-        ui.separator();
         ui.strong("Instalar por código");
         ui.hyperlink_to("Abrir catálogo de extensiones", catalog::CATALOG_URL);
         ui.horizontal(|ui| {
@@ -86,6 +119,7 @@ impl Extensions {
                     || (code.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter))))
             {
                 let code = self.code.trim().to_owned();
+                self.operation_label = "Consultando el catálogo…";
                 self.catalog_preview = None;
                 self.preview = None;
                 self.manage(ctx, move || {
@@ -95,6 +129,16 @@ impl Extensions {
             }
         });
 
+        for index in 0..self.updates.len() {
+            let entry = &self.updates[index].entry;
+            if ui
+                .button(format!("Ver {} {}", entry.name, entry.version))
+                .clicked()
+            {
+                self.catalog_preview = Some(Box::new(self.updates.remove(index)));
+                break;
+            }
+        }
         if let Some(package) = &self.catalog_preview {
             let entry = &package.entry;
             ui.strong(format!("{} {}", entry.name, entry.version));
@@ -119,6 +163,7 @@ impl Extensions {
                     )
                     .clicked()
                 {
+                    self.operation_label = "Descargando y verificando el paquete…";
                     let package = self.catalog_preview.take().expect("a preview is displayed");
                     let repository = repository.clone();
                     self.manage(ctx, move || {
@@ -135,18 +180,31 @@ impl Extensions {
 
     pub fn show(&mut self, ctx: &egui::Context, repository: Repository, can_select: bool) -> bool {
         let mut arm = false;
+        self.show_tool(ctx, &repository, can_select, &mut arm);
+        self.panels.notifications(ctx);
         if !self.open {
-            return false;
+            return arm;
         }
         let mut open = true;
-        egui::Window::new("Extensiones")
-            .default_width(540.0)
+        let mut open_requested = false;
+        egui::Window::new("Gestor de extensiones")
+            .default_width(570.0)
             .default_height(450.0)
             .open(&mut open)
             .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.selectable_value(&mut self.show_catalog_tab, false, "Instaladas");
+                    ui.selectable_value(&mut self.show_catalog_tab, true, "Catálogo");
+                });
+                ui.separator();
                 egui::ScrollArea::vertical()
                     .max_height(560.0)
                     .show(ui, |ui| {
+                        if self.show_catalog_tab {
+                            self.show_catalog(ui, ctx, &repository);
+                            self.show_status(ui, ctx);
+                            return;
+                        }
                         ui.horizontal(|ui| {
                             if ui
                                 .add_enabled(
@@ -160,12 +218,21 @@ impl Extensions {
                                 );
                             }
                             if ui
-                                .add_enabled(!self.busy(), egui::Button::new("Actualizar lista"))
+                                .add_enabled(
+                                    !self.busy(),
+                                    egui::Button::new("Buscar actualizaciones"),
+                                )
                                 .clicked()
                             {
-                                let repository = repository.clone();
+                                self.show_catalog_tab = true;
+                                let installed = self
+                                    .packages
+                                    .iter()
+                                    .map(|p| (p.manifest.id.clone(), p.manifest.version.clone()))
+                                    .collect();
+                                self.operation_label = "Buscando actualizaciones…";
                                 self.manage(ctx, move || {
-                                    repository.list().map(ManagementResult::Packages)
+                                    catalog::updates(installed).map(ManagementResult::Updates)
                                 });
                             }
                         });
@@ -207,10 +274,15 @@ impl Extensions {
                         }
                         for package in self.packages.clone() {
                             ui.separator();
-                            ui.strong(format!(
-                                "{} {}",
-                                package.manifest.name, package.manifest.version
-                            ));
+                            ui.horizontal_wrapped(|ui| {
+                                ui.strong(&package.manifest.name);
+                                ui.label(format!("v{}", package.manifest.version));
+                                ui.small(if package.enabled {
+                                    "Activa"
+                                } else {
+                                    "Desactivada"
+                                });
+                            });
                             ui.label(&package.manifest.description);
                             ui.horizontal(|ui| {
                                 if ui
@@ -244,6 +316,12 @@ impl Extensions {
                                 }
                             });
                             if package.enabled {
+                                if ui.button("Abrir extensión").clicked() {
+                                    self.panels.open(&package);
+                                    self.output = None;
+                                    self.open = false;
+                                    open_requested = true;
+                                }
                                 for command in &package.manifest.commands {
                                     let ready = !self.busy()
                                         && self.capture.as_ref().is_some_and(|capture| {
@@ -290,51 +368,129 @@ impl Extensions {
                             arm = true;
                         }
                         ui.label("También puedes usar Texto / Enviar selección a extensión.");
-                        self.show_catalog(ui, ctx, &repository);
-                        if self.pending.is_some() {
-                            ui.label("Preparando el recorte…");
-                        }
-                        if self.operation.is_some() {
-                            ui.spinner();
-                        }
-                        if self.running.is_some() {
-                            ui.horizontal(|ui| {
-                                ui.spinner();
-                                ui.label("Ejecutando extensión…");
-                                if ui.button("Cancelar").clicked() {
-                                    if let Some(run) = self.running.take() {
-                                        run.cancel();
-                                    }
-                                    self.message = Some("Operación cancelada.".into());
-                                }
-                            });
-                        }
-                        if let Some(message) = &self.message {
-                            ui.label(message);
-                        }
-                        if let Some(output) = &mut self.output {
-                            ui.separator();
-                            ui.horizontal(|ui| {
-                                ui.label(match output.kind {
-                                    crabpdf_extension_api::OutputKind::Text => "Resultado · Texto",
-                                    crabpdf_extension_api::OutputKind::Latex => "Resultado · LaTeX",
-                                });
-                                if ui.button("Copiar resultado").clicked() {
-                                    ctx.copy_text(output.text.clone());
-                                }
-                            });
-                            ui.add(
-                                egui::TextEdit::multiline(&mut output.text)
-                                    .code_editor()
-                                    .desired_rows(8)
-                                    .desired_width(f32::INFINITY),
-                            );
-                        }
+                        self.show_status(ui, ctx);
                     });
             });
-        self.open = open && !arm;
+        self.open = open && !arm && !open_requested;
         arm
     }
+    fn show_tool(
+        &mut self,
+        ctx: &egui::Context,
+        repository: &Repository,
+        can_select: bool,
+        arm: &mut bool,
+    ) {
+        if self.selecting {
+            return;
+        }
+        let Some(package) = self
+            .packages
+            .iter()
+            .find(|p| p.enabled && self.panels.active.as_ref() == Some(&p.manifest.id))
+            .cloned()
+        else {
+            return;
+        };
+        let mut open = true;
+        egui::Window::new(&package.manifest.name)
+            .id(egui::Id::new(("extension-tool", &package.manifest.id)))
+            .default_width(if package.manifest.timer.is_some() {
+                240.0
+            } else {
+                400.0
+            })
+            .default_pos(ctx.content_rect().right_top() + egui::vec2(-445.0, 95.0))
+            .open(&mut open)
+            .show(ctx, |ui| {
+                if package.manifest.timer.is_some() {
+                    self.panels.timer(ui, &package.manifest.id);
+                } else {
+                    ui.horizontal_wrapped(|ui| {
+                        if ui
+                            .add_enabled(
+                                can_select && !self.busy(),
+                                egui::Button::new("Seleccionar área del PDF…"),
+                            )
+                            .clicked()
+                        {
+                            self.selecting = true;
+                            self.drag = None;
+                            self.capture = None;
+                            self.selected = None;
+                            self.output = None;
+                            *arm = true;
+                        }
+                        for command in &package.manifest.commands {
+                            let ready = !self.busy()
+                                && (command.input == InputKind::None
+                                    || self.capture.as_ref().is_some_and(|capture| {
+                                        command.input == InputKind::Region
+                                            || !capture.text.trim().is_empty()
+                                    }));
+                            if ui
+                                .add_enabled(ready, egui::Button::new(&command.title))
+                                .clicked()
+                            {
+                                self.run(ctx, repository.clone(), package.clone(), command.clone());
+                            }
+                        }
+                    });
+                    self.show_status(ui, ctx);
+                }
+                ui.separator();
+                self.panels.shortcuts(ui, &package.manifest.id);
+            });
+        if !open {
+            self.panels.close();
+        }
+    }
+
+    fn show_status(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        if self.pending.is_some() {
+            ui.label("Preparando el recorte…");
+        }
+        if self.operation.is_some() || self.running.is_some() {
+            ui.horizontal(|ui| {
+                ui.spinner();
+                ui.label(if self.running.is_some() {
+                    "Ejecutando extensión…"
+                } else if self.operation_label.is_empty() {
+                    "Actualizando extensiones…"
+                } else {
+                    self.operation_label
+                });
+                if self.running.is_some() && ui.button("Cancelar").clicked() {
+                    if let Some(run) = self.running.take() {
+                        run.cancel();
+                    }
+                    self.message = Some("Operación cancelada.".into());
+                }
+            });
+        }
+        if let Some(message) = &self.message {
+            ui.label(message);
+        }
+        if let Some(output) = &mut self.output {
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.strong(match output.kind {
+                    crabpdf_extension_api::OutputKind::Text => "Resultado",
+                    crabpdf_extension_api::OutputKind::Latex => "LaTeX",
+                });
+                if ui.button("Copiar resultado").clicked() {
+                    ctx.copy_text(output.text.clone());
+                }
+            });
+            ui.add(
+                egui::TextEdit::multiline(&mut output.text)
+                    .code_editor()
+                    .desired_rows(5)
+                    .desired_width(f32::INFINITY),
+            );
+        }
+    }
+
     fn run(
         &mut self,
         ctx: &egui::Context,
@@ -342,21 +498,36 @@ impl Extensions {
         package: InstalledPackage,
         command: ExtensionCommand,
     ) {
-        let (Some((_, page, bounds)), Some(capture)) = (self.selected, self.capture.as_ref())
-        else {
-            return;
-        };
-        let input = Invocation {
-            command,
-            page: page + 1,
-            region: Region {
-                left: bounds.left,
-                top: bounds.top,
-                right: bounds.right,
-                bottom: bounds.bottom,
-            },
-            text: capture.text.clone(),
-            image: Some((capture.png.clone(), capture.width, capture.height)),
+        let input = if command.input == InputKind::None {
+            Invocation {
+                command,
+                page: 1,
+                region: Region {
+                    left: 0.0,
+                    top: 0.0,
+                    right: 1.0,
+                    bottom: 1.0,
+                },
+                text: String::new(),
+                image: None,
+            }
+        } else {
+            let (Some((_, page, bounds)), Some(capture)) = (self.selected, self.capture.as_ref())
+            else {
+                return;
+            };
+            Invocation {
+                command,
+                page: page + 1,
+                region: Region {
+                    left: bounds.left,
+                    top: bounds.top,
+                    right: bounds.right,
+                    bottom: bounds.bottom,
+                },
+                text: capture.text.clone(),
+                image: Some((capture.png.clone(), capture.width, capture.height)),
+            }
         };
         let repaint = ctx.clone();
         match RunningExtension::spawn(repository, package, input, move || {
@@ -370,6 +541,10 @@ impl Extensions {
             Err(error) => self.message = Some(error.to_string()),
         }
     }
+    pub(super) fn close_tool(&mut self) -> bool {
+        self.panels.close()
+    }
+
     pub fn cancel_selection(&mut self) -> bool {
         let selecting = self.selecting;
         self.selecting = false;
@@ -404,6 +579,16 @@ impl ReaderApp {
         });
     }
     pub(super) fn poll_extensions(&mut self, ctx: &egui::Context) {
+        if !self.extensions.loaded {
+            self.extensions.loaded = true;
+            let repository = Repository::new(&self.app_paths.data);
+            self.extensions.manage(ctx, move || {
+                repository.list().map(ManagementResult::Packages)
+            });
+        }
+        self.extensions
+            .panels
+            .poll(ctx, &self.app_paths.data, &self.extensions.packages);
         let identity = self
             .tabs
             .get(self.active)
@@ -451,8 +636,15 @@ impl ReaderApp {
                     }
                     Ok(ManagementResult::InstalledCatalog(packages)) => {
                         self.extensions.packages = packages;
+                        self.extensions.show_catalog_tab = false;
                         self.extensions.message =
                             Some("Extensión instalada. Pulsa Activar para usarla.".into());
+                    }
+                    Ok(ManagementResult::Updates(updates)) => {
+                        if updates.is_empty() {
+                            self.extensions.message = Some("Tus extensiones están al día.".into());
+                        }
+                        self.extensions.updates = updates;
                     }
                     Ok(ManagementResult::Catalog(package)) => {
                         self.extensions.catalog_preview = Some(package);
@@ -521,7 +713,7 @@ impl ReaderApp {
         self.notice = None;
         self.extensions.selecting = false;
         self.extensions.drag = None;
-        self.extensions.open = true;
+        self.extensions.open = self.extensions.panels.active.is_none();
         if let Some(worker) = &self.worker {
             match worker.capture(
                 tab.reader.id,

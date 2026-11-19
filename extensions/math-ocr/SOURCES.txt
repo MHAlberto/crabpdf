@@ -1,0 +1,4 @@
+RapidLaTeXOCR (MIT): https://github.com/RapidAI/RapidLaTeXOCR
+Vision model (four pinned files): https://github.com/RapidAI/RapidLaTeXOCR/releases/tag/v0.0.0
+Original LaTeX-OCR model: https://github.com/lukas-blecher/LaTeX-OCR
+The model files are downloaded separately with verified SHA-256.

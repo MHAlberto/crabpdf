@@ -249,6 +249,7 @@ impl ReaderApp {
                     self.menu_action(ui, Action::Extensions);
                     self.menu_action(ui, Action::ExtensionArea);
                     self.menu_action(ui, Action::ExtensionSelection);
+                    self.extensions.menu_entries(ui);
                 });
                 ui.menu_button("Ayuda", |ui| {
                     self.menu_action(ui, Action::CheckUpdate);

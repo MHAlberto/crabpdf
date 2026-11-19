@@ -31,15 +31,45 @@ pub fn lookup(code: &str) -> io::Result<CatalogPackage> {
     if !valid_code(code) {
         return Err(bad("Escribe un código de seis cifras."));
     }
+    let body = fetch()?;
+    select(&body, code, &target(), &host_version()?)
+}
+
+fn host_version() -> io::Result<semver::Version> {
+    semver::Version::parse(env!("CARGO_PKG_VERSION")).map_err(bad)
+}
+
+fn fetch() -> io::Result<Vec<u8>> {
     let mut body = Vec::new();
-    http_get(CATALOG_ENDPOINT, MAX_CATALOG_BYTES, "25", &mut body)
+    let catalog_url = format!("{CATALOG_ENDPOINT}?crabpdf={}", env!("CARGO_PKG_VERSION"));
+    http_get(&catalog_url, MAX_CATALOG_BYTES, "25", &mut body)
         .map_err(|error| bad(format!("No se pudo consultar el catálogo. {error}")))?;
-    select(
-        &body,
-        code,
-        &target(),
-        &semver::Version::parse(env!("CARGO_PKG_VERSION")).map_err(bad)?,
-    )
+    Ok(body)
+}
+
+pub fn updates(installed: Vec<(String, String)>) -> io::Result<Vec<CatalogPackage>> {
+    let body = fetch()?;
+    let catalog: Catalog = serde_json::from_slice(&body).map_err(bad)?;
+    let host = host_version()?;
+    let target = target();
+    let mut updates = Vec::new();
+    for entry in catalog.extensions {
+        let Ok(version) = semver::Version::parse(&entry.version) else {
+            continue;
+        };
+        let mut versions = installed
+            .iter()
+            .filter(|(id, _)| *id == entry.id)
+            .filter_map(|(_, version)| semver::Version::parse(version).ok());
+        if let Some(current) = versions.next()
+            && version > current
+            && versions.all(|other| version > other)
+            && let Ok(package) = select(&body, &entry.code, &target, &host)
+        {
+            updates.push(package);
+        }
+    }
+    Ok(updates)
 }
 
 fn select(
@@ -112,15 +142,17 @@ fn package_url(asset: &CatalogAsset) -> io::Result<String> {
     if file.len() > 160 || !file.strip_suffix(".zip").is_some_and(identifier) {
         return Err(bad("El nombre de archivo de la descarga es inválido."));
     }
-    match asset.release_tag.as_deref() {
-        Some(tag) if identifier(tag) => Ok(format!(
-            "https://github.com/MHAlberto/crabpdf/releases/download/{tag}/{file}"
-        )),
-        None => Ok(format!(
-            "https://mhalberto.github.io/crabpdf/extensions/packages/{file}"
-        )),
-        _ => Err(bad("La etiqueta de la descarga es inválida.")),
-    }
+    let base = match asset.release_tag.as_deref() {
+        Some(tag) if identifier(tag) => {
+            format!("https://github.com/MHAlberto/crabpdf/releases/download/{tag}/{file}")
+        }
+        None => format!("https://mhalberto.github.io/crabpdf/extensions/packages/{file}"),
+        _ => return Err(bad("La etiqueta de la descarga es inválida.")),
+    };
+    Ok(format!(
+        "{base}?sha256={}",
+        asset.sha256.to_ascii_lowercase()
+    ))
 }
 
 pub fn install(repository: &Repository, package: &CatalogPackage) -> io::Result<()> {
@@ -148,10 +180,12 @@ pub fn install(repository: &Repository, package: &CatalogPackage) -> io::Result<
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(
-            folder.join(&manifest.executable),
-            fs::Permissions::from_mode(0o700),
-        )?;
+        if manifest.timer.is_none() {
+            fs::set_permissions(
+                folder.join(&manifest.executable),
+                fs::Permissions::from_mode(0o700),
+            )?;
+        }
     }
     repository.install(&folder)
 }

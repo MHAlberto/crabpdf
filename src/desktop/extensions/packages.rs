@@ -115,7 +115,7 @@ impl Repository {
             || manifest.name.is_empty()
             || manifest.name.len() > 120
             || manifest.description.len() > 2000
-            || manifest.commands.is_empty()
+            || (manifest.commands.is_empty() && manifest.timer.is_none())
             || manifest.commands.len() > 16
         {
             return Err(bad("Identidad, API o comandos incompatibles."));
@@ -125,14 +125,18 @@ impl Repository {
             return Err(bad("Versión de paquete inválida."));
         }
         let host = semver::Version::parse(env!("CARGO_PKG_VERSION")).map_err(bad)?;
-        if !semver::VersionReq::parse(&manifest.host_version)
-            .map_err(bad)?
-            .matches(&host)
-            || manifest.target != target()
-        {
+        let host_requirement = semver::VersionReq::parse(&manifest.host_version).map_err(bad)?;
+        if !host_requirement.matches(&host) {
             return Err(bad(format!(
-                "El paquete requiere otra versión de CrabPDF o plataforma. Plataforma actual: {}",
-                target()
+                "La extensión requiere CrabPDF {} y esta versión es {}.",
+                manifest.host_version, host
+            )));
+        }
+        let current_target = target();
+        if manifest.target != current_target {
+            return Err(bad(format!(
+                "La extensión se compiló para {} y este CrabPDF usa {}.",
+                manifest.target, current_target
             )));
         }
         let mut ids = std::collections::HashSet::new();
@@ -144,6 +148,16 @@ impl Repository {
             {
                 return Err(bad("Identificador o título de comando inválido."));
             }
+        }
+        if let Some(timer) = manifest.timer {
+            if !manifest.commands.is_empty()
+                || !manifest.executable.is_empty()
+                || !(1..=180).contains(&timer.focus_minutes)
+                || !(1..=60).contains(&timer.break_minutes)
+            {
+                return Err(bad("La configuración del temporizador es inválida."));
+            }
+            return Ok(manifest);
         }
         let executable = safe_relative(&manifest.executable)?;
         let mut path = directory.to_owned();
@@ -170,6 +184,19 @@ impl Repository {
         }
         Ok(group.join(version))
     }
+    pub(super) fn model_data(&self, id: &str) -> io::Result<PathBuf> {
+        if !identifier(id) {
+            return Err(bad("Identificador de paquete inválido."));
+        }
+        let data = self.root.join("data");
+        fs::create_dir_all(&data)?;
+        plain(&data)?;
+        let data = data.join(id);
+        fs::create_dir_all(&data)?;
+        plain(&data)?;
+        fs::canonicalize(data)
+    }
+
     fn activation(&self, id: &str) -> PathBuf {
         self.root.join("enabled").join(format!("{id}.json"))
     }
@@ -205,7 +232,10 @@ impl Repository {
                     return Err(bad("Hay demasiadas versiones instaladas de un paquete."));
                 }
                 let path = version?.path();
-                let manifest = self.inspect(&path)?;
+                // An old or damaged package must not hide the rest of the list.
+                let Ok(manifest) = self.inspect(&path) else {
+                    continue;
+                };
                 if self.package_dir(&manifest.id, &manifest.version)? != path {
                     return Err(bad("La identidad del paquete difiere de su carpeta."));
                 }

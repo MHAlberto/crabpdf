@@ -106,8 +106,6 @@ jobs:
             target: i686-pc-windows-msvc
           - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-          - os: macos-15
-            target: aarch64-apple-darwin
           - os: macos-15-intel
             target: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
@@ -131,6 +129,15 @@ jobs:
           ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}'
           if ('${{ matrix.target }}' -in @('x86_64-pc-windows-msvc', 'x86_64-unknown-linux-gnu')) {
             ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}' -Ocr
+          }
+          if ('${{ matrix.target }}' -eq 'x86_64-apple-darwin') {
+            # Xcode links both architectures, and these packages run only after installation.
+            rustup target add aarch64-apple-darwin
+            if ($LASTEXITCODE) { throw 'No se pudo preparar el destino Apple Silicon.' }
+            cargo fetch --locked --target aarch64-apple-darwin
+            if ($LASTEXITCODE) { throw 'No se pudieron obtener las dependencias Apple Silicon.' }
+            ./scripts/Build-ExtensionExample.ps1 -Target aarch64-apple-darwin -Archive
+            ./scripts/Build-ToolExtensions.ps1 -Target aarch64-apple-darwin
           }
       - uses: actions/upload-artifact@v4
         with:

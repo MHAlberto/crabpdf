@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "version": "0.5.5",
+  "tag": "v0.5.5",
+  "tagged_commit": "c17814fc1dc6fc81c8659be1e93b7ff3e7f57b72",
+  "annotated_tag_object": "bb9a455eaeb1a292c05fb6a1b3733881682772cf",
+  "release_url": "https://github.com/MHAlberto/crabpdf/releases/tag/v0.5.5",
+  "published_at_utc": "2026-11-19T16:58:26Z",
+  "public_assets_verified": true,
+  "validated_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912",
+  "linux_packages_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/44568941065",
+  "catalog_deployment": "https://github.com/MHAlberto/crabpdf/actions/runs/44570581282",
+  "verification": {
+    "public_assets": 10,
+    "windows_64_payload_files": 612,
+    "windows_32_payload_files": 612,
+    "linux_gui_formats": [
+      "PDF",
+      "EPUB",
+      "DjVu",
+      "CBZ"
+    ],
+    "ocr_windows_x64": "Packaged worker recognized the upstream equation fixture using the verified ONNX weights."
+  },
+  "limits": [
+    "Unsigned Windows development release.",
+    "Windows x86 tested under WOW64.",
+    "Ubuntu GUI checked with Xvfb/Mesa."
+  ],
+  "assets": [
+    {
+      "name": "crabpdf-0.5.5-format-tools-sources.zip",
+      "bytes": 82338443,
+      "sha256": "ee05e9611033b1fe0ff82514884af4e14bb6435b2df7c0872306d2e2da36f0e9",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-format-tools-sources.zip",
+      "origin": "Pack-FormatSources.ps1, pinned converter sources"
+    },
+    {
+      "name": "crabpdf-0.5.5-linux-x64.tar.gz",
+      "bytes": 40982080,
+      "sha256": "560eb8a0e647a66f5b830bf3b872c93416e751ba6b813873724a3feb837a9fab",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-linux-x64.tar.gz",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568941065 / artifact 14552768930"
+    },
+    {
+      "name": "crabpdf-0.5.5-ubuntu24.04-amd64.deb",
+      "bytes": 30875704,
+      "sha256": "527087f543c2dda61f4fc625ee41f7d25e15b5733aa60666a208002eead8df45",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-ubuntu24.04-amd64.deb",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568941065 / artifact 14552768930"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x64-setup.exe",
+      "bytes": 32162309,
+      "sha256": "b25f0e0f2f37633e49cb97c9e863ce294e7ada1539b176fff6dcb5eaa6b5c8d1",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x64-setup.exe",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553643186"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x64-setup.exe.json",
+      "bytes": 608,
+      "sha256": "f78ec0546972ded01a70106eb044d8cbb2a88ab9a0f8cb0641026b47c5d9b7dc",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x64-setup.exe.json",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553643186"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x64.zip",
+      "bytes": 44589158,
+      "sha256": "aabcd72184577e7ea17bce9999e198fda32e997bc163e50933fc95fe0fad6697",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x64.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553643186"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x86-setup.exe",
+      "bytes": 31940524,
+      "sha256": "d77b9b06ff3b20070589239b0022e2d6b7d3106cd1c246ea7ae4aced23ca0bde",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x86-setup.exe",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553867629"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x86-setup.exe.json",
+      "bytes": 606,
+      "sha256": "e3e784cb6590dce4a0f99290bc7b809f201da5cac6a3c553d14dbf2778bb4e4c",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x86-setup.exe.json",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553867629"
+    },
+    {
+      "name": "crabpdf-0.5.5-win-x86.zip",
+      "bytes": 44164840,
+      "sha256": "8d0bc3bb4a970c549cca1a39976397222f9fa90bc025922c7ffc0bad4cfa02ec",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/crabpdf-0.5.5-win-x86.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44568832912 / artifact 14553867629"
+    },
+    {
+      "name": "SHA256SUMS-v0.5.5.txt",
+      "bytes": 899,
+      "sha256": "8e5238251ed04b15eb7cc14813189e0f27681f30d9d9b88bd8c24251411db3bb",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.5.5/SHA256SUMS-v0.5.5.txt",
+      "origin": "Publish-Release.ps1, hashes of the verified files"
+    }
+  ]
+}

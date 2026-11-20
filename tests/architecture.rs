@@ -25,6 +25,10 @@ fn workspace_dependencies_follow_the_selected_architecture() {
     let expected = [
         ("crabpdf-core", vec!["serde"]),
         ("crabpdf-extension-api", vec!["serde", "serde_json"]),
+        (
+            "crabpdf-install-commit",
+            vec!["serde", "serde_json", "sha2"],
+        ),
         ("crabpdf-application", vec!["crabpdf-core", "serde"]),
         (
             "crabpdf-runtime",
@@ -41,7 +45,7 @@ fn workspace_dependencies_follow_the_selected_architecture() {
             ],
         ),
     ];
-    assert_eq!(metadata["workspace_members"].as_array().unwrap().len(), 5);
+    assert_eq!(packages.len(), expected.len() + 1);
     for (name, allowed) in expected {
         let package = packages.iter().find(|p| p["name"] == name).unwrap();
         let actual: BTreeSet<_> = package["dependencies"]

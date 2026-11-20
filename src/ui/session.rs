@@ -44,7 +44,7 @@ impl ReaderApp {
                 .find(|entry| entry.path == path)
                 .cloned()
         });
-        self.tabs.push(Tab::new(id, path.clone(), saved));
+        self.tabs.push(Tab::new(id, path, saved));
         self.active = self.tabs.len() - 1;
         self.submit_active_open();
     }
@@ -103,18 +103,10 @@ impl ReaderApp {
         // A fresh worker identity rejects replies still in transit from the old document.
         self.next_id += 1;
         let id = self.next_id;
-        self.tabs[self.active] = Tab::new(id, path.clone(), saved);
+        self.tabs[self.active] = Tab::new(id, path, saved);
         self.tabs[self.active].view_id = view_id;
-        if let Some(worker) = &self.worker
-            && let Err(error) = worker.open(id, path)
-        {
-            self.tabs[self.active]
-                .reader
-                .state
-                .finish_open(id, Err(error));
-        }
+        self.submit_active_open();
     }
-
     pub(super) fn close_index(&mut self, index: usize) {
         if index >= self.tabs.len() {
             return;
@@ -141,6 +133,7 @@ impl ReaderApp {
         } else {
             self.active = self.active.min(self.tabs.len().saturating_sub(1));
         }
+        self.open_deferred_tab();
         self.save_preferences();
     }
 

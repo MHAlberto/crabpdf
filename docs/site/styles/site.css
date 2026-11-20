@@ -246,6 +246,10 @@ figcaption { color: var(--muted); font-size: .76rem; margin-top: .58rem; }
 .install-help h2 { font-size: 1.25rem; }
 .install-help ol { margin: .75rem 0; padding-inline-start: 1.25rem; color: var(--muted); font-size: .88rem; }
 .install-help li + li { margin-top: .55rem; }
+.catalog-preview {
+  max-width: 56rem;
+  margin-top: clamp(2rem, 5vw, 4rem);
+}
 .extension-entry {
   padding-block: 1.12rem;
   border-top: 1px solid var(--line);

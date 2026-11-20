@@ -14,6 +14,10 @@ on:
         required: true
         type: choice
         options: [all, mac, linux]
+      candidate:
+        description: Verify packages for the selected commit before tagging
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -40,13 +44,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify unchanged tagged application sources
+      - name: Verify release version and source
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_CANDIDATE: ${{ inputs.candidate }}
         run: |
           [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           test "$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)" = "$RELEASE_VERSION"
-          git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+          if [[ "$RELEASE_CANDIDATE" == 'true' ]]; then
+            test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          else
+            git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+          fi
       - name: Install pinned Rust
         run: rustup show && rustup target add '${{ matrix.target }}'
       - uses: Swatinem/rust-cache@v2
@@ -99,13 +108,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify unchanged tagged application sources
+      - name: Verify release version and source
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_CANDIDATE: ${{ inputs.candidate }}
         run: |
           [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           test "$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)" = "$RELEASE_VERSION"
-          git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+          if [[ "$RELEASE_CANDIDATE" == 'true' ]]; then
+            test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          else
+            git diff --exit-code "v$RELEASE_VERSION" HEAD -- Cargo.toml Cargo.lock rust-toolchain.toml build.rs src crates assets
+          fi
       - name: Install pinned Rust for registry caching
         run: rustup show
       - uses: Swatinem/rust-cache@v2

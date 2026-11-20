@@ -84,6 +84,7 @@ impl PreferenceWriter {
         let thread = std::thread::Builder::new()
             .name("crabpdf-preferences".into())
             .spawn(move || {
+                let mut saved_once = false;
                 loop {
                     let snapshot = {
                         let (mutex, wake) = &*background;
@@ -102,11 +103,15 @@ impl PreferenceWriter {
                         }
                         state.pending.take().expect("pending snapshot")
                     };
+                    if saved_once && snapshot == base {
+                        continue;
+                    }
                     let result = ProfileStore::save_merged(&snapshot, &path, &base).map(|_| {
                         // Track this window's last snapshot, not the merged disk state.
                         // Otherwise its next save could delete another window's additions.
                         base = snapshot;
                     });
+                    saved_once = result.is_ok();
                     let _ = sender.send(result);
                     repaint();
                 }
@@ -222,6 +227,58 @@ mod tests {
     use crate::layout::LayoutMode;
 
     #[test]
+    fn merging_two_windows_keeps_duplicate_views_and_counts_both_opens() {
+        let saved = |id: &str, page| StoredDocument {
+            view_id: Some(id.into()),
+            path: "book.pdf".into(),
+            page,
+            zoom: Zoom::FitWidth,
+            layout: LayoutMode::Single,
+            continuous: true,
+            rotation: 0,
+            colors: PageColors::Original,
+            manga: false,
+            position: None,
+        };
+        let mut base = Preferences::default();
+        base.remember(saved("history", 3));
+        for _ in 0..8 {
+            base.record_open(std::path::Path::new("book.pdf"));
+        }
+        let mut first = base.clone();
+        let mut second = base.clone();
+        first.session = vec![saved("view-a", 4), saved("view-b", 1)];
+        second.session = vec![saved("view-c", 8)];
+        for window in [&mut first, &mut second] {
+            window.record_open(std::path::Path::new("book.pdf"));
+        }
+        let disk = first.merge_over(&base, base.clone());
+        let disk = second.merge_over(&base, disk);
+        assert_eq!(disk.library[0].opens, 10);
+        assert_eq!(
+            disk.session
+                .iter()
+                .map(|view| view.page)
+                .collect::<Vec<_>>(),
+            [8, 4, 1]
+        );
+        first.session.swap(0, 1);
+        let previous = Preferences {
+            session: vec![saved("view-a", 4), saved("view-b", 1)],
+            ..first.clone()
+        };
+        let reordered = first.merge_over(&previous, disk);
+        assert_eq!(
+            reordered
+                .session
+                .iter()
+                .map(|view| view.page)
+                .collect::<Vec<_>>(),
+            [1, 4, 8]
+        );
+    }
+
+    #[test]
     fn favorites_are_sorted_and_removed_only_within_the_same_book() {
         let mut p = Preferences::default();
         for (path, page) in [("a/book.pdf", 7), ("b/book.pdf", 3), ("a/book.pdf", 2)] {
@@ -256,6 +313,7 @@ mod tests {
             native_titlebar: false,
             reduce_motion: false,
             recent: vec![StoredDocument {
+                view_id: None,
                 path: PathBuf::from("Lecturas/niño.pdf"),
                 page: 42,
                 zoom: Zoom::Percent(200),
@@ -267,6 +325,7 @@ mod tests {
                 position: None,
             }],
             session: vec![StoredDocument {
+                view_id: None,
                 path: PathBuf::from("otro.pdf"),
                 page: 0,
                 zoom: Zoom::FitPage,
@@ -296,6 +355,7 @@ mod tests {
     fn library_counts_opens_and_removes_history_without_touching_files() {
         let mut preferences = Preferences::default();
         let saved = StoredDocument {
+            view_id: None,
             path: PathBuf::from("book.pdf"),
             page: 2,
             zoom: Zoom::FitWidth,
@@ -348,6 +408,7 @@ mod tests {
             label: "B".into(),
         });
         let saved = |name: &str| StoredDocument {
+            view_id: None,
             path: PathBuf::from(name),
             page: 2,
             zoom: Zoom::FitWidth,

@@ -13,12 +13,16 @@ pub struct DesktopServices {
 }
 impl DesktopServices {
     pub fn start(config: Option<PathBuf>, repaint: impl Fn() + Send + Sync + 'static) -> Self {
+        #[cfg(windows)]
+        let _ = std::thread::Builder::new()
+            .name("crabpdf-update-cleanup".into())
+            .spawn(super::downloads::clean_installer_downloads);
         let paths = AppPaths::from_environment(config.clone());
         let repaint: Arc<dyn Fn() + Send + Sync> = Arc::new(repaint);
         let (profile, preferences, config_warning) =
             ProfileSession::open(config, Arc::clone(&repaint));
         let (worker, worker_error) =
-            match PdfWorker::spawn_with_paths(move || repaint(), paths.clone()) {
+            match PdfWorker::spawn_for_reader(move || repaint(), paths.clone()) {
                 Ok(worker) => (Some(worker), None),
                 Err(error) => (None, Some(error)),
             };

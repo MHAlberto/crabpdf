@@ -1,8 +1,8 @@
 api_version = 1
 id = "org.crabpdf.pomodoro"
 name = "Pomodoro"
-version = "0.1.0"
-host_version = ">=0.5.5, <0.6.0"
+version = "0.1.1"
+host_version = ">=0.5.5, <0.7.0"
 target = "@TARGET@"
 executable = ""
 description = "Reloj sobre el PDF con sesiones de 25 minutos, descansos de 5 minutos y avisos al terminar."

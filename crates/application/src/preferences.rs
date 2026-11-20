@@ -71,7 +71,8 @@ impl Preferences {
         self.recent.retain(|entry| entry.path != path);
         self.library.retain(|entry| entry.path != path);
     }
-    pub fn remember(&mut self, document: StoredDocument) {
+    pub fn remember(&mut self, mut document: StoredDocument) {
+        document.view_id = None;
         self.recent.retain(|entry| entry.path != document.path);
         self.recent.insert(0, document);
         self.recent.truncate(30);
@@ -100,18 +101,62 @@ impl Preferences {
             a.path == b.path
         });
         merged.recent.truncate(30);
-        merge_entries(&base.session, &self.session, &mut merged.session, |a, b| {
-            a.path == b.path
-        });
+        if self.session != base.session {
+            let same_view = |a: &StoredDocument, b: &StoredDocument| match (&a.view_id, &b.view_id)
+            {
+                (Some(a), Some(b)) => a == b,
+                (None, None) => a.path == b.path,
+                _ => false,
+            };
+            let mut disk = merged.session;
+            let mut ordered = Vec::with_capacity(self.session.len().max(disk.len()));
+            for view in &self.session {
+                let previous = base.session.iter().find(|old| same_view(old, view));
+                let persisted = disk
+                    .iter()
+                    .position(|old| same_view(old, view))
+                    .map(|index| disk.remove(index));
+                if previous != Some(view) {
+                    ordered.push(view.clone());
+                } else if let Some(view) = persisted {
+                    ordered.push(view);
+                }
+            }
+            ordered.extend(
+                disk.into_iter()
+                    .filter(|view| !base.session.iter().any(|old| same_view(old, view))),
+            );
+            merged.session = ordered;
+        }
         merge_entries(
             &base.favorites,
             &self.favorites,
             &mut merged.favorites,
             |a, b| a.path == b.path && a.page == b.page,
         );
-        merge_entries(&base.library, &self.library, &mut merged.library, |a, b| {
-            a.path == b.path
+        merged.library.retain(|item| {
+            !base.library.iter().any(|old| old.path == item.path)
+                || self.library.iter().any(|local| local.path == item.path)
         });
+        for item in &self.library {
+            let old = base.library.iter().find(|old| old.path == item.path);
+            if old == Some(item) {
+                continue;
+            }
+            let opens = item.opens.saturating_sub(old.map_or(0, |old| old.opens));
+            if let Some(entry) = merged
+                .library
+                .iter_mut()
+                .find(|entry| entry.path == item.path)
+            {
+                entry.opens = entry.opens.saturating_add(opens);
+                if old.map_or(!item.title.is_empty(), |old| old.title != item.title) {
+                    entry.title.clone_from(&item.title);
+                }
+            } else {
+                merged.library.push(item.clone());
+            }
+        }
         merged
     }
 }

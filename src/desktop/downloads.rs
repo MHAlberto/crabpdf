@@ -1,5 +1,6 @@
+use sha2::{Digest, Sha256};
 use std::{
-    fs,
+    fs::{self, File},
     io::{self, Read, Write},
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -34,6 +35,16 @@ impl StagedPackage {
             handed_off: false,
         })
     }
+    #[cfg(windows)]
+    pub(super) fn mark_for_cleanup(&self) -> io::Result<()> {
+        let marker = self.file.with_file_name("update-handoff");
+        let filename = self
+            .file
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| io::Error::other("El instalador no tiene un nombre válido."))?;
+        File::create_new(marker)?.write_all(filename.as_bytes())
+    }
 }
 
 impl Drop for StagedPackage {
@@ -42,6 +53,83 @@ impl Drop for StagedPackage {
             && let Some(dir) = self.file.parent()
         {
             let _ = fs::remove_dir_all(dir);
+        }
+    }
+}
+
+/// Reclaim handed-off installers on a later startup. A running executable
+/// stays locked by Windows, so its marker is retained until removal succeeds.
+#[cfg(windows)]
+pub(super) fn clean_installer_downloads() {
+    use std::{os::windows::fs::MetadataExt, time::Duration};
+    let temp = std::env::temp_dir();
+    if !temp.is_absolute() {
+        return;
+    }
+    let Ok(entries) = fs::read_dir(temp) else {
+        return;
+    };
+    let old_enough = |metadata: &fs::Metadata| {
+        metadata
+            .modified()
+            .ok()
+            .and_then(|time| time.elapsed().ok())
+            .is_some_and(|age| age >= Duration::from_secs(24 * 60 * 60))
+    };
+    for entry in entries.filter_map(Result::ok) {
+        let name = entry.file_name();
+        let Some(nonce) = name
+            .to_str()
+            .and_then(|name| name.strip_prefix("crabpdf-download-"))
+        else {
+            continue;
+        };
+        if nonce.len() != 16 || !nonce.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            continue;
+        }
+        let dir = entry.path();
+        if !fs::symlink_metadata(&dir)
+            .is_ok_and(|meta| meta.is_dir() && meta.file_attributes() & 0x400 == 0)
+        {
+            continue;
+        }
+        let marker = dir.join("update-handoff");
+        if !fs::symlink_metadata(&marker).is_ok_and(|meta| {
+            meta.is_file()
+                && meta.file_attributes() & 0x400 == 0
+                && meta.len() <= 128
+                && old_enough(&meta)
+        }) {
+            continue;
+        }
+        let mut name = String::new();
+        if File::open(&marker)
+            .and_then(|file| file.take(129).read_to_string(&mut name))
+            .is_err()
+        {
+            continue;
+        }
+        let Some(version) = name.strip_prefix("crabpdf-").and_then(|name| {
+            name.strip_suffix("-win-x64-setup.exe")
+                .or_else(|| name.strip_suffix("-win-x86-setup.exe"))
+        }) else {
+            continue;
+        };
+        if semver::Version::parse(version).is_err() || name.contains(['/', '\\', ':']) {
+            continue;
+        }
+        let installer = dir.join(name);
+        let removed = match fs::symlink_metadata(&installer) {
+            Err(error) => error.kind() == io::ErrorKind::NotFound,
+            Ok(meta) => {
+                meta.is_file()
+                    && meta.file_attributes() & 0x400 == 0
+                    && fs::remove_file(installer).is_ok()
+            }
+        };
+        if removed {
+            let _ = fs::remove_file(marker);
+            let _ = fs::remove_dir(dir);
         }
     }
 }
@@ -130,45 +218,10 @@ fn background(program: PathBuf) -> Command {
 }
 
 pub(super) fn sha256(path: &Path) -> io::Result<String> {
-    let output = if cfg!(target_os = "windows") {
-        background(windows_system()?.join("certutil.exe"))
-            .arg("-hashfile")
-            .arg(path)
-            .arg("SHA256")
-            .output()?
-    } else if cfg!(target_os = "macos") {
-        background("/usr/bin/shasum".into())
-            .args(["-a", "256"])
-            .arg(path)
-            .output()?
-    } else {
-        background("/usr/bin/sha256sum".into())
-            .args(["--zero", "--"])
-            .arg(path)
-            .output()?
-    };
-    if !output.status.success() {
-        return Err(io::Error::other(
-            "Falló la comprobación SHA-256 del sistema.",
-        ));
-    }
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let digest = if cfg!(target_os = "windows") {
-        // CertUtil localizes the surrounding text and may insert spaces between bytes.
-        stdout
-            .lines()
-            .map(|line| line.replace(' ', ""))
-            .find(|line| is_sha256(line))
-    } else {
-        stdout
-            .split_ascii_whitespace()
-            .next()
-            .filter(|word| is_sha256(word))
-            .map(str::to_owned)
-    };
-    digest
-        .map(|value| value.to_ascii_lowercase())
-        .ok_or_else(|| io::Error::other("El sistema no devolvió un SHA-256 válido."))
+    let mut file = File::open(path)?;
+    let mut digest = Sha256::new();
+    io::copy(&mut file, &mut digest)?;
+    Ok(format!("{:x}", digest.finalize()))
 }
 
 pub(super) fn is_sha256(value: &str) -> bool {

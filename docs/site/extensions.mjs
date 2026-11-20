@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const platforms = new Map([
@@ -40,6 +40,29 @@ function card(entry) {
   </article>`;
 }
 
+const bundledNames = new Map([
+  ["org.crabpdf.selection-info", "selection-info"],
+  ["org.crabpdf.math-ocr", "math-ocr"],
+  ["org.crabpdf.pomodoro", "pomodoro"],
+]);
+
+async function pruneArchives(output, files) {
+  const folder = path.join(output, "extensions/packages");
+  const entries = await readdir(folder, { withFileTypes: true }).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+    return [];
+  });
+  const current = new Set(files);
+  for (const entry of entries) {
+    if (!entry.isFile() || current.has("extensions/packages/" + entry.name)) continue;
+    const stem = entry.name.replace(/-[a-f0-9]{12}\.zip$/, "");
+    if (stem === entry.name) continue;
+    const generated = [...bundledNames.values()].some((name) =>
+      [...platforms.keys()].some((target) => stem === name + "-" + target));
+    if (generated) await unlink(path.join(folder, entry.name));
+  }
+}
+
 export async function buildExtensions(docs, repo, output) {
   const catalog = JSON.parse(await readFile(path.join(docs, "site/extensions.json"), "utf8"));
   if (catalog.schema !== 1 || !Array.isArray(catalog.extensions) || catalog.extensions.length > 128) {
@@ -49,7 +72,14 @@ export async function buildExtensions(docs, repo, output) {
   const codes = new Set();
   const ids = new Set();
   const preview = process.env.CRABPDF_CATALOG_PREVIEW === "1" && process.env.CI !== "true";
-  await mkdir(path.join(output, "extensions"), { recursive: true });
+  const extensionFolder = path.join(output, "extensions");
+  await mkdir(extensionFolder, { recursive: true });
+  if (!(await lstat(extensionFolder)).isDirectory()) throw new Error("Invalid output directory for extensions.");
+  const archiveFolder = path.join(extensionFolder, "packages");
+  const archiveInfo = await lstat(archiveFolder).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (archiveInfo && !archiveInfo.isDirectory()) throw new Error("Invalid output directory for extension packages.");
   for (const entry of catalog.extensions) {
     if (!/^[1-9]\d{5}$/.test(entry.code) || codes.has(entry.code) ||
       !identifier.test(entry.id) || ids.has(entry.id) || !version.test(entry.version) ||
@@ -72,11 +102,7 @@ export async function buildExtensions(docs, repo, output) {
       done.add(asset.target);
       assets.push(asset);
     }
-    const prefix = new Map([
-      ["org.crabpdf.selection-info", "selection-info"],
-      ["org.crabpdf.math-ocr", "math-ocr"],
-      ["org.crabpdf.pomodoro", "pomodoro"],
-    ]).get(entry.id);
+    const prefix = bundledNames.get(entry.id);
     for (const target of entry.example_targets ?? []) {
       if (!prefix || !platforms.has(target) || done.has(target)) {
         throw new Error("Invalid target for bundled SDK example: " + target);
@@ -106,5 +132,6 @@ export async function buildExtensions(docs, repo, output) {
   const json = JSON.stringify(catalog, null, 2) + "\n";
   if (Buffer.byteLength(json) > 256 * 1024) throw new Error("Extension catalog exceeds 256 KiB.");
   await writeFile(path.join(output, files[0]), json);
+  await pruneArchives(output, files);
   return { files, cards: catalog.extensions.map(card).join("\n") || "<p>El catálogo todavía no tiene paquetes.</p>" };
 }

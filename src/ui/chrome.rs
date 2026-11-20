@@ -356,6 +356,7 @@ impl ReaderApp {
         if let Some(index) = activate {
             self.active = index;
             self.home = false;
+            self.open_deferred_tab();
             self.reveal_tab = true;
         }
         if let Some(index) = close {

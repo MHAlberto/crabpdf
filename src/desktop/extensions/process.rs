@@ -107,6 +107,28 @@ impl Drop for Work {
         let _ = fs::remove_dir(&self.0);
     }
 }
+/// Invocation scratch space lives beside extension data so verified downloads can be renamed.
+struct Scratch(PathBuf);
+impl Scratch {
+    fn create(data: &std::path::Path) -> io::Result<Self> {
+        let path = data.join(".crabpdf-scratch");
+        Self::clean(&path)?;
+        fs::create_dir(&path)?;
+        Ok(Self(path))
+    }
+
+    fn clean(path: &std::path::Path) -> io::Result<()> {
+        match fs::remove_dir_all(path) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
+            result => result,
+        }
+    }
+}
+impl Drop for Scratch {
+    fn drop(&mut self) {
+        let _ = Self::clean(&self.0);
+    }
+}
 struct ChildGuard(Child);
 impl Drop for ChildGuard {
     fn drop(&mut self) {
@@ -176,13 +198,13 @@ fn invoke(
     let response_path = work.0.join("response.json");
     crabpdf_extension_api::write_message(&request_path, &request)?;
     let executable = fs::canonicalize(package.directory.join(&package.manifest.executable))?;
+    let data = repository.model_data(&package.manifest.id)?;
+    let scratch = Scratch::create(&data)?;
     let mut process = Command::new(executable);
     process
         .current_dir(&package.directory)
-        .env(
-            "CRABPDF_EXTENSION_DATA",
-            repository.model_data(&package.manifest.id)?,
-        )
+        .env("CRABPDF_EXTENSION_DATA", &data)
+        .env("CRABPDF_EXTENSION_SCRATCH", &scratch.0)
         .arg("--crabpdf-request")
         .arg(&request_path)
         .arg("--crabpdf-response")

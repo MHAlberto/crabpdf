@@ -84,7 +84,7 @@ jobs:
               --jq '.artifacts[] | select(.expired == false) | .name')
             if grep -Fxq 'catalog-bundle' <<< "$artifacts"; then
               pattern=catalog-bundle
-            elif [[ $(grep -c '^catalog-example-' <<< "$artifacts") == 5 ]]; then
+            elif [[ $(grep -c '^catalog-example-' <<< "$artifacts") == 4 ]]; then
               pattern='catalog-example-*'
             else
               continue
@@ -119,7 +119,7 @@ jobs:
       - name: Fetch locked SDK dependencies
         run: cargo fetch --locked --target '${{ matrix.target }}'
       - name: Install OCR build dependencies
-        if: matrix.target == 'x86_64-pc-windows-msvc' || matrix.target == 'x86_64-unknown-linux-gnu'
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         run: >-
           python -m pip install --only-binary=:all: -r extensions/math-ocr/requirements.txt
       - name: Build extension packages
@@ -127,7 +127,7 @@ jobs:
         run: |
           ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -Archive
           ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}'
-          if ('${{ matrix.target }}' -in @('x86_64-pc-windows-msvc', 'x86_64-unknown-linux-gnu')) {
+          if ('${{ matrix.target }}' -eq 'x86_64-pc-windows-msvc') {
             ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}' -Ocr
           }
           if ('${{ matrix.target }}' -eq 'x86_64-apple-darwin') {
@@ -139,11 +139,28 @@ jobs:
             ./scripts/Build-ExtensionExample.ps1 -Target aarch64-apple-darwin -Archive
             ./scripts/Build-ToolExtensions.ps1 -Target aarch64-apple-darwin
           }
+      - name: Build OCR with glibc 2.36
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          tar -cf - LICENSE extensions/math-ocr | docker build --platform linux/amd64 \
+            -f extensions/math-ocr/Dockerfile --target archive \
+            --output type=local,dest=artifacts/site-extensions -
+      - name: Verify OCR in a separate Debian 12 runtime
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          docker run --rm --platform linux/amd64 \
+            -v "$PWD/extensions/math-ocr:/smoke:ro" \
+            -v "$PWD/artifacts/site-extensions:/packages:ro" \
+            python:3.12-slim-bookworm sh -ec '
+              test "$(getconf GNU_LIBC_VERSION)" = "glibc 2.36"
+              python /smoke/test_package.py /packages/math-ocr-x86_64-unknown-linux-gnu.zip
+            '
       - uses: actions/upload-artifact@v4
         with:
           name: catalog-example-${{ matrix.target }}
           path: artifacts/site-extensions/*.zip
           if-no-files-found: error
+          retention-days: 14
 
   build:
     needs: [reuse-example, example-packages]
@@ -184,21 +201,22 @@ jobs:
         working-directory: docs
         run: npm run build && npm run check
       - uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         with:
           name: catalog-bundle
           path: artifacts/site-extensions/*.zip
           if-no-files-found: error
+          retention-days: 30
       - name: Configure Pages
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
       - name: Upload public files
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist/site
   deploy:
-    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.build.result == 'success' }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:

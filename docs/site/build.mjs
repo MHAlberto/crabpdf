@@ -1,4 +1,4 @@
-import { mkdir, copyFile, readFile, writeFile, readdir } from "node:fs/promises";
+import { mkdir, copyFile, readFile, writeFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { buildExtensions, escape } from "./extensions.mjs";
 import { sitePages } from "./pages.mjs";
@@ -40,8 +40,6 @@ for (const page of pages) {
 // One canonical source for the logo and screenshots; only public files are copied.
 const assets = [
   [path.join(docs, "site/app.js"), "site/app.js"],
-  [path.join(docs, "USAGE.md"), "documentacion/uso.md"],
-  [path.join(docs, "EXTENSIONS.md"), "documentacion/extensiones.md"],
   [path.join(repo, "assets/crabpdf-logo.svg"), "site/assets/crabpdf-logo.svg"],
   [path.join(docs, "screenshots/dark.png"), "site/assets/reading.png"],
   [path.join(docs, "screenshots/highlight.png"), "site/assets/marks.png"],
@@ -52,8 +50,37 @@ for (const [source, relative] of assets) {
   await mkdir(path.dirname(destination), { recursive: true });
   await copyFile(source, destination);
 }
+const guides = new Map([
+  ["USAGE.md", "documentacion/uso.md"],
+  ["EXTENSIONS.md", "documentacion/extensiones.md"],
+]);
+const siteBase = "https://mhalberto.github.io/crabpdf/";
+for (const [name, relative] of guides) {
+  const markdown = await readFile(path.join(docs, name), "utf8");
+  const destinations = new Map();
+  for (const [, href] of markdown.matchAll(/\]\(([^\s)]+)\)/g)) {
+    if (/^(?:[a-z]+:|#|\/)/i.test(href)) continue;
+    const [pathname, fragment] = href.split("#", 2);
+    const local = path.resolve(docs, pathname);
+    const inRepo = path.relative(repo, local).split(path.sep).join("/");
+    if (path.isAbsolute(inRepo) || inRepo.startsWith("../")) {
+      throw new Error("Link outside the repository in " + name + ": " + href);
+    }
+    const info = await stat(local);
+    const guide = guides.get(pathname);
+    const repository = "https://github.com/MHAlberto/crabpdf/";
+    const base = guide ? siteBase + guide
+      : inRepo.startsWith("docs/screenshots/") ? "https://raw.githubusercontent.com/MHAlberto/crabpdf/main/" + inRepo
+      : repository + (info.isDirectory() ? "tree/" : "blob/") + "main/" + inRepo;
+    destinations.set(href, base + (fragment ? "#" + fragment : ""));
+  }
+  const destination = path.join(output, relative);
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, markdown.replace(/\]\(([^\s)]+)\)/g,
+    (match, href) => destinations.has(href) ? "](" + destinations.get(href) + ")" : match));
+}
 // Tailwind writes its output here before this script runs.
-const files = [...pages.map((page) => page.path), "site/assets/site.css", ...extensions.files, ...assets.map(([, relative]) => relative)];
+const files = [...pages.map((page) => page.path), "site/assets/site.css", ...extensions.files, ...guides.values(), ...assets.map(([, relative]) => relative)];
 async function walk(folder, prefix = "") {
   const result = [];
   for (const entry of await readdir(folder, { withFileTypes: true })) {

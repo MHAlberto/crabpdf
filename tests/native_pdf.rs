@@ -479,7 +479,7 @@ fn extension_crop_carries_real_ink_and_selected_text() {
             right: (b.right + 0.005).min(1.0),
             bottom: (b.bottom + 0.005).min(1.0),
         };
-        let capture = engine.capture_selection(0, crop).unwrap();
+        let capture = engine.capture_selection(0, crop, 0).unwrap();
         assert!(capture.text.contains('R'), "{}", capture.text);
         assert!(
             capture.width > 0
@@ -495,6 +495,19 @@ fn extension_crop_carries_real_ink_and_selected_text() {
                 .any(|p| p[0] < 180 && p[1] < 180 && p[2] < 180),
             "Crop must contain rendered text"
         );
+        for (rotation, expected) in [
+            (1, image::imageops::rotate90(&image)),
+            (2, image::imageops::rotate180(&image)),
+            (3, image::imageops::rotate270(&image)),
+        ] {
+            let rotated = engine.capture_selection(0, crop, rotation).unwrap();
+            assert_eq!(rotated.text, capture.text);
+            assert_eq!((rotated.width, rotated.height), expected.dimensions());
+            assert_eq!(
+                image::load_from_memory(&rotated.png).unwrap().to_rgba8(),
+                expected
+            );
+        }
     }
     let invalid = crabpdf::document::Bounds {
         left: f32::NAN,
@@ -502,7 +515,7 @@ fn extension_crop_carries_real_ink_and_selected_text() {
         right: 0.8,
         bottom: 0.8,
     };
-    assert!(engine.capture_selection(0, invalid).is_err());
+    assert!(engine.capture_selection(0, invalid, 0).is_err());
 }
 
 #[test]
@@ -545,7 +558,7 @@ fn extension_capture_without_text_and_stale_worker_requests_are_handled() {
         right: 1.0,
         bottom: 1.0,
     };
-    worker.capture(800, 17, 0, 0, bounds).unwrap();
+    worker.capture(800, 17, 0, 0, bounds, 0).unwrap();
     loop {
         if let WorkerEvent::Captured(id, token, result) =
             worker.events.recv_timeout(Duration::from_secs(10)).unwrap()
@@ -563,9 +576,25 @@ fn extension_capture_without_text_and_stale_worker_requests_are_handled() {
             break;
         }
     }
-    worker.capture(800, 18, 99, 0, bounds).unwrap();
+    worker.capture(800, 18, 99, 0, bounds, 0).unwrap();
     match worker.events.recv_timeout(Duration::from_secs(10)).unwrap() {
         WorkerEvent::Captured(800, 18, Err(_)) => {}
         _ => panic!("Expected a stale revision error"),
     }
+}
+
+#[test]
+#[ignore = "Requires the native PDFium 7881 library"]
+fn reader_loads_outline_only_after_request() {
+    let worker =
+        PdfWorker::spawn_for_reader(|| {}, crabpdf::app_paths::AppPaths::resolve(None, None))
+            .unwrap();
+    let receive = || worker.events.recv_timeout(Duration::from_secs(10)).unwrap();
+    worker.open(1, fixture("reading-sample.pdf")).unwrap();
+    assert!(matches!(receive(), WorkerEvent::Opened(1, Ok(_))));
+    assert!(
+        matches!(receive(), WorkerEvent::Details(1, Ok(details)) if details.outline.is_empty())
+    );
+    worker.outline(1).unwrap();
+    assert!(matches!(receive(), WorkerEvent::Outline(1, Ok(entries)) if !entries.is_empty()));
 }

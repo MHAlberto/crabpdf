@@ -2,7 +2,7 @@
 use super::motion;
 use crate::{
     application::{profile::StoredDocument, tabs::ReadingTab},
-    document::{DocumentId, Zoom},
+    document::{DocumentId, OutlineItem, ReaderError, Zoom},
     layout::{LayoutSpec, PageLayout, ReadingAnchor},
     reading_position::ReadingPosition,
 };
@@ -16,8 +16,17 @@ pub(super) struct SearchViewState {
     pub(super) due: Option<Instant>,
 }
 #[derive(Default)]
+pub(super) enum OutlineView {
+    #[default]
+    Unrequested,
+    Loading,
+    Ready(Vec<OutlineItem>),
+    Failed(ReaderError),
+}
+#[derive(Default)]
 pub(super) struct TabViewState {
     pub(super) search: SearchViewState,
+    pub(super) outline: OutlineView,
     pub(super) scroll: Vec2,
     pub(super) key_scroll: super::key_scroll::KeyScroll,
     pub(super) viewport: Vec2,
@@ -39,12 +48,22 @@ pub(super) struct TabViewState {
 pub(super) struct Tab {
     pub(super) reader: ReadingTab,
     pub(super) view: TabViewState,
+    pub(super) view_id: String,
+    pub(super) deferred_open: bool,
 }
 impl Tab {
     pub(super) fn new(id: DocumentId, path: PathBuf, restore: Option<StoredDocument>) -> Self {
         Self {
+            view_id: restore
+                .as_ref()
+                .and_then(|saved| saved.view_id.clone())
+                .unwrap_or_else(|| match getrandom::u64() {
+                    Ok(nonce) => format!("{nonce:016x}"),
+                    Err(_) => format!("{}-{id}", std::process::id()),
+                }),
             reader: ReadingTab::new(id, path, restore),
             view: TabViewState::default(),
+            deferred_open: false,
         }
     }
     pub(super) fn go_to(&mut self, page: usize, remember: bool) {
@@ -126,7 +145,9 @@ impl Tab {
                 })
             })
         };
-        self.reader.stored(captured)
+        let mut stored = self.reader.stored(captured)?;
+        stored.view_id = Some(self.view_id.clone());
+        Some(stored)
     }
     pub(super) fn anchor(
         &self,

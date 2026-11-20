@@ -203,6 +203,7 @@ impl ReadingTab {
     pub fn stored(&self, captured_position: Option<ReadingPosition>) -> Option<StoredDocument> {
         let document = self.state.document.as_ref()?;
         Some(StoredDocument {
+            view_id: None,
             path: self.path.clone(),
             page: document.page,
             zoom: self.state.zoom,

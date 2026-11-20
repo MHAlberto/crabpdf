@@ -21,7 +21,8 @@ pub(super) enum Command {
     Render(RenderKey),
     ReleaseRender(RenderKey),
     Content(DocumentId, usize),
-    Capture(DocumentId, u64, u64, usize, crate::document::Bounds),
+    Outline(DocumentId),
+    Capture(DocumentId, u64, u64, usize, crate::document::Bounds, u8),
     Search(SearchRequest),
     SearchPage(SearchRequest, usize),
     Save(DocumentId, PathBuf),
@@ -35,6 +36,7 @@ impl Command {
             Self::Open(id, ..)
             | Self::Close(id)
             | Self::Content(id, ..)
+            | Self::Outline(id)
             | Self::Capture(id, ..)
             | Self::Save(id, ..)
             | Self::Mark(id, ..)
@@ -49,7 +51,7 @@ struct Pending {
     control: VecDeque<Command>,
     renders: VecDeque<RenderKey>,
     prefetch: VecDeque<RenderKey>,
-    search: Option<(SearchRequest, usize, usize)>,
+    searches: VecDeque<(SearchRequest, usize, usize)>,
     cancelled_searches: HashMap<DocumentId, u64>,
     stop: bool,
     importing: HashMap<DocumentId, Arc<AtomicBool>>,
@@ -69,7 +71,10 @@ impl Mailbox {
             if let Some(index) = pending.control.iter().position(|command| {
                 !matches!(
                     command,
-                    Command::Content(..) | Command::Capture(..) | Command::Cover(..)
+                    Command::Content(..)
+                        | Command::Capture(..)
+                        | Command::Outline(..)
+                        | Command::Cover(..)
                 )
             }) {
                 return pending.control.remove(index);
@@ -77,11 +82,12 @@ impl Mailbox {
             if let Some(key) = pending.renders.pop_front() {
                 return Some(Command::Render(key));
             }
-            if let Some(index) = pending
-                .control
-                .iter()
-                .position(|command| matches!(command, Command::Content(..) | Command::Capture(..)))
-            {
+            if let Some(index) = pending.control.iter().position(|command| {
+                matches!(
+                    command,
+                    Command::Content(..) | Command::Capture(..) | Command::Outline(..)
+                )
+            }) {
                 return pending.control.remove(index);
             }
             if let Some(key) = pending.prefetch.pop_front() {
@@ -90,40 +96,36 @@ impl Mailbox {
             if let Some(command) = pending.control.pop_front() {
                 return Some(command);
             }
-            if let Some((request, next, total)) = pending.search.as_mut()
-                && *next < *total
-            {
-                let page = *next;
-                *next += 1;
-                return Some(Command::SearchPage(request.clone(), page));
+            if let Some((request, page, total)) = pending.searches.pop_front() {
+                if page + 1 < total {
+                    pending
+                        .searches
+                        .push_back((request.clone(), page + 1, total));
+                }
+                return Some(Command::SearchPage(request, page));
             }
             pending = self.wake.wait(pending).ok()?;
         }
     }
     pub(super) fn start_search(&self, request: SearchRequest, total: usize) {
         if let Ok(mut p) = self.pending.lock()
+            && total > 0
             && p.cancelled_searches
                 .get(&request.document_id)
                 .is_none_or(|generation| request.generation > *generation)
         {
-            p.search = Some((request, 0, total));
+            p.searches
+                .retain(|(queued, _, _)| queued.document_id != request.document_id);
+            p.searches.push_back((request, 0, total));
+            self.wake.notify_one();
         }
     }
     pub(super) fn forget_search(&self, id: DocumentId) {
         if let Ok(mut pending) = self.pending.lock() {
             pending.cancelled_searches.remove(&id);
-            if pending
-                .search
-                .as_ref()
-                .is_some_and(|(request, _, _)| request.document_id == id)
-            {
-                pending.search = None;
-            }
-        }
-    }
-    pub(super) fn cancel_search(&self) {
-        if let Ok(mut p) = self.pending.lock() {
-            p.search = None;
+            pending
+                .searches
+                .retain(|(request, _, _)| request.document_id != id);
         }
     }
 
@@ -135,13 +137,9 @@ impl Mailbox {
         pending.control.retain(|c| c.document_id() != id);
         pending.renders.retain(|k| k.document_id != id);
         pending.prefetch.retain(|k| k.document_id != id);
-        if pending
-            .search
-            .as_ref()
-            .is_some_and(|(r, _, _)| r.document_id == id)
-        {
-            pending.search = None;
-        }
+        pending
+            .searches
+            .retain(|(request, _, _)| request.document_id != id);
         pending.control.push_back(Command::Close(id));
         self.wake.notify_one();
         Ok(())
@@ -186,13 +184,9 @@ impl Mailbox {
             !matches!(command, Command::Search(request)
                 if request.document_id == id && request.generation == generation)
         });
-        if pending
-            .search
-            .as_ref()
-            .is_some_and(|(r, _, _)| r.document_id == id && r.generation == generation)
-        {
-            pending.search = None;
-        }
+        pending.searches.retain(|(request, _, _)| {
+            request.document_id != id || request.generation != generation
+        });
         Ok(())
     }
     pub(super) fn enqueue(&self, command: Command) -> Result<(), ReaderError> {
@@ -210,9 +204,14 @@ impl Mailbox {
                     return Ok(());
                 }
             }
-            Command::Search(_) => {
-                pending.search = None;
-                pending.control.retain(|c| !matches!(c, Command::Search(_)));
+            Command::Search(request) => {
+                pending
+                    .searches
+                    .retain(|(queued, _, _)| queued.document_id != request.document_id);
+                pending.control.retain(|c| {
+                    !matches!(c, Command::Search(queued)
+                    if queued.document_id == request.document_id)
+                });
             }
             Command::Cover(path, _, _)
                 if pending.control.iter().any(
@@ -286,6 +285,32 @@ impl Mailbox {
 mod tests {
     use super::*;
     #[test]
+    fn searches_in_two_documents_finish_independently() {
+        let mailbox = Mailbox::default();
+        let request = |id| SearchRequest {
+            document_id: id,
+            generation: id,
+            query: "reader".into(),
+            match_case: false,
+            whole_word: false,
+        };
+        mailbox.start_search(request(1), 3);
+        assert!(matches!(mailbox.next(), Some(Command::SearchPage(_, 0))));
+        mailbox.enqueue(Command::Search(request(2))).unwrap();
+        let Some(Command::Search(second)) = mailbox.next() else {
+            panic!("expected the second search request");
+        };
+        mailbox.start_search(second, 2);
+        for (id, page) in [(1, 1), (2, 0), (1, 2), (2, 1)] {
+            assert!(
+                matches!(mailbox.next(), Some(Command::SearchPage(request, index))
+                if request.document_id == id && index == page)
+            );
+        }
+        assert!(mailbox.pending.lock().unwrap().searches.is_empty());
+    }
+
+    #[test]
     fn cancelling_search_covers_queued_active_and_dequeued_requests_without_touching_other_tabs() {
         let mailbox = Mailbox::default();
         let request = |document_id, generation| SearchRequest {
@@ -306,12 +331,12 @@ mod tests {
 
         // A popped request cannot become an active search after it was cancelled.
         mailbox.start_search(request(1, 10), 20);
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
+        assert!(mailbox.pending.lock().unwrap().searches.is_empty());
         mailbox.start_search(request(1, 11), 20);
         mailbox.stop_search(1, 10).unwrap();
-        assert!(mailbox.pending.lock().unwrap().search.is_some());
+        assert_eq!(mailbox.pending.lock().unwrap().searches.len(), 1);
         mailbox.stop_search(1, 11).unwrap();
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
+        assert!(mailbox.pending.lock().unwrap().searches.is_empty());
         mailbox.start_search(request(3, 11), 20);
         mailbox.stop_search(1, 99).unwrap();
         assert_eq!(
@@ -319,8 +344,8 @@ mod tests {
                 .pending
                 .lock()
                 .unwrap()
-                .search
-                .as_ref()
+                .searches
+                .front()
                 .unwrap()
                 .0
                 .document_id,
@@ -336,7 +361,7 @@ mod tests {
                 .contains_key(&1)
         );
         mailbox.forget_search(3);
-        assert!(mailbox.pending.lock().unwrap().search.is_none());
+        assert!(mailbox.pending.lock().unwrap().searches.is_empty());
     }
 
     #[test]

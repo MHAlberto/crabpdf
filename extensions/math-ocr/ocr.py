@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import stat
 from pathlib import Path
 import urllib.request
 
@@ -15,23 +16,104 @@ MODELS = {
 }
 
 
-def valid(path, size, digest):
-    if not path.is_file() or path.stat().st_size != size:
-        return False
+RECEIPT = "verified-model.json"
+
+
+def stamp(path, size):
+    try:
+        data = path.lstat()
+    except FileNotFoundError:
+        return None
+    if not stat.S_ISREG(data.st_mode) or data.st_size != size:
+        return None
+    return [data.st_dev, data.st_ino, data.st_size, data.st_mtime_ns, data.st_ctime_ns]
+
+
+def checked_stamp(path, size, digest, cached=None):
+    before = stamp(path, size)
+    if before is None:
+        return None
+    if cached == [digest, before]:
+        return before
     with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest() == digest
+        actual = hashlib.file_digest(stream, "sha256").hexdigest()
+    if actual == digest and stamp(path, size) == before:
+        return before
+    return None
 
 
-def prepare(folder):
+def read_receipt(folder):
+    try:
+        with (folder / RECEIPT).open("rb") as stream:
+            data = stream.read(8193)
+        if len(data) <= 8192:
+            receipt = json.loads(data)
+            if isinstance(receipt, dict):
+                return receipt
+    except (OSError, ValueError):
+        pass
+    return {}
+
+
+def save_receipt(folder, receipt):
+    temporary = folder / (RECEIPT + ".tmp")
+    try:
+        temporary.write_text(json.dumps(receipt), encoding="utf-8")
+        temporary.replace(folder / RECEIPT)
+    except OSError:
+        # Cached verification is optional when the model directory is read-only.
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def model_ready(folder):
+    cached = read_receipt(folder)
+    receipt = {}
+    for name, (size, digest) in MODELS.items():
+        found = checked_stamp(folder / name, size, digest, cached.get(name))
+        if found is None:
+            return False
+        receipt[name] = [digest, found]
+    if receipt != cached:
+        save_receipt(folder, receipt)
+    return True
+
+
+def clean_partials(folder):
+    for name in MODELS:
+        (folder / (name + ".download")).unlink(missing_ok=True)
+    (folder / (RECEIPT + ".tmp")).unlink(missing_ok=True)
+
+
+def remove_model(folder):
+    (folder / RECEIPT).unlink(missing_ok=True)
+    removed = 0
+    for name in MODELS:
+        path = folder / name
+        try:
+            size = path.lstat().st_size
+            path.unlink()
+        except FileNotFoundError:
+            continue
+        removed += size
+    return removed
+
+
+def prepare(folder, scratch):
     folder.mkdir(parents=True, exist_ok=True)
+    cached = read_receipt(folder)
+    receipt = {}
     for name, (size, digest) in MODELS.items():
         path = folder / name
-        if valid(path, size, digest):
+        if (found := checked_stamp(path, size, digest, cached.get(name))) is not None:
+            receipt[name] = [digest, found]
             continue
-        part = path.with_suffix(path.suffix + ".download")
+        part = scratch / (name + ".download")
         try:
             request = urllib.request.Request(BASE + name, headers={"User-Agent": "CrabPDF-OCR"})
-            with urllib.request.urlopen(request, timeout=45) as stream, part.open("wb") as output:
+            with urllib.request.urlopen(request, timeout=45) as stream, part.open("xb") as output:
                 remaining = size
                 while remaining:
                     chunk = stream.read(min(remaining, 1024 * 1024))
@@ -41,21 +123,32 @@ def prepare(folder):
                     remaining -= len(chunk)
                 if stream.read(1):
                     raise ValueError("El modelo supera el tamaño publicado.")
-            if not valid(part, size, digest):
+            if checked_stamp(part, size, digest) is None:
                 raise ValueError(f"El SHA-256 de {name} no coincide.")
             part.replace(path)
+            receipt[name] = [digest, stamp(path, size)]
         finally:
             part.unlink(missing_ok=True)
+    if receipt != cached:
+        save_receipt(folder, receipt)
 
 
 def run(request):
     folder = Path(os.environ["CRABPDF_EXTENSION_DATA"]) / "rapidlatex-v0"
+    clean_partials(folder)
+    if request["command"] == "remove-model":
+        removed = remove_model(folder)
+        return {"kind": "text", "text": f"Modelo eliminado. Espacio liberado: {removed / 1_000_000:.2f} MB."}
+    if request["command"] == "model-size":
+        used = sum((folder / name).stat().st_size for name in MODELS if (folder / name).is_file())
+        return {"kind": "text", "text": f"Espacio usado por el modelo: {used / 1_000_000:.2f} MB."}
     if request["command"] == "prepare":
-        prepare(folder)
+        scratch = Path(os.environ["CRABPDF_EXTENSION_SCRATCH"]) if "CRABPDF_EXTENSION_SCRATCH" in os.environ else folder
+        prepare(folder, scratch)
         return {"kind": "text", "text": "Modelo descargado y verificado. Selecciona una ecuación."}
     if request["command"] != "recognize" or not request.get("image"):
         raise ValueError("Selecciona un recorte con una ecuación.")
-    if not all(valid(folder / name, size, digest) for name, (size, digest) in MODELS.items()):
+    if not model_ready(folder):
         raise ValueError("Pulsa Descargar modelo antes de reconocer una ecuación.")
     from rapid_latex_ocr import LaTeXOCR
 

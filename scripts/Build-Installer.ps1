@@ -85,15 +85,20 @@ try {
     $payloadManifest = @{ version=$version; target=$target; files=$payloadFiles } | ConvertTo-Json -Depth 6
     [IO.File]::WriteAllText((Join-Path $payload 'manifest.json'), $payloadManifest, $utf8)
     $paths.Add('manifest.json')
+    & cargo build --locked --offline -p crabpdf-install-commit --release --target $target
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo compilar la utilidad de actualización.' }
+    Copy-Item -LiteralPath (Join-Path $workspace "target/$target/release/crabpdf-install-commit.exe") -Destination $work -Force
     $installLines = [Collections.Generic.List[string]]::new()
     $uninstallLines = [Collections.Generic.List[string]]::new()
     $directories = @{}
     foreach ($relative in $paths) {
         $windowsPath = $relative.Replace('/','\')
         $directory = [IO.Path]::GetDirectoryName($windowsPath)
-        $targetPath = if ($directory) { '$INSTDIR\' + (NsisPath $directory) } else { '$INSTDIR' }
+        $targetPath = if ($directory) { '$StageDir\' + (NsisPath $directory) } else { '$StageDir' }
         $installLines.Add('SetOutPath "' + $targetPath + '"')
+        $installLines.Add('IfErrors stage_failed')
         $installLines.Add('File "' + (NsisPath (Join-Path $payload $windowsPath)) + '"')
+        $installLines.Add('IfErrors stage_failed')
         $uninstallLines.Add('Delete "$INSTDIR\' + (NsisPath $windowsPath) + '"')
         while ($directory) {
             $directories[$directory] = $true

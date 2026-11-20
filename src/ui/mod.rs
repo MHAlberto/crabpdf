@@ -323,9 +323,7 @@ impl ReaderApp {
             #[cfg(test)]
             titlebar_control_rects: Vec::new(),
         };
-        for saved in session.into_iter().take(64) {
-            app.open_document(saved.path.clone(), Some(saved));
-        }
+        app.restore_tabs(session);
         if let Some(path) = initial_path {
             app.open_path(path);
         }
@@ -533,20 +531,39 @@ impl eframe::App for ReaderApp {
             self.execute(Action::Presentation, ctx);
         }
         self.shortcuts(ctx);
+        self.open_deferred_tab();
         self.advance_copy(ctx);
-        if let Some(tab) = self.tabs.get_mut(self.active)
-            && let Some(due) = tab.view.search.due
-        {
-            if due <= Instant::now() {
-                tab.view.search.due = None;
-                if let Some(worker) = &self.worker
-                    && let Some(request) = tab.reader.search.request()
-                    && let Err(error) = worker.search(request)
-                {
-                    tab.reader.state.error = Some(error);
+        for (index, tab) in self.tabs.iter_mut().enumerate() {
+            if self.home || index != self.active || tab.reader.selection.range().is_none() {
+                tab.view.selection_geometry.clear();
+            }
+        }
+        let now = Instant::now();
+        for tab in &mut self.tabs {
+            let Some(due) = tab.view.search.due else {
+                continue;
+            };
+            if due > now {
+                ctx.request_repaint_after(due - now);
+                continue;
+            }
+            tab.view.search.due = None;
+            if let Some(request) = tab.reader.search.request() {
+                let id = request.document_id;
+                let generation = request.generation;
+                let result = self
+                    .worker
+                    .as_ref()
+                    .ok_or_else(|| {
+                        ReaderError::new(
+                            ErrorKind::Worker,
+                            "El motor de búsqueda no está disponible.",
+                        )
+                    })
+                    .and_then(|worker| worker.search(request));
+                if let Err(error) = result {
+                    tab.reader.search.fail(id, generation, error);
                 }
-            } else {
-                ctx.request_repaint_after(due.saturating_duration_since(Instant::now()));
             }
         }
         if let Some(due) = self.save_due {
@@ -632,11 +649,10 @@ impl eframe::App for ReaderApp {
             .details
             .as_ref()
             .is_some_and(|details| details.can_copy);
-        if self.extensions.show(
-            ui.ctx(),
-            crate::desktop::extensions::Repository::new(&self.app_paths.data),
-            can_select,
-        ) && let Some(tab) = self.tabs.get_mut(self.active)
+        if self
+            .extensions
+            .show(ui.ctx(), &self.app_paths.data, can_select)
+            && let Some(tab) = self.tabs.get_mut(self.active)
         {
             tab.view.selection_drag = None;
         }

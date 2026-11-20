@@ -147,6 +147,7 @@ mod window_tests {
             for layout in [LayoutMode::Single, LayoutMode::Facing, LayoutMode::Book] {
                 for continuous in [true, false] {
                     let saved = StoredDocument {
+                        view_id: None,
                         path: "-libro con espacios y niño.pdf".into(),
                         page: 5,
                         zoom,

@@ -210,11 +210,7 @@ impl ReaderApp {
                 }
             }
             Action::Reload => {
-                let saved = self.tabs[self.active].stored();
-                let path = self.tabs[self.active].reader.path.clone();
-                let index = self.active;
-                self.close_index(index);
-                self.open_document(path, saved);
+                self.reload_active_tab();
             }
             Action::NewWindow => {
                 if let Err(error) = platform::new_window_with_paths(None, &self.app_paths) {
@@ -222,7 +218,8 @@ impl ReaderApp {
                 }
             }
             Action::DuplicateTab => {
-                if let Some(saved) = self.tabs[self.active].stored() {
+                if let Some(mut saved) = self.tabs[self.active].stored() {
+                    saved.view_id = None;
                     self.open_document_inner(saved.path.clone(), Some(saved), true);
                 }
             }

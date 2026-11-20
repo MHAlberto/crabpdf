@@ -3,6 +3,13 @@ use super::*;
 
 impl<'a> PdfiumEngine<'a> {
     pub fn details(&self) -> Result<DocumentDetails, ReaderError> {
+        self.read_details(true)
+    }
+
+    pub(crate) fn read_details(
+        &self,
+        include_outline: bool,
+    ) -> Result<DocumentDetails, ReaderError> {
         let document = self.document()?;
         let page = document.pages().get(0).map_err(map_render_error)?;
         let mut title = document
@@ -35,34 +42,12 @@ impl<'a> PdfiumEngine<'a> {
             };
             properties.push((name.into(), tag.value().into()));
         }
-        let mut outline = document
-            .bookmarks()
-            .iter()
-            .take(10_000)
-            .map(|b| {
-                let mut depth = 0;
-                let mut parent = b.parent();
-                while let Some(p) = parent {
-                    depth += 1;
-                    if depth >= 64 {
-                        break;
-                    }
-                    parent = p.parent();
-                }
-                OutlineItem {
-                    title: b.title().unwrap_or_default(),
-                    page: b
-                        .destination()
-                        .and_then(|d| d.page_index().ok())
-                        .map(|p| p as usize),
-                    depth,
-                }
-            })
-            .collect::<Vec<_>>();
+        let outline = if include_outline {
+            self.outline()?
+        } else {
+            Vec::new()
+        };
         if let Some(info) = &self.imported_info {
-            if !info.outline.is_empty() {
-                outline = info.outline.clone();
-            }
             if !info.title.is_empty() {
                 title = Some(info.title.clone());
                 properties.push(("Título".into(), info.title.clone()));
@@ -98,5 +83,37 @@ impl<'a> PdfiumEngine<'a> {
                     .can_add_or_modify_text_annotations()
                     .unwrap_or(false),
         })
+    }
+    pub(crate) fn outline(&self) -> Result<Vec<OutlineItem>, ReaderError> {
+        if let Some(info) = &self.imported_info
+            && !info.outline.is_empty()
+        {
+            return Ok(info.outline.clone());
+        }
+        Ok(self
+            .document()?
+            .bookmarks()
+            .iter()
+            .take(10_000)
+            .map(|b| {
+                let mut depth = 0;
+                let mut parent = b.parent();
+                while let Some(p) = parent {
+                    depth += 1;
+                    if depth >= 64 {
+                        break;
+                    }
+                    parent = p.parent();
+                }
+                OutlineItem {
+                    title: b.title().unwrap_or_default(),
+                    page: b
+                        .destination()
+                        .and_then(|d| d.page_index().ok())
+                        .map(|p| p as usize),
+                    depth,
+                }
+            })
+            .collect())
     }
 }

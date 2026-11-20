@@ -46,6 +46,65 @@ impl ReaderApp {
         });
         self.tabs.push(Tab::new(id, path.clone(), saved));
         self.active = self.tabs.len() - 1;
+        self.submit_active_open();
+    }
+
+    pub(super) fn restore_tabs(&mut self, session: Vec<StoredDocument>) {
+        if self.worker.is_none() {
+            return;
+        }
+        for saved in session.into_iter().take(64) {
+            self.next_id += 1;
+            let mut tab = Tab::new(self.next_id, saved.path.clone(), Some(saved));
+            tab.deferred_open = true;
+            self.tabs.push(tab);
+        }
+        if !self.tabs.is_empty() {
+            self.home = false;
+            self.active = self.tabs.len() - 1;
+            self.open_deferred_tab();
+        }
+    }
+
+    pub(super) fn open_deferred_tab(&mut self) {
+        if !self.home
+            && let Some(tab) = self.tabs.get_mut(self.active)
+            && std::mem::take(&mut tab.deferred_open)
+        {
+            self.submit_active_open();
+        }
+    }
+
+    fn submit_active_open(&mut self) {
+        let tab = &mut self.tabs[self.active];
+        if let Some(worker) = &self.worker
+            && let Err(error) = worker.open(tab.reader.id, tab.reader.path.clone())
+        {
+            tab.reader.state.finish_open(tab.reader.id, Err(error));
+        }
+    }
+
+    pub(super) fn reload_active_tab(&mut self) {
+        let Some(tab) = self.tabs.get(self.active) else {
+            return;
+        };
+        let Some(worker) = &self.worker else {
+            return;
+        };
+        let id = tab.reader.id;
+        let path = tab.reader.path.clone();
+        let view_id = tab.view_id.clone();
+        let saved = tab.stored().or_else(|| tab.reader.restore.clone());
+        if let Err(error) = worker.close(id) {
+            self.error(error);
+            return;
+        }
+        self.forget_tab_cache(id);
+        // A fresh worker identity rejects replies still in transit from the old document.
+        self.next_id += 1;
+        let id = self.next_id;
+        self.tabs[self.active] = Tab::new(id, path.clone(), saved);
+        self.tabs[self.active].view_id = view_id;
         if let Some(worker) = &self.worker
             && let Err(error) = worker.open(id, path)
         {
@@ -55,6 +114,7 @@ impl ReaderApp {
                 .finish_open(id, Err(error));
         }
     }
+
     pub(super) fn close_index(&mut self, index: usize) {
         if index >= self.tabs.len() {
             return;
@@ -75,16 +135,19 @@ impl ReaderApp {
         {
             self.empty.error = Some(error);
         }
-        self.pages.retain(|key| key.document_id != tab.reader.id);
-        self.content.retain(|(id, _)| *id != tab.reader.id);
-        self.pending_pages
-            .retain(|key| key.document_id != tab.reader.id);
-        self.pending_content.retain(|(id, _)| *id != tab.reader.id);
+        self.forget_tab_cache(tab.reader.id);
         if index < self.active {
             self.active -= 1;
         } else {
             self.active = self.active.min(self.tabs.len().saturating_sub(1));
         }
         self.save_preferences();
+    }
+
+    fn forget_tab_cache(&mut self, id: DocumentId) {
+        self.pages.retain(|key| key.document_id != id);
+        self.content.retain(|(doc, _)| *doc != id);
+        self.pending_pages.retain(|key| key.document_id != id);
+        self.pending_content.retain(|(doc, _)| *doc != id);
     }
 }

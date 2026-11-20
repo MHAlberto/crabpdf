@@ -33,6 +33,22 @@ impl PdfWorker {
         repaint: impl Fn() + Send + Sync + 'static,
         paths: crate::app_paths::AppPaths,
     ) -> Result<Self, ReaderError> {
+        Self::spawn_internal(repaint, paths, true)
+    }
+
+    /// The desktop requests an outline only when its panel is opened.
+    pub fn spawn_for_reader(
+        repaint: impl Fn() + Send + Sync + 'static,
+        paths: crate::app_paths::AppPaths,
+    ) -> Result<Self, ReaderError> {
+        Self::spawn_internal(repaint, paths, false)
+    }
+
+    fn spawn_internal(
+        repaint: impl Fn() + Send + Sync + 'static,
+        paths: crate::app_paths::AppPaths,
+        eager_outline: bool,
+    ) -> Result<Self, ReaderError> {
         let repaint: Arc<dyn Fn() + Send + Sync> = Arc::new(repaint);
         let shutdown = Arc::new(AtomicBool::new(false));
         let render_data = paths.data.clone();
@@ -53,6 +69,7 @@ impl PdfWorker {
                     repair_sender,
                     sender,
                     render_repaint,
+                    eager_outline,
                 )
             })
             .map_err(|e| {
@@ -144,6 +161,10 @@ impl PdfWorker {
     pub fn retain_renders(&self, keys: &[RenderKey]) -> Result<(), ReaderError> {
         self.mailbox.retain_renders(keys)
     }
+    pub fn outline(&self, id: DocumentId) -> Result<(), ReaderError> {
+        self.enqueue(Command::Outline(id))
+    }
+
     pub fn content(&self, id: DocumentId, page: usize) -> Result<(), ReaderError> {
         self.enqueue(Command::Content(id, page))
     }
@@ -154,8 +175,11 @@ impl PdfWorker {
         revision: u64,
         page: usize,
         bounds: crate::document::Bounds,
+        rotation: u8,
     ) -> Result<(), ReaderError> {
-        self.enqueue(Command::Capture(id, token, revision, page, bounds))
+        self.enqueue(Command::Capture(
+            id, token, revision, page, bounds, rotation,
+        ))
     }
     pub fn cover(&self, path: PathBuf, cache: Option<PathBuf>) -> Result<(), ReaderError> {
         self.imports

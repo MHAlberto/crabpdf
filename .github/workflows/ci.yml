@@ -154,3 +154,4 @@ jobs:
             artifacts/packages/*.zip
             artifacts/installer-tests/**/validation.json
           if-no-files-found: error
+          retention-days: 14

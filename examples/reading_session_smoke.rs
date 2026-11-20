@@ -165,6 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
             &output.join("preferences.toml"),
         )?;
+        let inactive = output.join("offline-book.pdf");
         for stage in ["write", "read", "cli"] {
             let status = std::process::Command::new(std::env::current_exe()?)
                 .arg("--stage")
@@ -175,13 +176,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err(format!("Falló lectura persistente: {stage}").into());
             }
             if stage == "write" {
-                let prefs = crabpdf::config::ProfileStore::load(&output.join("preferences.toml"))?;
+                let mut prefs =
+                    crabpdf::config::ProfileStore::load(&output.join("preferences.toml"))?;
                 if !prefs
                     .session
                     .first()
                     .is_some_and(|saved| saved.manga && saved.position.is_some())
                 {
                     return Err("El cierre no persistió el punto y manga".into());
+                }
+                let mut saved = prefs.session[0].clone();
+                saved.path = inactive.clone();
+                saved.view_id = Some("offline-book".into());
+                prefs.session.insert(0, saved);
+                crabpdf::config::ProfileStore::save(&prefs, &output.join("preferences.toml"))?;
+            } else if stage == "read" {
+                let prefs = crabpdf::config::ProfileStore::load(&output.join("preferences.toml"))?;
+                if !prefs.session.iter().any(|saved| saved.path == inactive) {
+                    return Err("La sesión intentó abrir una pestaña inactiva".into());
                 }
             }
         }

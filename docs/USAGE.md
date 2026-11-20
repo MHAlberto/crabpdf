@@ -1,6 +1,6 @@
 # Guía de uso
 
-Versión pública: **0.4.4**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.4.4) · [Índice](README.md)
+[Descargas de CrabPDF](https://mhalberto.github.io/crabpdf/) · [Índice del proyecto](../README.md)
 
 ## Abrir y leer
 
@@ -14,9 +14,11 @@ Pulsa **Dos páginas** en la barra para mostrar las páginas lado a lado. Pulsa 
 
 ![Favoritos del documento abierto](screenshots/favorites.png)
 
-## Extensiones en desarrollo
+## Extensiones
 
-La 0.5.0 incorpora **Extensiones → Extensiones…** para instalar y activar paquetes opcionales. Puedes seleccionar un área de la página y ejecutar un comando del paquete sobre su imagen y texto. [Instalación, SDK y ejemplo](EXTENSIONS.md).
+Abre **Extensiones → Gestor de extensiones → Catálogo** e introduce el código de seis cifras. Pulsa **Buscar**, revisa la ficha y elige **Descargar e instalar**. Ve a **Instaladas** y pulsa **Activar**. La extensión aparece en el menú **Extensiones** con sus propios comandos y atajos.
+
+Usa **100002** para OCR de ecuaciones, **100003** para Pomodoro o **100001** para el ejemplo de selección. Para OCR, abre su panel, descarga el modelo, selecciona el área de una ecuación y ejecuta **Reconocer como LaTeX**. [Guía de extensiones](EXTENSIONS.md).
 
 ## Actualizar CrabPDF
 
@@ -120,4 +122,4 @@ Las escrituras de preferencias ocurren fuera de la UI, combinan cambios de varia
 | Otras distribuciones Linux | TAR para glibc 2.36 o posterior | Validación propia por distribución |
 | macOS Intel / ARM | CI de compilación y pruebas PDF | Interfaz física, otros formatos e instalador |
 
-[Validación de la entrega](releases/v0.4.4-publication.json). Las funciones pendientes de 1.0 están en [ROADMAP.md](ROADMAP.md).
+[Historial y versiones publicadas](https://mhalberto.github.io/crabpdf/historial/). Las funciones pendientes de 1.0 están en [ROADMAP.md](ROADMAP.md).

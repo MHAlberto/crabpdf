@@ -2,6 +2,9 @@ use super::*;
 use crabpdf_extension_api::TimerSpec;
 use std::{
     collections::BTreeMap,
+    fs::{self, File},
+    io,
+    path::Path,
     time::{Duration, Instant},
 };
 
@@ -12,7 +15,7 @@ pub(super) struct Panels {
     pub(super) active: Option<String>,
     timers: BTreeMap<String, Timer>,
     bindings: Bindings,
-    bindings_path: Option<PathBuf>,
+    next_reload: Option<Instant>,
     recording: Option<(String, usize)>,
     shortcut_message: Option<String>,
 }
@@ -97,40 +100,75 @@ impl Timer {
 
 const MODIFIERS: egui::Modifiers = egui::Modifiers::ALT.plus(egui::Modifiers::SHIFT);
 
-impl Panels {
-    fn load(&mut self, data: &std::path::Path) {
-        if self.bindings_path.is_some() {
-            return;
-        }
-        let path = data.join("extension-shortcuts.json");
-        self.bindings = crabpdf_extension_api::read_message(&path).unwrap_or_default();
-        self.bindings_path = Some(path);
+fn read_bindings(path: &Path) -> io::Result<Bindings> {
+    match crabpdf_extension_api::read_message(path) {
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(Bindings::new()),
+        result => result,
     }
+}
 
-    fn set_binding(&mut self, id: &str, slot: usize, key: Option<String>) {
-        if let Some(k) = key.as_ref()
-            && self.bindings.iter().any(|(other_id, slots)| {
-                slots.iter().enumerate().any(|(other_slot, other)| {
-                    (other_id != id || other_slot != slot) && other.as_ref() == Some(k)
-                })
-            })
-        {
-            self.shortcut_message = Some("Ese atajo ya está en uso.".into());
-            return;
-        }
-        let mut bindings = self.bindings.clone();
-        bindings.entry(id.into()).or_default()[slot] = key;
-        if let Some(path) = &self.bindings_path {
-            let saved = crate::fileops::atomic_write(path, |output| {
-                serde_json::to_writer(output, &bindings).map_err(std::io::Error::other)
-            });
-            if let Err(error) = saved {
-                self.shortcut_message = Some(format!("No se guardó el atajo. {error}"));
-                return;
+fn save_binding(data: &Path, id: &str, slot: usize, key: Option<String>) -> io::Result<Bindings> {
+    fs::create_dir_all(data)?;
+    let lock = File::options()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(data.join("extension-shortcuts.lock"))?;
+    lock.try_lock().map_err(|_| {
+        io::Error::other("Otra ventana está guardando atajos. Vuelve a intentarlo.")
+    })?;
+    let path = data.join("extension-shortcuts.json");
+    let mut bindings = read_bindings(&path)?;
+    if let Some(key) = &key {
+        let installed = Repository::new(data).installed_ids()?;
+        for (other_id, slots) in &mut bindings {
+            for (other_slot, binding) in slots.iter_mut().enumerate() {
+                if (other_id == id && other_slot == slot) || binding.as_ref() != Some(key) {
+                    continue;
+                }
+                if other_id == id || installed.contains(other_id) {
+                    return Err(io::Error::other("Ese atajo ya está en uso."));
+                }
+                // A newly assigned key supersedes the saved key of an uninstalled extension.
+                *binding = None;
             }
         }
-        self.bindings = bindings;
-        self.shortcut_message = None;
+    }
+    bindings.entry(id.into()).or_default()[slot] = key;
+    bindings.retain(|_, slots| slots.iter().any(Option::is_some));
+    crate::fileops::atomic_write(&path, |output| {
+        serde_json::to_writer(output, &bindings).map_err(io::Error::other)
+    })?;
+    Ok(bindings)
+}
+
+impl Panels {
+    fn load(&mut self, data: &Path, ctx: &egui::Context) {
+        let now = Instant::now();
+        let next = self
+            .next_reload
+            .filter(|next| *next > now)
+            .unwrap_or_else(|| {
+                if let Ok(bindings) = read_bindings(&data.join("extension-shortcuts.json")) {
+                    self.bindings = bindings;
+                }
+                now + Duration::from_secs(1)
+            });
+        self.next_reload = Some(next);
+        if self.active.is_some() {
+            ctx.request_repaint_after(next.saturating_duration_since(now));
+        }
+    }
+
+    fn set_binding(&mut self, data: &Path, id: &str, slot: usize, key: Option<String>) {
+        match save_binding(data, id, slot, key) {
+            Ok(bindings) => {
+                self.bindings = bindings;
+                self.shortcut_message = None;
+            }
+            Err(error) => self.shortcut_message = Some(error.to_string()),
+        }
     }
 
     pub(super) fn open(&mut self, package: &InstalledPackage) {
@@ -155,9 +193,31 @@ impl Panels {
         data: &std::path::Path,
         packages: &[InstalledPackage],
     ) {
-        self.load(data);
-        self.timers
-            .retain(|id, _| packages.iter().any(|p| p.enabled && &p.manifest.id == id));
+        self.load(data, ctx);
+        self.timers.retain(|id, timer| {
+            let settings = packages
+                .iter()
+                .find(|p| p.enabled && &p.manifest.id == id)
+                .and_then(|package| package.manifest.timer);
+            if let Some(settings) = settings {
+                if timer.settings != settings {
+                    *timer = Timer::new(settings);
+                }
+                true
+            } else {
+                false
+            }
+        });
+        if let Some(id) = &self.active
+            && let Some(settings) = packages
+                .iter()
+                .find(|p| p.enabled && &p.manifest.id == id)
+                .and_then(|package| package.manifest.timer)
+        {
+            self.timers
+                .entry(id.clone())
+                .or_insert_with(|| Timer::new(settings));
+        }
         if self
             .active
             .as_ref()
@@ -185,7 +245,7 @@ impl Panels {
             if let Some(key) = key {
                 self.recording = None;
                 if key != egui::Key::Escape {
-                    self.set_binding(&id, slot, Some(key.name().into()));
+                    self.set_binding(data, &id, slot, Some(key.name().into()));
                 }
             }
             return;
@@ -203,6 +263,9 @@ impl Panels {
                     continue;
                 };
                 if ctx.input_mut(|input| input.consume_key(MODIFIERS, key)) {
+                    if !Repository::new(data).is_active(package) {
+                        return;
+                    }
                     if slot == 0 {
                         self.open(package);
                     } else if self.active.as_deref() == Some(package.manifest.id.as_str()) {
@@ -214,7 +277,7 @@ impl Panels {
         }
     }
 
-    pub(super) fn shortcuts(&mut self, ui: &mut egui::Ui, id: &str) {
+    pub(super) fn shortcuts(&mut self, ui: &mut egui::Ui, id: &str, data: &Path) {
         ui.collapsing("Atajos de teclado", |ui| {
             for (slot, label) in ["Abrir", "Cerrar"].into_iter().enumerate() {
                 ui.horizontal(|ui| {
@@ -230,7 +293,7 @@ impl Panels {
                         self.shortcut_message = None;
                     }
                     if bound.is_some() && ui.small_button("Quitar").clicked() {
-                        self.set_binding(id, slot, None);
+                        self.set_binding(data, id, slot, None);
                     }
                 });
             }
@@ -266,5 +329,41 @@ impl Panels {
                     }
                 });
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn writes_from_two_windows_merge_and_uninstalled_keys_can_be_reused() {
+        let data = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("artifacts/extension-tests")
+            .join(format!("shortcuts-{:016x}", getrandom::u64().unwrap()));
+        let first = "org.crabpdf.first";
+        let second = "org.crabpdf.second";
+        for id in [first, second] {
+            fs::create_dir_all(data.join("extensions/installed").join(id).join("0.1.0")).unwrap();
+        }
+        let mut window_a = Panels::default();
+        let mut window_b = Panels::default();
+        let ctx = egui::Context::default();
+        window_a.load(&data, &ctx);
+        window_b.load(&data, &ctx);
+        window_a.set_binding(&data, first, 0, Some("A".into()));
+        window_b.set_binding(&data, second, 0, Some("B".into()));
+        let path = data.join("extension-shortcuts.json");
+        let written = read_bindings(&path).unwrap();
+        assert_eq!(written[first][0].as_deref(), Some("A"));
+        assert_eq!(written[second][0].as_deref(), Some("B"));
+        assert!(save_binding(&data, second, 1, Some("A".into())).is_err());
+
+        fs::remove_dir(data.join("extensions/installed").join(first).join("0.1.0")).unwrap();
+        window_b.set_binding(&data, second, 1, Some("A".into()));
+        window_a.next_reload = None;
+        window_a.load(&data, &ctx);
+        assert!(!window_a.bindings.contains_key(first));
+        assert_eq!(window_a.bindings[second][1].as_deref(), Some("A"));
     }
 }

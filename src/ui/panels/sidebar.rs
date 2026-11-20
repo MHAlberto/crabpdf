@@ -95,36 +95,67 @@ impl ReaderApp {
                             });
                     }
                     Sidebar::Outline => {
-                        let outline = self
-                            .state()
-                            .details
-                            .as_ref()
-                            .map(|d| d.outline.clone())
-                            .unwrap_or_default();
-                        if outline.is_empty() {
-                            ui.label("El documento no contiene un índice incorporado.");
+                        use crate::ui::tab_view::OutlineView;
+                        let Some(tab) = self
+                            .tabs
+                            .get_mut(self.active)
+                            .filter(|tab| tab.reader.state.document.is_some())
+                        else {
+                            ui.label("Abre un documento para ver su índice.");
+                            return;
+                        };
+                        if matches!(tab.view.outline, OutlineView::Unrequested)
+                            && let Some(worker) = &self.worker
+                        {
+                            tab.view.outline = match worker.outline(tab.reader.id) {
+                                Ok(()) => OutlineView::Loading,
+                                Err(error) => OutlineView::Failed(error),
+                            };
                         }
-                        egui::ScrollArea::vertical().show(ui, |ui| {
-                            for (index, item) in outline.iter().enumerate() {
-                                ui.horizontal(|ui| {
-                                    ui.add_space((item.depth.min(12) * 10) as f32);
-                                    if ui
-                                        .add_enabled(
-                                            item.page.is_some(),
-                                            egui::Button::new(&item.title).frame(false),
-                                        )
-                                        .on_hover_text(item.page.map_or_else(String::new, |p| {
-                                            format!("Página {}", p + 1)
-                                        }))
-                                        .clicked()
-                                        && let Some(page) = item.page
-                                    {
-                                        self.tabs[self.active].go_to(page, true);
-                                    }
-                                    ui.push_id(index, |_| {});
-                                });
+                        match &tab.view.outline {
+                            OutlineView::Unrequested | OutlineView::Loading => {
+                                ui.label("Preparando el índice…");
                             }
-                        });
+                            OutlineView::Failed(error) => {
+                                ui.label(error.to_string());
+                            }
+                            OutlineView::Ready(outline) if outline.is_empty() => {
+                                ui.label("El documento no contiene un índice incorporado.");
+                            }
+                            OutlineView::Ready(outline) => {
+                                let mut destination = None;
+                                egui::ScrollArea::vertical().id_salt("outline").show_rows(
+                                    ui,
+                                    ui.spacing().interact_size.y,
+                                    outline.len(),
+                                    |ui, range| {
+                                        for index in range {
+                                            let item = &outline[index];
+                                            ui.push_id(index, |ui| {
+                                                ui.horizontal(|ui| {
+                                                    ui.add_space((item.depth.min(12) * 10) as f32);
+                                                    if ui
+                                                        .add_enabled(
+                                                            item.page.is_some(),
+                                                            egui::Button::new(&item.title)
+                                                                .frame(false)
+                                                                .truncate(),
+                                                        )
+                                                        .on_hover_text(&item.title)
+                                                        .clicked()
+                                                    {
+                                                        destination = item.page;
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    },
+                                );
+                                if let Some(page) = destination {
+                                    tab.go_to(page, true);
+                                }
+                            }
+                        }
                     }
                     Sidebar::Favorites => {
                         let Some(tab) = self

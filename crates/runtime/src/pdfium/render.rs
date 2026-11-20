@@ -27,6 +27,7 @@ impl PdfEngine for PdfiumEngine<'_> {
                 page.height().value
             };
         let config = PdfRenderConfig::new()
+            .limit_render_image_cache_size(true)
             .scale_page_by_factor(scale)
             .rotate(rotation, key.rotation % 2 == 1)
             .set_maximum_width(sizing.pixel_width as i32)
@@ -88,6 +89,7 @@ impl PdfiumEngine<'_> {
         &mut self,
         index: usize,
         bounds: Bounds,
+        rotation: u8,
     ) -> Result<crate::document::SelectionCapture, ReaderError> {
         let invalid = || ReaderError::new(ErrorKind::Render, "Área seleccionada fuera de rango.");
         if ![bounds.left, bounds.top, bounds.right, bounds.bottom]
@@ -137,6 +139,7 @@ impl PdfiumEngine<'_> {
         let mut bitmap = PdfBitmap::empty(width as i32, height as i32, PdfBitmapFormat::BGRA)
             .map_err(map_render_error)?;
         let config = PdfRenderConfig::new()
+            .limit_render_image_cache_size(true)
             .scale_page_by_factor(scale)
             .set_origin(
                 -(bounds.left * w * scale).floor() as i32,
@@ -144,7 +147,15 @@ impl PdfiumEngine<'_> {
             );
         page.render_into_bitmap_with_config(&mut bitmap, &config)
             .map_err(map_render_error)?;
-        let rgba = bitmap.as_rgba_bytes();
+        let rgba = image::RgbaImage::from_raw(width, height, bitmap.as_rgba_bytes())
+            .ok_or_else(invalid)?;
+        let rgba = match rotation % 4 {
+            1 => image::imageops::rotate90(&rgba),
+            2 => image::imageops::rotate180(&rgba),
+            3 => image::imageops::rotate270(&rgba),
+            _ => rgba,
+        };
+        let (width, height) = rgba.dimensions();
         let mut png = Vec::new();
         use image::ImageEncoder;
         image::codecs::png::PngEncoder::new(&mut png)

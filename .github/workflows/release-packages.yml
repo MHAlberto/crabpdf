@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         description: Existing application release tag (without v)
-        default: '0.4.5'
+        default: '0.6.0'
         required: true
         type: string
       platforms:
@@ -90,6 +90,7 @@ jobs:
             artifacts/packages/*-validation.json
             artifacts/validation/**
           if-no-files-found: warn
+          retention-days: 14
 
   linux:
     if: inputs.platforms != 'mac'
@@ -151,3 +152,4 @@ jobs:
             artifacts/validation/**
             artifacts/linux-installed-hashes.log
           if-no-files-found: warn
+          retention-days: 14

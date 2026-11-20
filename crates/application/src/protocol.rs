@@ -1,7 +1,7 @@
 //! Results exchanged with background adapters. No native handles, I/O or GUI types.
 use crate::document::{
-    AnnotationState, Cover, DocumentDetails, DocumentId, DocumentInfo, PageContent, PageRaster,
-    ReaderError, RenderKey, SearchHit, SearchRequest,
+    AnnotationState, Cover, DocumentDetails, DocumentId, DocumentInfo, OutlineItem, PageContent,
+    PageRaster, ReaderError, RenderKey, SearchHit, SearchRequest,
 };
 use std::{path::PathBuf, sync::Arc};
 
@@ -10,6 +10,7 @@ pub enum WorkerEvent {
     Cover(PathBuf, Result<Arc<Cover>, ReaderError>),
     Opened(DocumentId, Result<DocumentInfo, ReaderError>),
     Details(DocumentId, Result<DocumentDetails, ReaderError>),
+    Outline(DocumentId, Result<Vec<OutlineItem>, ReaderError>),
     Rendered(RenderKey, Result<Arc<PageRaster>, ReaderError>),
     Content(DocumentId, usize, Result<Arc<PageContent>, ReaderError>),
     Captured(

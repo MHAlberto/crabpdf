@@ -4,7 +4,14 @@ fn main() -> std::io::Result<()> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     let request: Request = read_message(std::path::Path::new(&args[1]))?;
     match request.command.as_str() {
-        "wait" => std::thread::sleep(std::time::Duration::from_secs(30)),
+        "wait" => {
+            let scratch = std::env::var_os("CRABPDF_EXTENSION_SCRATCH").unwrap();
+            std::fs::write(
+                std::path::Path::new(&scratch).join("model.download"),
+                b"partial",
+            )?;
+            std::thread::sleep(std::time::Duration::from_secs(30));
+        }
         "wrong_id" => write_message(
             std::path::Path::new(&args[3]),
             &Response {

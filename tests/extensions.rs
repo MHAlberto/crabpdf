@@ -119,6 +119,89 @@ fn package_validation_rejects_traversal_wrong_platform_and_incompatible_api() {
     }
 }
 #[test]
+fn corrupted_manifest_and_activation_leave_other_extensions_visible_and_recoverable() {
+    let directory = root("recover");
+    let data = directory.join("data");
+    let repository = Repository::new(&data);
+    let source = directory.join("source");
+    let damaged = manifest();
+    package(&source, &damaged);
+    repository.install(&source).unwrap();
+    let mut healthy = manifest();
+    healthy.id = "org.crabpdf.healthy".into();
+    package(&source, &healthy);
+    repository.install(&source).unwrap();
+
+    let installed = repository
+        .list()
+        .unwrap()
+        .into_iter()
+        .find(|p| p.manifest.id == damaged.id)
+        .unwrap();
+    repository.enable(&installed, true).unwrap();
+    fs::write(installed.directory.join("extension.toml"), "[incomplete").unwrap();
+    let state = data
+        .join("extensions/enabled")
+        .join(format!("{}.json", healthy.id));
+    fs::write(&state, r#"{"partial":"#).unwrap();
+
+    let inventory = repository.inventory().unwrap();
+    assert_eq!(inventory.packages.len(), 1);
+    assert_eq!(inventory.packages[0].manifest.id, healthy.id);
+    assert!(!inventory.packages[0].enabled);
+    assert_eq!(inventory.issues.len(), 2);
+    repository.enable(&inventory.packages[0], true).unwrap();
+
+    package(&source, &damaged);
+    assert!(repository.install(&source).is_err());
+    repository
+        .remove_version(&damaged.id, &damaged.version)
+        .unwrap();
+    repository.install(&source).unwrap();
+    let clean = repository.inventory().unwrap();
+    assert!(clean.issues.is_empty());
+    assert_eq!(clean.packages.len(), 2);
+    assert!(
+        clean
+            .packages
+            .iter()
+            .find(|p| p.manifest.id == healthy.id)
+            .unwrap()
+            .enabled
+    );
+}
+
+#[test]
+fn the_install_limit_keeps_legacy_overflow_recoverable() {
+    let directory = root("capacity");
+    let data = directory.join("data");
+    let repository = Repository::new(&data);
+    let source = directory.join("source");
+    let mut m = manifest();
+    for version in 0..64 {
+        m.version = format!("0.1.{version}");
+        package(&source, &m);
+        repository.install(&source).unwrap();
+    }
+    m.version = "0.1.64".into();
+    package(&source, &m);
+    assert!(repository.install(&source).is_err());
+    assert_eq!(repository.list().unwrap().len(), 64);
+
+    // Profiles created before the fix can contain a 65th revision.
+    let overflow = data
+        .join("extensions/installed")
+        .join(&m.id)
+        .join(&m.version);
+    package(&overflow, &m);
+    let inventory = repository.inventory().unwrap();
+    assert!(inventory.over_limit);
+    assert_eq!(inventory.packages.len(), 64);
+    repository.remove(&inventory.packages[0]).unwrap();
+    assert!(!repository.inventory().unwrap().over_limit);
+}
+
+#[test]
 fn oversized_sdk_messages_are_rejected_before_deserialization() {
     let directory = root("messages");
     let path = directory.join("request.json");
@@ -175,11 +258,23 @@ fn actual_native_package_runs_returns_latex_and_cancels_without_blocking_the_hos
         };
         let running =
             RunningExtension::spawn(repository.clone(), installed.clone(), input, || {}).unwrap();
+        let scratch = directory
+            .join("data/extensions/data")
+            .join(&m.id)
+            .join(".crabpdf-scratch");
         if id == "wait" {
-            std::thread::sleep(Duration::from_millis(150));
+            let started = Instant::now();
+            while !scratch.join("model.download").exists() {
+                assert!(started.elapsed() < Duration::from_secs(8));
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            let other_window = Repository::new(&directory.join("data"));
+            assert!(other_window.inventory().unwrap().packages[0].enabled);
+            assert!(other_window.enable(&installed, false).is_err());
             running.cancel();
         }
         let result = wait(&running);
+        assert!(!scratch.exists(), "Invocation left temporary files: {id}");
         if id == "latex" {
             assert_eq!(result.unwrap().text, "x^2");
         } else {

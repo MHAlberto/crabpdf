@@ -193,6 +193,10 @@ pub fn install(update: &Update) -> Result<Installed, String> {
     }
     match update.package {
         Package::WindowsSetup(_) => {
+            #[cfg(windows)]
+            staged
+                .mark_for_cleanup()
+                .map_err(|error| format!("No se pudo preparar el instalador. {error}"))?;
             Command::new(&staged.file)
                 .arg("/UPDATE")
                 .spawn()

@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
+import sysconfig
 
 destination = Path(sys.argv[1])
 for distribution in distributions():
@@ -16,7 +17,9 @@ for distribution in distributions():
         folder = destination / name
         folder.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(distribution.locate_file(source), folder / source.name)
-python_license = Path(sys.base_prefix) / "LICENSE.txt"
-if python_license.is_file():
-    destination.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(python_license, destination / "Python-LICENSE.txt")
+for folder in (Path(sys.base_prefix), Path(sysconfig.get_path("stdlib"))):
+    python_license = folder / "LICENSE.txt"
+    if python_license.is_file():
+        destination.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(python_license, destination / "Python-LICENSE.txt")
+        break

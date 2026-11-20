@@ -48,28 +48,84 @@ fn fetch() -> io::Result<Vec<u8>> {
 }
 
 pub fn updates(installed: Vec<(String, String)>) -> io::Result<Vec<CatalogPackage>> {
-    let body = fetch()?;
-    let catalog: Catalog = serde_json::from_slice(&body).map_err(bad)?;
-    let host = host_version()?;
-    let target = target();
-    let mut updates = Vec::new();
-    for entry in catalog.extensions {
-        let Ok(version) = semver::Version::parse(&entry.version) else {
+    available_updates(&fetch()?, &installed, &target(), &host_version()?)
+}
+
+fn available_updates(
+    body: &[u8],
+    installed: &[(String, String)],
+    target: &str,
+    host: &semver::Version,
+) -> io::Result<Vec<CatalogPackage>> {
+    let mut newest = std::collections::HashMap::new();
+    for (id, version) in installed {
+        let Ok(version) = semver::Version::parse(version) else {
             continue;
         };
-        let mut versions = installed
-            .iter()
-            .filter(|(id, _)| *id == entry.id)
-            .filter_map(|(_, version)| semver::Version::parse(version).ok());
-        if let Some(current) = versions.next()
-            && version > current
-            && versions.all(|other| version > other)
-            && let Ok(package) = select(&body, &entry.code, &target, &host)
+        let current = newest.entry(id.as_str()).or_insert_with(|| version.clone());
+        if version > *current {
+            *current = version;
+        }
+    }
+    let mut updates = Vec::new();
+    for entry in parse_catalog(body)?.extensions {
+        if let Some(current) = newest.get(entry.id.as_str())
+            && semver::Version::parse(&entry.version).map_err(bad)? > *current
+            && compatible_host(&entry, host)?
+            && entry.assets.iter().any(|asset| asset.target == target)
         {
-            updates.push(package);
+            updates.push(package_for(entry, target)?);
         }
     }
     Ok(updates)
+}
+
+fn parse_catalog(body: &[u8]) -> io::Result<Catalog> {
+    let catalog: Catalog =
+        serde_json::from_slice(body).map_err(|_| bad("El catálogo devolvió datos inválidos."))?;
+    let mut codes = HashSet::new();
+    let mut ids = HashSet::new();
+    if catalog.schema != CATALOG_VERSION || catalog.extensions.len() > 128 {
+        return Err(bad("El catálogo usa un formato incompatible."));
+    }
+    for entry in &catalog.extensions {
+        if !valid_code(&entry.code)
+            || !codes.insert(&entry.code)
+            || !identifier(&entry.id)
+            || !ids.insert(&entry.id)
+            || entry.name.trim().is_empty()
+            || entry.name.len() > 120
+            || entry.description.len() > 2000
+            || semver::Version::parse(&entry.version).is_err()
+            || semver::VersionReq::parse(&entry.host_version).is_err()
+        {
+            return Err(bad(format!(
+                "Ficha inválida o duplicada en el catálogo: {}.",
+                entry.code
+            )));
+        }
+        let mut targets = HashSet::new();
+        if entry.assets.len() > 16 {
+            return Err(bad("La ficha tiene demasiadas descargas."));
+        }
+        for asset in &entry.assets {
+            if !targets.insert(&asset.target)
+                || !(1..=MAX_DOWNLOAD_BYTES).contains(&asset.bytes)
+                || !is_sha256(&asset.sha256)
+            {
+                return Err(bad("La ficha tiene descargas duplicadas o inválidas."));
+            }
+            package_url(asset)?;
+        }
+    }
+    Ok(catalog)
+}
+
+fn compatible_host(entry: &CatalogEntry, host: &semver::Version) -> io::Result<bool> {
+    Ok(entry.api_version == API_VERSION
+        && semver::VersionReq::parse(&entry.host_version)
+            .map_err(bad)?
+            .matches(host))
 }
 
 fn select(
@@ -78,62 +134,27 @@ fn select(
     target: &str,
     host: &semver::Version,
 ) -> io::Result<CatalogPackage> {
-    let catalog: Catalog =
-        serde_json::from_slice(body).map_err(|_| bad("El catálogo devolvió datos inválidos."))?;
-    let mut codes = HashSet::new();
-    if catalog.schema != CATALOG_VERSION
-        || catalog.extensions.len() > 128
-        || catalog
-            .extensions
-            .iter()
-            .any(|entry| !valid_code(&entry.code) || !codes.insert(&entry.code))
-    {
-        return Err(bad(
-            "El catálogo usa un formato incompatible o tiene códigos duplicados.",
-        ));
-    }
-    let mut entry = catalog
+    let entry = parse_catalog(body)?
         .extensions
         .into_iter()
         .find(|entry| entry.code == code)
         .ok_or_else(|| bad(format!("No hay una extensión con el código {code}.")))?;
-    if !identifier(&entry.id)
-        || entry.name.trim().is_empty()
-        || entry.name.len() > 120
-        || entry.description.len() > 2000
-        || semver::Version::parse(&entry.version).is_err()
-    {
-        return Err(bad("La ficha de la extensión es inválida."));
-    }
-    if entry.api_version != API_VERSION
-        || !semver::VersionReq::parse(&entry.host_version)
-            .map_err(bad)?
-            .matches(host)
-    {
+    if !compatible_host(&entry, host)? {
         return Err(bad(format!(
             "Esta extensión requiere CrabPDF {}.",
             entry.host_version
         )));
     }
-    let mut targets = HashSet::new();
-    if entry.assets.len() > 16
-        || entry
-            .assets
-            .iter()
-            .any(|asset| !targets.insert(&asset.target))
-    {
-        return Err(bad("La ficha tiene descargas duplicadas o inválidas."));
-    }
+    package_for(entry, target)
+}
+
+fn package_for(mut entry: CatalogEntry, target: &str) -> io::Result<CatalogPackage> {
     let index = entry
         .assets
         .iter()
         .position(|asset| asset.target == target)
         .ok_or_else(|| bad(format!("La extensión no está disponible para {target}.")))?;
     let asset = entry.assets.swap_remove(index);
-    if !(1..=MAX_DOWNLOAD_BYTES).contains(&asset.bytes) || !is_sha256(&asset.sha256) {
-        return Err(bad("La descarga carece de tamaño o SHA-256 válido."));
-    }
-    package_url(&asset)?;
     Ok(CatalogPackage { entry, asset })
 }
 
@@ -171,23 +192,23 @@ pub fn install(repository: &Repository, package: &CatalogPackage) -> io::Result<
     {
         return Err(bad("El tamaño o SHA-256 no coincide con el catálogo."));
     }
-    let folder = staging.file.with_file_name("package");
-    fs::create_dir(&folder)?;
-    unpack(File::open(&staging.file)?, &folder)?;
-    let manifest = repository.inspect(&folder)?;
-    verify_manifest(&manifest, package)?;
-    // A ZIP from Windows may lack Unix permission bits.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        if manifest.timer.is_none() {
-            fs::set_permissions(
-                folder.join(&manifest.executable),
-                fs::Permissions::from_mode(0o700),
-            )?;
+    repository.install_into(&package.entry.id, &package.entry.version, |folder| {
+        unpack(File::open(&staging.file)?, folder)?;
+        let manifest = repository.inspect(folder)?;
+        verify_manifest(&manifest, package)?;
+        // A ZIP from Windows may lack Unix permission bits.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if manifest.timer.is_none() {
+                fs::set_permissions(
+                    folder.join(&manifest.executable),
+                    fs::Permissions::from_mode(0o700),
+                )?;
+            }
         }
-    }
-    repository.install(&folder)
+        Ok(())
+    })
 }
 
 fn verify_manifest(manifest: &Manifest, package: &CatalogPackage) -> io::Result<()> {
@@ -236,6 +257,8 @@ fn unpack(input: impl Read + io::Seek, root: &Path) -> io::Result<()> {
     }
     let mut remaining = MAX_PACKAGE_BYTES;
     let mut paths = HashSet::new();
+    let mut directories = HashSet::new();
+    let mut files = 0;
     for index in 0..zip.len() {
         let mut entry = zip.by_index(index).map_err(bad)?;
         let name = entry
@@ -243,13 +266,30 @@ fn unpack(input: impl Read + io::Seek, root: &Path) -> io::Result<()> {
             .strip_suffix('/')
             .unwrap_or_else(|| entry.name());
         if name.len() > 240
-            || name.split('/').count() > 17
+            || name.split('/').count() > if entry.is_dir() { 16 } else { 17 }
             || name.split('/').any(|component| !safe_component(component))
             || !paths.insert(name.to_ascii_lowercase())
             || entry.encrypted()
         {
             return Err(bad(
                 "El ZIP contiene una ruta inválida, duplicada o cifrada.",
+            ));
+        }
+        let mut directory = if entry.is_dir() {
+            Some(name)
+        } else {
+            files += 1;
+            name.rsplit_once('/').map(|(parent, _)| parent)
+        };
+        while let Some(parent) = directory {
+            if !directories.insert(parent.to_owned()) {
+                break;
+            }
+            directory = parent.rsplit_once('/').map(|(prefix, _)| prefix);
+        }
+        if files + directories.len() > MAX_FILES {
+            return Err(bad(
+                "La extracción supera el límite de archivos y carpetas.",
             ));
         }
         let mode = entry.unix_mode().unwrap_or_default();
@@ -268,6 +308,7 @@ fn unpack(input: impl Read + io::Seek, root: &Path) -> io::Result<()> {
         if io::copy(&mut entry.by_ref().take(size + 1), &mut &output)? != size {
             return Err(bad("El ZIP contiene un archivo de tamaño inesperado."));
         }
+        output.sync_all()?;
         remaining -= size;
         #[cfg(unix)]
         if mode & 0o111 != 0 {
@@ -304,6 +345,30 @@ mod tests {
         assert!(select(&body, "100001", "i686-pc-windows-msvc", &host).is_err());
         assert!(select(&body, "100002", target, &host).is_err());
         assert!(select(&body, "100001", target, &semver::Version::new(0, 6, 0)).is_err());
+
+        let installed = vec![("org.crabpdf.selection-info".into(), "0.0.1".into())];
+        assert_eq!(
+            available_updates(&body, &installed, target, &host)
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(
+            available_updates(&body, &installed, "i686-pc-windows-msvc", &host)
+                .unwrap()
+                .is_empty()
+        );
+        let mut wrong_schema = data.clone();
+        wrong_schema["schema"] = 2.into();
+        assert!(
+            available_updates(
+                &serde_json::to_vec(&wrong_schema).unwrap(),
+                &installed,
+                target,
+                &host
+            )
+            .is_err()
+        );
 
         let mut duplicate = data;
         let entries = duplicate["extensions"].as_array_mut().unwrap();

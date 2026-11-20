@@ -13,15 +13,30 @@ impl ReaderApp {
         self.save_due = Some(Instant::now() + Duration::from_millis(500));
     }
     pub(super) fn save_preferences(&mut self) {
-        self.preferences.session = self.tabs.iter().filter_map(Tab::stored).collect();
-        for saved in self.preferences.session.clone() {
+        self.preferences.session = self
+            .tabs
+            .iter()
+            .filter_map(|tab| {
+                tab.stored().or_else(|| {
+                    (tab.reader.state.opening.is_some() || tab.reader.password_needed)
+                        .then(|| tab.reader.restore.clone())
+                        .flatten()
+                        .map(|mut saved| {
+                            saved.view_id = Some(tab.view_id.clone());
+                            saved
+                        })
+                })
+            })
+            .collect();
+        for saved in &self.preferences.session {
             if let Some(old) = self
                 .preferences
                 .recent
                 .iter_mut()
                 .find(|r| r.path == saved.path)
             {
-                *old = saved;
+                *old = saved.clone();
+                old.view_id = None;
             }
         }
         self.config_warning = self.profile.request(self.preferences.clone()).err();
@@ -147,6 +162,14 @@ impl ReaderApp {
                             }
                             Err(error) => tab.reader.state.error = Some(error),
                         }
+                    }
+                }
+                WorkerEvent::Outline(id, result) => {
+                    if let Some(tab) = self.tabs.iter_mut().find(|tab| tab.reader.id == id) {
+                        tab.view.outline = match result {
+                            Ok(outline) => super::tab_view::OutlineView::Ready(outline),
+                            Err(error) => super::tab_view::OutlineView::Failed(error),
+                        };
                     }
                 }
                 WorkerEvent::Rendered(key, result) => {

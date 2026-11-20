@@ -18,12 +18,13 @@ Los paquetes se guardan en `extensions/` dentro del directorio de datos del perf
 
 Desde la 0.5.5, busca **100002** para OCR o **100003** para Pomodoro en **Extensiones → Gestor de extensiones → Catálogo**. Confirma la descarga y pulsa **Activar**. Cada paquete activo aparece con su nombre en **Extensiones**. En su ventana, abre **Atajos de teclado** para asignar con Alt+Mayús una tecla a **Abrir** y otra a **Cerrar**.
 
-- **OCR.** En Windows x64 o Linux x64, pulsa **Descargar modelo (179 MB)**. Luego selecciona el área que contiene una ecuación y pulsa **Reconocer como LaTeX**. RapidLaTeXOCR procesa la imagen localmente. [Fuentes del modelo](https://github.com/RapidAI/RapidLaTeXOCR/releases/tag/v0.0.0).
+- **OCR.** En Windows x64 o Linux x64, pulsa **Descargar modelo (179 MB)**. Luego selecciona el área que contiene una ecuación y pulsa **Reconocer como LaTeX**. RapidLaTeXOCR procesa la imagen localmente. El OCR guarda la verificación SHA-256 del modelo y recalcula los hashes cuando cambian los archivos. El panel permite consultar el espacio y eliminar el modelo. Los pesos se conservan al actualizar o desinstalar el paquete. Si ya lo desinstalaste, reinstálalo y usa **Eliminar modelo** para liberar ese espacio. [Fuentes del modelo](https://github.com/RapidAI/RapidLaTeXOCR/releases/tag/v0.0.0).
+- **Recuperación.** En **Instaladas**, los paquetes dañados aparecen con su diagnóstico y se pueden desinstalar antes de volver a descargarlos. Si falla el registro de activación, pulsa **Activar** en la versión que quieras recuperar.
 - **Pomodoro.** Pulsa **Iniciar** en el panel sobre el PDF. Puedes pausar o reiniciar la sesión. Al terminar, el lector muestra un aviso y solicita atención al sistema. El reloj sigue en marcha al cerrar su ventana.
 
 ## Instalar por código
 
-Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/#extensiones) y copia el código de seis cifras. En CrabPDF 0.5.2, abre **Extensiones**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
+Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/extensions/) y copia el código de seis cifras. Abre **Extensiones → Gestor de extensiones → Catálogo**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
 
 La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recibe documentos ni selecciones. CrabPDF verifica el tamaño y SHA-256 del ZIP y compara el manifiesto con la ficha. Si instalas una versión nueva, puedes mantener la anterior activa hasta que decidas cambiarla.
 
@@ -70,7 +71,7 @@ input = "region"
 output = "latex"
 ```
 
-`input` admite `region` y `text`. `output` admite `text` y `latex`. El lector verifica la versión de API, la compatibilidad del host, la plataforma, las rutas y los identificadores de los comandos antes de instalar.
+`input` admite `region`, `text` y `none` para comandos independientes del PDF. `output` admite `text` y `latex`. El lector verifica la versión de API, la compatibilidad del host, la plataforma, las rutas y los identificadores de los comandos antes de instalar.
 
 Las plataformas usan triples Rust como `x86_64-pc-windows-msvc`, `i686-pc-windows-msvc`, `x86_64-unknown-linux-gnu` y `aarch64-apple-darwin`. Cada paquete contiene el ejecutable apropiado para su plataforma.
 
@@ -102,17 +103,19 @@ El autor del paquete implementa `recognize_equation` con su modelo. Los tipos `M
 
 ## Comunicación y datos
 
+El host expone `CRABPDF_EXTENSION_DATA` para guardar datos entre ejecuciones. Cuando esté disponible `CRABPDF_EXTENSION_SCRATCH`, úsala para archivos temporales. Está en el mismo volumen y se limpia al terminar o cancelar el proceso.
+
 Cada ejecución recibe dos argumentos con rutas absolutas de intercambio.
 
 ```text
 --crabpdf-request <request.json> --crabpdf-response <response.json>
 ```
 
-El host escribe una solicitud JSON con API, identificador, comando, página desde 1 y región normalizada. El origen de la región es la esquina superior izquierda de la página sin el giro elegido en el visor. Se entrega el texto de esa área y, para un comando `region`, un PNG de hasta 2048 × 2048. Los permisos de copia del PDF se comprueban antes de producir esos datos.
+El host escribe una solicitud JSON con API, identificador, comando, página desde 1 y región normalizada. El origen de la región es la esquina superior izquierda de la página sin el giro elegido en el visor. Se entrega el texto de esa área y, para un comando `region`, un PNG de hasta 2048 × 2048 con el giro que mostraba el visor al seleccionar. Los permisos de copia del PDF se comprueban antes de producir esos datos.
 
-El SDK lee la solicitud y escribe una respuesta con el mismo identificador. El resultado contiene el formato declarado y el texto, o un error. El host comprueba el identificador, API, formato y tamaño. La lectura y la escritura JSON están limitadas a 1 MiB. Cada proceso dispone de 120 segundos y se puede cancelar desde la interfaz. El proceso termina antes de liberar el paquete y limpiar los archivos de intercambio.
+El SDK lee la solicitud y escribe una respuesta con el mismo identificador. El resultado contiene el formato declarado y el texto, o un error. El host comprueba el identificador, API, formato y tamaño. La lectura y la escritura JSON están limitadas a 1 MiB. Los comandos con selección disponen de 120 segundos y los comandos `none` disponen de 600 segundos. Ambos se pueden cancelar desde la interfaz. El proceso termina antes de liberar el paquete y limpiar los archivos de intercambio.
 
-Las operaciones de instalación y activación se ejecutan en segundo plano y usan un bloqueo entre procesos. La instalación copia primero a una carpeta temporal y publica la versión mediante renombrado al terminar. Hay límites de 2 GiB, 4096 entradas y 16 niveles de carpetas. Se rechazan enlaces y archivos especiales.
+Las operaciones de instalación y activación se ejecutan en segundo plano y usan un bloqueo entre procesos. La instalación copia primero a una carpeta temporal y publica la versión mediante renombrado al terminar. Cada paquete admite hasta 2 GiB, 4096 entradas y 16 niveles de carpetas. El perfil admite 64 versiones por extensión y hasta 256 versiones instaladas en total. Se rechazan enlaces y archivos especiales.
 
 Los paquetes nativos se ejecutan con los permisos de la cuenta del sistema. Las entradas declaradas controlan lo que CrabPDF entrega mediante su API. El proceso nativo conserva las facultades que le conceda el sistema operativo, incluida la red. La primera implementación admite paquetes locales de confianza. Un backend WebAssembly con capacidades restringidas puede añadirse usando el mismo contrato de comandos y resultados.
 

@@ -21,6 +21,7 @@ pub(super) fn run(
     repair_sender: mpsc::SyncSender<ImportRequest>,
     sender: mpsc::SyncSender<WorkerEvent>,
     render_repaint: Arc<dyn Fn() + Send + Sync>,
+    eager_outline: bool,
 ) {
     let pdfium = match bind_pdfium() {
         Ok(p) => p,
@@ -30,7 +31,7 @@ pub(super) fn run(
             return;
         }
     };
-    let mut documents = HashMap::new();
+    let mut documents: HashMap<DocumentId, PdfiumEngine> = HashMap::new();
     let mut page_counts = HashMap::new();
     let mut rasters = ByteCache::new(if cfg!(target_pointer_width = "32") {
         32 * 1024 * 1024
@@ -92,7 +93,7 @@ pub(super) fn run(
                 // Passwords are never persisted; drop the request after loading.
                 password.take();
                 let details = if result.is_ok() {
-                    Some(engine.details())
+                    Some(engine.read_details(eager_outline))
                 } else {
                     None
                 };
@@ -142,6 +143,13 @@ pub(super) fn run(
             Command::ReleaseRender(key) => {
                 rasters.remove(&key);
             }
+            Command::Outline(id) => {
+                if let Some(engine) = documents.get(&id)
+                    && !send(WorkerEvent::Outline(id, engine.outline()))
+                {
+                    break;
+                }
+            }
             Command::Content(id, page) => {
                 let Some(engine) = documents.get_mut(&id) else {
                     continue;
@@ -160,7 +168,7 @@ pub(super) fn run(
                     break;
                 }
             }
-            Command::Capture(id, token, revision, page, bounds) => {
+            Command::Capture(id, token, revision, page, bounds, rotation) => {
                 let result = documents
                     .get_mut(&id)
                     .ok_or_else(|| ReaderError::new(ErrorKind::Render, "El documento se cerró."))
@@ -171,7 +179,7 @@ pub(super) fn run(
                                 "El documento cambió durante la selección.",
                             ));
                         }
-                        engine.capture_selection(page, bounds)
+                        engine.capture_selection(page, bounds, rotation)
                     });
                 if !send(WorkerEvent::Captured(id, token, result)) {
                     break;
@@ -179,7 +187,7 @@ pub(super) fn run(
             }
             Command::Search(request) => {
                 if request.query.is_empty() {
-                    background.cancel_search();
+                    let _ = background.stop_search(request.document_id, request.generation);
                 } else if let Some(total) = page_counts.get(&request.document_id) {
                     background.start_search(request, *total);
                 }
@@ -191,7 +199,7 @@ pub(super) fn run(
                 let total = page_counts.get(&request.document_id).copied().unwrap_or(0);
                 let result = engine.search_page(page, &request);
                 if result.is_err() {
-                    background.cancel_search();
+                    let _ = background.stop_search(request.document_id, request.generation);
                 }
                 if !send(WorkerEvent::search_result(
                     &request,

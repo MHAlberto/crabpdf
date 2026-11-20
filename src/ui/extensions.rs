@@ -3,22 +3,45 @@ mod panels;
 
 use super::*;
 use crate::desktop::extensions::{
-    InstalledPackage, Invocation, Repository, RunningExtension,
+    InstalledPackage, Inventory, Invocation, Repository, RunningExtension,
     catalog::{self, CatalogPackage},
 };
 use crabpdf_core::document::{Bounds, SelectionCapture};
 use crabpdf_extension_api::catalog::valid_code;
 use crabpdf_extension_api::{ExtensionCommand, ExtensionOutput, InputKind, Region};
 use eframe::egui::{Color32, Rect, Stroke, StrokeKind};
-use std::{path::PathBuf, sync::mpsc};
+use std::{collections::BTreeMap, path::PathBuf, sync::mpsc};
 
 enum ManagementResult {
-    Packages(Vec<InstalledPackage>),
+    Packages(Inventory),
     Updates(Vec<CatalogPackage>),
-    InstalledCatalog(Vec<InstalledPackage>),
+    InstalledCatalog(Inventory),
     Catalog(Box<CatalogPackage>),
     Preview(PathBuf, Box<crabpdf_extension_api::Manifest>),
 }
+type PackageKey = (String, String);
+type DocumentRevision = (DocumentId, u64);
+
+struct ExtensionRun {
+    owner: PackageKey,
+    document: Option<DocumentRevision>,
+    process: RunningExtension,
+    cancelling: bool,
+    discarded: bool,
+}
+
+struct ExtensionResult {
+    document: Option<DocumentRevision>,
+    result: Result<ExtensionOutput, String>,
+}
+
+fn package_key(package: &InstalledPackage) -> PackageKey {
+    (
+        package.manifest.id.clone(),
+        package.manifest.version.clone(),
+    )
+}
+
 #[derive(Default)]
 pub(super) struct Extensions {
     pub open: bool,
@@ -29,24 +52,30 @@ pub(super) struct Extensions {
     code: String,
     updates: Vec<CatalogPackage>,
     catalog_preview: Option<Box<CatalogPackage>>,
-    packages: Vec<InstalledPackage>,
+    inventory: Inventory,
     operation: Option<mpsc::Receiver<Result<ManagementResult, String>>>,
     picker: Option<crate::desktop::dialogs::PendingDialog>,
     preview: Option<(PathBuf, crabpdf_extension_api::Manifest)>,
     pub selecting: bool,
     drag: Option<(DocumentId, usize, egui::Pos2)>,
-    selected: Option<(DocumentId, usize, Bounds)>,
+    selected: Option<(DocumentRevision, usize, Bounds)>,
     capture: Option<SelectionCapture>,
-    pending: Option<(DocumentId, u64, u64)>,
+    pending: Option<u64>,
+    capture_error: Option<String>,
     serial: u64,
-    revision: Option<u64>,
-    running: Option<RunningExtension>,
-    output: Option<ExtensionOutput>,
+    running: Option<ExtensionRun>,
+    results: BTreeMap<PackageKey, ExtensionResult>,
+    latest: Option<PackageKey>,
     message: Option<String>,
 }
 impl Extensions {
     pub fn result_text(&self) -> Option<&str> {
-        self.output.as_ref().map(|output| output.text.as_str())
+        self.results
+            .get(self.latest.as_ref()?)?
+            .result
+            .as_ref()
+            .ok()
+            .map(|output| output.text.as_str())
     }
     fn busy(&self) -> bool {
         self.operation.is_some()
@@ -73,14 +102,23 @@ impl Extensions {
         }
     }
     pub(super) fn menu_entries(&mut self, ui: &mut egui::Ui) {
-        if self.packages.iter().any(|package| package.enabled) {
+        if self
+            .inventory
+            .packages
+            .iter()
+            .any(|package| package.enabled)
+        {
             ui.separator();
         }
-        for package in self.packages.iter().filter(|package| package.enabled) {
+        for package in self
+            .inventory
+            .packages
+            .iter()
+            .filter(|package| package.enabled)
+        {
             ui.menu_button(&package.manifest.name, |ui| {
                 if ui.button("Abrir").clicked() {
                     self.panels.open(package);
-                    self.output = None;
                     self.open = false;
                     ui.close();
                 }
@@ -149,7 +187,7 @@ impl Extensions {
                 package.asset.bytes as f64 / (1024.0 * 1024.0)
             ));
             ui.label("La extensión se ejecuta con los permisos de tu usuario.");
-            let installed = self.packages.iter().any(|existing| {
+            let installed = self.inventory.packages.iter().any(|existing| {
                 existing.manifest.id == entry.id && existing.manifest.version == entry.version
             });
             ui.horizontal(|ui| {
@@ -168,7 +206,9 @@ impl Extensions {
                     let repository = repository.clone();
                     self.manage(ctx, move || {
                         catalog::install(&repository, &package)?;
-                        repository.list().map(ManagementResult::InstalledCatalog)
+                        repository
+                            .inventory()
+                            .map(ManagementResult::InstalledCatalog)
                     });
                 }
                 if ui.button("Descartar").clicked() {
@@ -178,9 +218,10 @@ impl Extensions {
         }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, repository: Repository, can_select: bool) -> bool {
+    pub fn show(&mut self, ctx: &egui::Context, data: &std::path::Path, can_select: bool) -> bool {
         let mut arm = false;
-        self.show_tool(ctx, &repository, can_select, &mut arm);
+        let repository = Repository::new(data);
+        self.show_tool(ctx, &repository, data, can_select, &mut arm);
         self.panels.notifications(ctx);
         if !self.open {
             return arm;
@@ -202,7 +243,7 @@ impl Extensions {
                     .show(ui, |ui| {
                         if self.show_catalog_tab {
                             self.show_catalog(ui, ctx, &repository);
-                            self.show_status(ui, ctx);
+                            self.show_manager_status(ui, ctx);
                             return;
                         }
                         ui.horizontal(|ui| {
@@ -226,7 +267,7 @@ impl Extensions {
                             {
                                 self.show_catalog_tab = true;
                                 let installed = self
-                                    .packages
+                                    .inventory.packages
                                     .iter()
                                     .map(|p| (p.manifest.id.clone(), p.manifest.version.clone()))
                                     .collect();
@@ -261,7 +302,7 @@ impl Extensions {
                                     let repository = repository.clone();
                                     self.manage(ctx, move || {
                                         repository.install(&path)?;
-                                        repository.list().map(ManagementResult::Packages)
+                                        repository.inventory().map(ManagementResult::Packages)
                                     });
                                 }
                                 if ui.button("Descartar").clicked() {
@@ -269,10 +310,31 @@ impl Extensions {
                                 }
                             });
                         }
-                        if self.packages.is_empty() {
+                        if self.inventory.over_limit {
+                            ui.label("Se alcanzó el límite del inventario. Desinstala versiones para ver las restantes.");
+                        }
+                        for index in 0..self.inventory.issues.len() {
+                            let issue = &self.inventory.issues[index];
+                            let id = issue.id.clone();
+                            let version = issue.version.clone();
+                            ui.group(|ui| {
+                                ui.strong(&id);
+                                ui.label(&self.inventory.issues[index].detail);
+                                if let Some(version) = version
+                                    && ui.add_enabled(!self.busy(), egui::Button::new("Desinstalar copia dañada")).clicked()
+                                {
+                                    let repository = repository.clone();
+                                    self.manage(ctx, move || {
+                                        repository.remove_version(&id, &version)?;
+                                        repository.inventory().map(ManagementResult::Packages)
+                                    });
+                                }
+                            });
+                        }
+                        if self.inventory.packages.is_empty() {
                             ui.label("Instala un paquete para añadir herramientas al lector.");
                         }
-                        for package in self.packages.clone() {
+                        for package in self.inventory.packages.clone() {
                             ui.separator();
                             ui.horizontal_wrapped(|ui| {
                                 ui.strong(&package.manifest.name);
@@ -300,7 +362,7 @@ impl Extensions {
                                     let repository = repository.clone();
                                     self.manage(ctx, move || {
                                         repository.enable(&package, !package.enabled)?;
-                                        repository.list().map(ManagementResult::Packages)
+                                        repository.inventory().map(ManagementResult::Packages)
                                     });
                                 }
                                 if ui
@@ -311,23 +373,23 @@ impl Extensions {
                                     let repository = repository.clone();
                                     self.manage(ctx, move || {
                                         repository.remove(&package)?;
-                                        repository.list().map(ManagementResult::Packages)
+                                        repository.inventory().map(ManagementResult::Packages)
                                     });
                                 }
                             });
                             if package.enabled {
                                 if ui.button("Abrir extensión").clicked() {
                                     self.panels.open(&package);
-                                    self.output = None;
                                     self.open = false;
                                     open_requested = true;
                                 }
                                 for command in &package.manifest.commands {
                                     let ready = !self.busy()
-                                        && self.capture.as_ref().is_some_and(|capture| {
-                                            command.input == InputKind::Region
-                                                || !capture.text.trim().is_empty()
-                                        });
+                                        && (command.input == InputKind::None
+                                            || self.capture.as_ref().is_some_and(|capture| {
+                                                command.input == InputKind::Region
+                                                    || !capture.text.trim().is_empty()
+                                            }));
                                     if ui
                                         .add_enabled(ready, egui::Button::new(&command.title))
                                         .clicked()
@@ -363,12 +425,13 @@ impl Extensions {
                             self.selecting = true;
                             self.drag = None;
                             self.capture = None;
+                            self.capture_error = None;
                             self.selected = None;
                             self.open = false;
                             arm = true;
                         }
                         ui.label("También puedes usar Texto / Enviar selección a extensión.");
-                        self.show_status(ui, ctx);
+                        self.show_manager_status(ui, ctx);
                     });
             });
         self.open = open && !arm && !open_requested;
@@ -378,6 +441,7 @@ impl Extensions {
         &mut self,
         ctx: &egui::Context,
         repository: &Repository,
+        data: &std::path::Path,
         can_select: bool,
         arm: &mut bool,
     ) {
@@ -385,6 +449,7 @@ impl Extensions {
             return;
         }
         let Some(package) = self
+            .inventory
             .packages
             .iter()
             .find(|p| p.enabled && self.panels.active.as_ref() == Some(&p.manifest.id))
@@ -417,8 +482,8 @@ impl Extensions {
                             self.selecting = true;
                             self.drag = None;
                             self.capture = None;
+                            self.capture_error = None;
                             self.selected = None;
-                            self.output = None;
                             *arm = true;
                         }
                         for command in &package.manifest.commands {
@@ -436,58 +501,112 @@ impl Extensions {
                             }
                         }
                     });
-                    self.show_status(ui, ctx);
+                    self.show_capture_status(ui);
+                    self.show_run_status(ui, ctx, &package_key(&package));
                 }
                 ui.separator();
-                self.panels.shortcuts(ui, &package.manifest.id);
+                self.panels.shortcuts(ui, &package.manifest.id, data);
             });
         if !open {
             self.panels.close();
         }
     }
 
-    fn show_status(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+    fn retain_results(&mut self) {
+        self.results.retain(|key, _| {
+            self.inventory
+                .packages
+                .iter()
+                .any(|p| p.enabled && p.manifest.id == key.0 && p.manifest.version == key.1)
+        });
+    }
+
+    fn show_capture_status(&self, ui: &mut egui::Ui) {
         if self.pending.is_some() {
             ui.label("Preparando el recorte…");
         }
-        if self.operation.is_some() || self.running.is_some() {
+        if let Some(error) = &self.capture_error {
+            ui.label(error);
+        }
+    }
+
+    fn show_manager_status(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        self.show_capture_status(ui);
+        if self.operation.is_some() {
             ui.horizontal(|ui| {
                 ui.spinner();
-                ui.label(if self.running.is_some() {
-                    "Ejecutando extensión…"
-                } else if self.operation_label.is_empty() {
+                ui.label(if self.operation_label.is_empty() {
                     "Actualizando extensiones…"
                 } else {
                     self.operation_label
                 });
-                if self.running.is_some() && ui.button("Cancelar").clicked() {
-                    if let Some(run) = self.running.take() {
-                        run.cancel();
-                    }
-                    self.message = Some("Operación cancelada.".into());
-                }
             });
         }
         if let Some(message) = &self.message {
             ui.label(message);
         }
-        if let Some(output) = &mut self.output {
-            ui.separator();
+        if let Some(key) = self.latest.clone()
+            && (self.results.contains_key(&key)
+                || self.running.as_ref().is_some_and(|run| run.owner == key))
+        {
+            if let Some(package) = self
+                .inventory
+                .packages
+                .iter()
+                .find(|p| p.manifest.id == key.0 && p.manifest.version == key.1)
+            {
+                ui.strong(&package.manifest.name);
+            }
+            self.show_run_status(ui, ctx, &key);
+        }
+    }
+
+    fn show_run_status(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, key: &PackageKey) {
+        if let Some(run) = &mut self.running
+            && &run.owner == key
+            && !run.discarded
+        {
             ui.horizontal(|ui| {
-                ui.strong(match output.kind {
-                    crabpdf_extension_api::OutputKind::Text => "Resultado",
-                    crabpdf_extension_api::OutputKind::Latex => "LaTeX",
+                ui.spinner();
+                ui.label(if run.cancelling {
+                    "Cancelando…"
+                } else {
+                    "Ejecutando extensión…"
                 });
-                if ui.button("Copiar resultado").clicked() {
-                    ctx.copy_text(output.text.clone());
+                if ui
+                    .add_enabled(!run.cancelling, egui::Button::new("Cancelar"))
+                    .clicked()
+                {
+                    run.process.cancel();
+                    run.cancelling = true;
                 }
             });
-            ui.add(
-                egui::TextEdit::multiline(&mut output.text)
-                    .code_editor()
-                    .desired_rows(5)
-                    .desired_width(f32::INFINITY),
-            );
+        }
+        let Some(entry) = self.results.get_mut(key) else {
+            return;
+        };
+        match &mut entry.result {
+            Err(error) => {
+                ui.label(error.as_str());
+            }
+            Ok(output) => {
+                ui.separator();
+                ui.horizontal(|ui| {
+                    ui.strong(match output.kind {
+                        crabpdf_extension_api::OutputKind::Text => "Resultado",
+                        crabpdf_extension_api::OutputKind::Latex => "LaTeX",
+                    });
+                    if ui.button("Copiar resultado").clicked() {
+                        ctx.copy_text(output.text.clone());
+                    }
+                });
+                ui.add(
+                    egui::TextEdit::multiline(&mut output.text)
+                        .code_editor()
+                        .desired_rows(5)
+                        .desired_width(f32::INFINITY),
+                );
+            }
         }
     }
 
@@ -498,6 +617,11 @@ impl Extensions {
         package: InstalledPackage,
         command: ExtensionCommand,
     ) {
+        let document = if command.input == InputKind::None {
+            None
+        } else {
+            self.selected.map(|(identity, _, _)| identity)
+        };
         let input = if command.input == InputKind::None {
             Invocation {
                 command,
@@ -529,18 +653,74 @@ impl Extensions {
                 image: Some((capture.png.clone(), capture.width, capture.height)),
             }
         };
+        let owner = package_key(&package);
+        self.latest = Some(owner.clone());
+        self.results.remove(&owner);
         let repaint = ctx.clone();
         match RunningExtension::spawn(repository, package, input, move || {
             repaint.request_repaint()
         }) {
-            Ok(run) => {
-                self.running = Some(run);
-                self.output = None;
-                self.message = None;
+            Ok(process) => {
+                self.running = Some(ExtensionRun {
+                    owner,
+                    document,
+                    process,
+                    cancelling: false,
+                    discarded: false,
+                });
             }
-            Err(error) => self.message = Some(error.to_string()),
+            Err(error) => {
+                self.results.insert(
+                    owner,
+                    ExtensionResult {
+                        document,
+                        result: Err(error.to_string()),
+                    },
+                );
+            }
         }
     }
+    fn invalidate_document(&mut self, identity: Option<DocumentRevision>) {
+        if self
+            .selected
+            .is_some_and(|(selected, _, _)| Some(selected) != identity)
+        {
+            self.capture = None;
+            self.pending = None;
+            self.selected = None;
+            self.capture_error = None;
+        }
+        if let Some(run) = &mut self.running
+            && !run.discarded
+            && run
+                .document
+                .is_some_and(|document| Some(document) != identity)
+        {
+            run.process.cancel();
+            run.discarded = true;
+        }
+        self.results.retain(|_, entry| {
+            entry
+                .document
+                .is_none_or(|document| Some(document) == identity)
+        });
+    }
+
+    fn poll_run(&mut self) {
+        if let Some(result) = self.running.as_ref().and_then(|run| run.process.poll()) {
+            let run = self.running.take().expect("polled an active run");
+            if !run.discarded {
+                self.results.insert(
+                    run.owner,
+                    ExtensionResult {
+                        document: run.document,
+                        result,
+                    },
+                );
+            }
+        }
+    }
+
     pub(super) fn close_tool(&mut self) -> bool {
         self.panels.close()
     }
@@ -562,7 +742,7 @@ impl ReaderApp {
         self.extensions.open = false;
         self.extensions.drag = None;
         self.extensions.capture = None;
-        self.extensions.output = None;
+        self.extensions.capture_error = None;
         self.extensions.selected = None;
         if let Some(tab) = self.tabs.get_mut(self.active) {
             tab.view.selection_drag = None;
@@ -570,25 +750,41 @@ impl ReaderApp {
     }
     pub(super) fn extensions_open(&mut self, ctx: &egui::Context) {
         self.extensions.open = true;
+        self.extensions.loaded = true;
         if self.extensions.busy() {
             return;
         }
         let repository = Repository::new(&self.app_paths.data);
         self.extensions.manage(ctx, move || {
-            repository.list().map(ManagementResult::Packages)
+            repository.inventory().map(ManagementResult::Packages)
         });
     }
     pub(super) fn poll_extensions(&mut self, ctx: &egui::Context) {
         if !self.extensions.loaded {
             self.extensions.loaded = true;
             let repository = Repository::new(&self.app_paths.data);
-            self.extensions.manage(ctx, move || {
-                repository.list().map(ManagementResult::Packages)
-            });
+            if repository.has_installed() {
+                self.extensions.manage(ctx, move || {
+                    repository.inventory().map(ManagementResult::Packages)
+                });
+            }
         }
-        self.extensions
-            .panels
-            .poll(ctx, &self.app_paths.data, &self.extensions.packages);
+        if self.extensions.inventory.packages.is_empty()
+            && self.extensions.operation.is_none()
+            && !self.extensions.open
+            && !self.extensions.selecting
+            && self.extensions.selected.is_none()
+            && self.extensions.pending.is_none()
+            && self.extensions.running.is_none()
+            && self.extensions.picker.is_none()
+        {
+            return;
+        }
+        self.extensions.panels.poll(
+            ctx,
+            &self.app_paths.data,
+            &self.extensions.inventory.packages,
+        );
         let identity = self
             .tabs
             .get(self.active)
@@ -600,25 +796,7 @@ impl ReaderApp {
                     .as_ref()
                     .map(|_| (tab.reader.id, tab.reader.state.content_revision))
             });
-        if self
-            .extensions
-            .selected
-            .is_some_and(|(id, _, _)| identity.is_none_or(|(active, _)| id != active))
-            || self
-                .extensions
-                .revision
-                .is_some_and(|revision| identity.is_none_or(|(_, current)| current != revision))
-            || self
-                .extensions
-                .pending
-                .is_some_and(|(id, _, revision)| identity != Some((id, revision)))
-        {
-            self.extensions.capture = None;
-            self.extensions.pending = None;
-            self.extensions.selected = None;
-            self.extensions.running = None;
-            self.extensions.output = None;
-        }
+        self.extensions.invalidate_document(identity);
         if let Some(receiver) = &self.extensions.operation {
             let result = match receiver.try_recv() {
                 Ok(result) => Some(result),
@@ -631,18 +809,20 @@ impl ReaderApp {
                 self.extensions.operation = None;
                 match result {
                     Ok(ManagementResult::Packages(packages)) => {
-                        self.extensions.packages = packages;
+                        self.extensions.inventory = packages;
+                        self.extensions.retain_results();
                         self.extensions.message = None;
                     }
                     Ok(ManagementResult::InstalledCatalog(packages)) => {
-                        self.extensions.packages = packages;
+                        self.extensions.inventory = packages;
+                        self.extensions.retain_results();
                         self.extensions.show_catalog_tab = false;
                         self.extensions.message =
                             Some("Extensión instalada. Pulsa Activar para usarla.".into());
                     }
                     Ok(ManagementResult::Updates(updates)) => {
                         if updates.is_empty() {
-                            self.extensions.message = Some("Tus extensiones están al día.".into());
+                            self.extensions.message = Some("No hay actualizaciones compatibles para las extensiones instaladas.".into());
                         }
                         self.extensions.updates = updates;
                     }
@@ -670,15 +850,7 @@ impl ReaderApp {
                 });
             }
         }
-        if let Some(run) = &self.extensions.running
-            && let Some(result) = run.poll()
-        {
-            self.extensions.running = None;
-            match result {
-                Ok(output) => self.extensions.output = Some(output),
-                Err(e) => self.extensions.message = Some(e),
-            }
-        }
+        self.extensions.poll_run();
         if self.extensions.selecting && self.notice.is_none() {
             self.notice=Some("Arrastra un rectángulo sobre la ecuación o el área que quieras enviar. Escape cancela.".into());
         }
@@ -704,12 +876,12 @@ impl ReaderApp {
         {
             return;
         }
-        self.extensions.revision = Some(tab.reader.state.content_revision);
         self.extensions.serial = self.extensions.serial.wrapping_add(1);
         let token = self.extensions.serial;
-        self.extensions.selected = Some((tab.reader.id, page, bounds));
+        let identity = (tab.reader.id, tab.reader.state.content_revision);
+        self.extensions.selected = Some((identity, page, bounds));
+        self.extensions.capture_error = None;
         self.extensions.capture = None;
-        self.extensions.output = None;
         self.notice = None;
         self.extensions.selecting = false;
         self.extensions.drag = None;
@@ -721,12 +893,12 @@ impl ReaderApp {
                 tab.reader.state.content_revision,
                 page,
                 bounds,
+                tab.reader.state.rotation,
             ) {
                 Ok(()) => {
-                    self.extensions.pending =
-                        Some((tab.reader.id, token, tab.reader.state.content_revision))
+                    self.extensions.pending = Some(token);
                 }
-                Err(e) => self.extensions.message = Some(e.to_string()),
+                Err(e) => self.extensions.capture_error = Some(e.to_string()),
             }
         }
         ctx.request_repaint();
@@ -737,20 +909,18 @@ impl ReaderApp {
         token: u64,
         result: Result<SelectionCapture, ReaderError>,
     ) {
-        if self
-            .extensions
-            .pending
-            .is_none_or(|(requested, t, _)| (requested, t) != (id, token))
+        if self.extensions.pending != Some(token)
+            || self
+                .extensions
+                .selected
+                .is_none_or(|((requested, _), _, _)| requested != id)
         {
             return;
         }
         self.extensions.pending = None;
         match result {
-            Ok(capture) => {
-                self.extensions.capture = Some(capture);
-                self.extensions.message = None;
-            }
-            Err(error) => self.extensions.message = Some(error.to_string()),
+            Ok(capture) => self.extensions.capture = Some(capture),
+            Err(error) => self.extensions.capture_error = Some(error.to_string()),
         }
     }
     pub(super) fn extension_text_selection(&mut self, ctx: &egui::Context) {

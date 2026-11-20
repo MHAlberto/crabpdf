@@ -17,7 +17,7 @@ pub use bindings::bind_pdfium;
 use geometry::PageTransform;
 
 use pdfium_render::prelude::*;
-use std::path::Path;
+use std::{fs::File, io::BufReader, path::Path};
 
 /// The worker depends on this interface; neither the engine nor its data use egui.
 pub trait PdfEngine {
@@ -79,9 +79,11 @@ impl<'a> PdfiumEngine<'a> {
         prepared: &Path,
         password: Option<&str>,
     ) -> Result<DocumentInfo, ReaderError> {
+        let file =
+            File::open(prepared).map_err(|error| map_open_error(PdfiumError::IoError(error)))?;
         let document = self
             .pdfium
-            .load_pdf_from_file(prepared, password)
+            .load_pdf_from_reader(BufReader::with_capacity(64 * 1024, file), password)
             .map_err(map_open_error)?;
         let page_count = document.pages().len() as usize;
         if page_count == 0 {

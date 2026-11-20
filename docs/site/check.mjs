@@ -36,4 +36,17 @@ for (const page of ["index.html", "extensions/index.html", "documentacion/index.
     }
   }
 }
-console.log("Built website: local assets, fragments, accessible references and image dimensions verified.");
+const site = "https://mhalberto.github.io/crabpdf/";
+for (const guide of ["uso.md", "extensiones.md"]) {
+  const markdown = await readFile(path.join(output, "documentacion", guide), "utf8");
+  for (const [, reference] of markdown.matchAll(/\]\(([^\s)]+)\)/g)) {
+    if (!/^(?:https?:\/\/|#)/.test(reference)) {
+      throw new Error("Broken download link in " + guide + ": " + reference);
+    }
+    if (reference.startsWith(site)) {
+      const pathname = new URL(reference).pathname.slice(new URL(site).pathname.length);
+      await access(path.join(output, pathname.endsWith("/") || !pathname ? pathname + "index.html" : pathname));
+    }
+  }
+}
+console.log("Built website: local assets, fragments, accessible references and image dimensions and Markdown links verified.");

@@ -28,7 +28,7 @@ pub struct Manifest {
     pub timer: Option<TimerSpec>,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TimerSpec {
     pub focus_minutes: u32,

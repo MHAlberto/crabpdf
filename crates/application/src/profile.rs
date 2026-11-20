@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct StoredDocument {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub view_id: Option<String>,
     pub path: PathBuf,
     pub page: usize,
     pub zoom: Zoom,

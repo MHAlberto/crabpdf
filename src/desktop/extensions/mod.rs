@@ -2,5 +2,5 @@
 pub mod catalog;
 mod packages;
 mod process;
-pub use packages::{InstalledPackage, Repository, target};
+pub use packages::{InstalledPackage, Inventory, Repository, target};
 pub use process::{Invocation, RunningExtension};

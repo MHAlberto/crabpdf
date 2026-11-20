@@ -17,6 +17,7 @@ fn position(schema: u8, page: usize) -> ReadingPosition {
 }
 fn saved() -> StoredDocument {
     StoredDocument {
+        view_id: None,
         path: "same-book.pdf".into(),
         page: 3,
         zoom: Zoom::Percent(135),

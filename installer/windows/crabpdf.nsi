@@ -23,6 +23,8 @@ BrandingText "CrabPDF · ${VERSION} · ${ARCH}"
 ShowInstDetails show
 ShowUninstDetails show
 Var IsUpdate
+Var StageDir
+Var CommitResult
 VIProductVersion "${VERSION}.0"
 VIAddVersionKey /LANG=1033 "ProductName" "CrabPDF"
 VIAddVersionKey /LANG=1033 "FileDescription" "CrabPDF installer (${ARCH})"
@@ -105,20 +107,39 @@ LangString SetupBusy ${LANG_ENGLISH} "CrabPDF is already being installed or unin
 ; Sections precede callbacks so their numeric identifiers are defined.
 Section "$(ReaderName)" READER
   SectionIn RO
+  Call RecoverInstallation
   Call ValidateDestination
   Call WaitForReader
+  ${GetParent} "$INSTDIR" $0
+  CreateDirectory "$0"
   ClearErrors
+  GetTempFileName $StageDir "$0"
+  IfErrors stage_failed
+  Delete "$StageDir"
+  IfErrors stage_failed
+  CreateDirectory "$StageDir"
+  IfErrors stage_failed
   SetOverwrite on
   !include "${INCLUDE_DIR}\install-files.nsh"
-  IfErrors 0 installed_files
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "Product" "CrabPDF"
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "Architecture" "${ARCH}"
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "Version" "${VERSION}"
+  Call WriteStagedIntegration
+  WriteUninstaller "$StageDir\uninstall.exe"
+  IfErrors stage_failed
+  SetOutPath "$TEMP"
+  Call ExtractCommitTool
+  nsExec::ExecToLog '"$PLUGINSDIR\crabpdf-install-commit.exe" "${ARCH}" "$INSTDIR" "$StageDir"'
+  Pop $CommitResult
+  StrCmp $CommitResult 0 installed_files
+  stage_failed:
+  SetOutPath "$TEMP"
+  StrCmp $StageDir "" +2
+    RMDir /r "$StageDir"
   SetErrorLevel 5
   Abort
   installed_files:
   SetOutPath "$INSTDIR"
-  WriteINIStr "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Product" "CrabPDF"
-  WriteINIStr "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Architecture" "${ARCH}"
-  WriteINIStr "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Version" "${VERSION}"
-  WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKCU "${PRODUCT_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "CrabPDF (${ARCH})"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "${VERSION}"
@@ -155,6 +176,39 @@ SectionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${OPENWITH} "Añade una opción sin cambiar tu lector predeterminado."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
+Function WriteStagedIntegration
+  SectionGetFlags ${MENU} $1
+  IntOp $1 $1 & ${SF_SELECTED}
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "Menu" $1
+  SectionGetFlags ${DESKTOP} $1
+  IntOp $1 $1 & ${SF_SELECTED}
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "Desktop" $1
+  SectionGetFlags ${OPENWITH} $1
+  IntOp $1 $1 & ${SF_SELECTED}
+  WriteINIStr "$StageDir\crabpdf-install.ini" "CrabPDF" "OpenWith" $1
+FunctionEnd
+
+Function ExtractCommitTool
+  InitPluginsDir
+  SetOutPath "$PLUGINSDIR"
+  ClearErrors
+  File "${INCLUDE_DIR}\crabpdf-install-commit.exe"
+  IfErrors 0 +3
+    SetErrorLevel 5
+    Abort
+FunctionEnd
+
+Function RecoverInstallation
+  IfFileExists "$INSTDIR.crabpdf-update" 0 recover_done
+  Call ExtractCommitTool
+  nsExec::ExecToLog '"$PLUGINSDIR\crabpdf-install-commit.exe" "${ARCH}" "$INSTDIR"'
+  Pop $CommitResult
+  StrCmp $CommitResult 0 recover_done
+  SetErrorLevel 5
+  Abort
+  recover_done:
+FunctionEnd
+
 Function .onInit
   SetShellVarContext current
   SetRegView 32
@@ -184,6 +238,7 @@ Function .onInit
       Abort
     ${EndIf}
   ${EndIf}
+  Call RecoverInstallation
   ReadINIStr $1 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Architecture"
   ReadINIStr $2 "$INSTDIR\crabpdf-install.ini" "CrabPDF" "Product"
   ${If} $1 == "${ARCH}"

@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Installer,
     [ValidateSet('x64','x86')][string]$Architecture = 'x64',
@@ -59,6 +59,27 @@ $expectedVersion = (Get-Item -LiteralPath $installerPath).VersionInfo.FileVersio
 if ((Get-ItemProperty -LiteralPath $uninstallKey).DisplayVersion -ne $expectedVersion) { throw 'No se registró la versión instalada.' }
 if (Select-String -LiteralPath (Join-Path $install 'crabpdf-install.ini') -Pattern '^(Menu|Desktop|OpenWith)=1$' -Quiet) { throw 'La actualización activó integraciones que estaban deshabilitadas.' }
 if ((Get-Content -Raw -LiteralPath (Join-Path $install 'my-document.txt')) -ne 'preserve') { throw 'La actualizacion modifico archivos ajenos.' }
+# A read failure while staging user files must leave the active payload intact.
+$protected = [IO.File]::Open((Join-Path $install 'my-document.txt'), [IO.FileMode]::Open,
+    [IO.FileAccess]::Read, [IO.FileShare]::None)
+try { RunInstaller $installerPath '/S /UPDATE' 5 } finally { $protected.Dispose() }
+CheckPayload | Out-Null
+if (Test-Path -LiteralPath "$install.crabpdf-update") { throw 'La preparación fallida dejó un registro de actualización.' }
+
+# Emulate a crash between the two directory renames. Setup must recover the
+# original from its journal before it tries to validate the active installation.
+$journal = InWorkspace "$install.crabpdf-update"
+$backup = InWorkspace "$install.crabpdf-previous"
+[IO.File]::WriteAllText($journal, ($Architecture + [char]10 + $install))
+[IO.Directory]::Move($install, $backup)
+RunInstaller $installerPath '/S /UPDATE'
+CheckPayload | Out-Null
+if ((Test-Path -LiteralPath $journal) -or (Test-Path -LiteralPath $backup)) {
+    throw 'La recuperación dejó una transacción pendiente.'
+}
+if ((Get-Content -Raw -LiteralPath (Join-Path $install 'my-document.txt')) -ne 'preserve') {
+    throw 'La recuperación modificó un archivo ajeno.'
+}
 # Keeping an open executable catches updates and uninstall while the app runs.
 $lockedExe = [IO.File]::Open((Join-Path $install 'crabpdf.exe'),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
 try { RunInstaller $installerPath ("/S /NOINTEGRATION /D=$install") 4 } finally { $lockedExe.Dispose() }
@@ -74,6 +95,7 @@ $report = @{
     uninstaller_authenticode=$signature
     installation=$true; manifest_verified=$true; upgrade=$true; waits_for_reader=$true; rejects_concurrent_setup=$true
     rejects_unrelated_directory=$true; rejects_locked_executable=$true
+    survives_staging_failure=$true; recovers_interrupted_swap=$true
     uninstall=$true; preserves_unrelated_files=$true; registry_removed=$true
     gui_reviewed=$false
 }

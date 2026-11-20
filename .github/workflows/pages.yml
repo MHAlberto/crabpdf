@@ -59,13 +59,20 @@ jobs:
     outputs:
       run: ${{ steps.artifacts.outputs.run }}
       pattern: ${{ steps.artifacts.outputs.pattern }}
+      hosted: ${{ steps.catalog.outputs.hosted }}
     steps:
       - uses: actions/checkout@v4
-        if: github.event_name == 'push'
         with:
           fetch-depth: 0
+      - name: Check if all archives are hosted by Releases
+        id: catalog
+        shell: bash
+        run: |
+          if jq -e '.extensions | all((.example_targets // [] | length) == 0 and (.assets // [] | length) > 0)' docs/site/extensions.json; then
+            echo 'hosted=true' >> "$GITHUB_OUTPUT"
+          fi
       - name: Find a matching build on main
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.catalog.outputs.hosted != 'true'
         id: artifacts
         shell: bash
         env:
@@ -93,7 +100,7 @@ jobs:
 
   example-packages:
     needs: reuse-example
-    if: needs.reuse-example.outputs.run == ''
+    if: needs.reuse-example.outputs.hosted != 'true' && needs.reuse-example.outputs.run == ''
     strategy:
       fail-fast: false
       matrix:
@@ -165,7 +172,7 @@ jobs:
     if: >-
       !cancelled() && needs.reuse-example.result == 'success' &&
       (needs.example-packages.result == 'success' ||
-      (needs.example-packages.result == 'skipped' && needs.reuse-example.outputs.run != ''))
+      (needs.example-packages.result == 'skipped' && (needs.reuse-example.outputs.run != '' || needs.reuse-example.outputs.hosted == 'true')))
     permissions:
       contents: read
       actions: read
@@ -185,7 +192,7 @@ jobs:
           merge-multiple: true
           path: artifacts/site-extensions
       - uses: actions/download-artifact@v4
-        if: needs.reuse-example.outputs.run == ''
+        if: needs.reuse-example.outputs.run == '' && needs.reuse-example.outputs.hosted != 'true'
         with:
           pattern: catalog-example-*
           merge-multiple: true
@@ -194,7 +201,7 @@ jobs:
         working-directory: docs
         run: node --check site/app.js && node site/build.mjs && node site/check.mjs
       - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && needs.reuse-example.outputs.hosted != 'true'
         with:
           name: catalog-bundle
           path: artifacts/site-extensions/*.zip

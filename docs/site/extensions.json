@@ -6,45 +6,117 @@
       "id": "org.crabpdf.selection-info",
       "name": "Información de la selección",
       "description": "Ejemplo Rust que informa la imagen y el texto recibidos.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "api_version": 1,
-      "host_version": ">=0.5.0, <0.8.0",
-      "example_targets": [
-        "x86_64-pc-windows-msvc",
-        "i686-pc-windows-msvc",
-        "x86_64-unknown-linux-gnu",
-        "aarch64-apple-darwin",
-        "x86_64-apple-darwin"
+      "host_version": ">=0.5.0, <0.9.0",
+      "assets": [
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100001-0.1.4-x86_64-pc-windows-msvc.zip",
+          "bytes": 187261,
+          "sha256": "9fbf80723db6a90ad88f3b940049caaad1a71b52568d953928aa8a7f6aa5a790",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "i686-pc-windows-msvc",
+          "file": "crabpdf-ext-100001-0.1.4-i686-pc-windows-msvc.zip",
+          "bytes": 176029,
+          "sha256": "be4480a609ed796398a15e3d55498521e00e58403c91766c5cc20a97851af8f3",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100001-0.1.4-x86_64-unknown-linux-gnu.zip",
+          "bytes": 234165,
+          "sha256": "ed2c75e0b44b85ec7da9288d3e43edc85474d935a46b5c80363e5fd7b4dc24c1",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "aarch64-apple-darwin",
+          "file": "crabpdf-ext-100001-0.1.4-aarch64-apple-darwin.zip",
+          "bytes": 218413,
+          "sha256": "938554bad27b738a1e197b0b20857dffdd2abea2a736e2ae96acc1e9b6ee4d15",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-apple-darwin",
+          "file": "crabpdf-ext-100001-0.1.4-x86_64-apple-darwin.zip",
+          "bytes": 227389,
+          "sha256": "d81fa394f6bf94c76863ed2b1515c52644959bebcdbc6a37e322c15297087036",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        }
       ]
     },
     {
       "api_version": 1,
-      "example_targets": [
-        "x86_64-pc-windows-msvc",
-        "x86_64-unknown-linux-gnu"
-      ],
       "code": "100002",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "description": "Reconoce una ecuación del PDF y devuelve LaTeX. Descarga un modelo local de 179 MB desde su menú.",
       "id": "org.crabpdf.math-ocr",
       "name": "OCR de ecuaciones",
-      "host_version": ">=0.5.5, <0.8.0"
+      "host_version": ">=0.5.5, <0.9.0",
+      "assets": [
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100002-0.1.5-x86_64-pc-windows-msvc.zip",
+          "bytes": 85865137,
+          "sha256": "000db0762f2d95f6a2013b2b3bc128c74b2aedc376e8318d995ec749c7c0423e",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100002-0.1.5-x86_64-unknown-linux-gnu.zip",
+          "bytes": 131470010,
+          "sha256": "79636a4a8806e0ff482a020a730d7a8994db67a044d367eaf2b5547ad182673f",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        }
+      ]
     },
     {
       "api_version": 1,
-      "example_targets": [
-        "x86_64-pc-windows-msvc",
-        "i686-pc-windows-msvc",
-        "x86_64-unknown-linux-gnu",
-        "aarch64-apple-darwin",
-        "x86_64-apple-darwin"
-      ],
       "code": "100003",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "description": "Reloj sobre el PDF con sesiones de 25 minutos, descansos de 5 minutos y avisos al terminar.",
       "id": "org.crabpdf.pomodoro",
       "name": "Pomodoro",
-      "host_version": ">=0.5.5, <0.8.0"
+      "host_version": ">=0.5.5, <0.9.0",
+      "assets": [
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100003-0.1.3-x86_64-pc-windows-msvc.zip",
+          "bytes": 1075,
+          "sha256": "328f09cbe1ac6be09bf6977ae0a4ccf2931cbe9fff12abb59f78bebb77edec31",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "i686-pc-windows-msvc",
+          "file": "crabpdf-ext-100003-0.1.3-i686-pc-windows-msvc.zip",
+          "bytes": 1073,
+          "sha256": "08d3f320005127df6a716cbd703445ed696ee3f619d31dbd71ea33c9e2e64cb4",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100003-0.1.3-x86_64-unknown-linux-gnu.zip",
+          "bytes": 1075,
+          "sha256": "fdcc8ba9ee06d1b960b53e8defc1dde558c59d1d7d250897075ed7ff497737c3",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "aarch64-apple-darwin",
+          "file": "crabpdf-ext-100003-0.1.3-aarch64-apple-darwin.zip",
+          "bytes": 1070,
+          "sha256": "04557bf683b328fc58b97328121ad1a5e8ac1cecbd780805e40820dcb75cc633",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-apple-darwin",
+          "file": "crabpdf-ext-100003-0.1.3-x86_64-apple-darwin.zip",
+          "bytes": 1071,
+          "sha256": "abca4ec83e91c281b2142bec15d337505b0236fa9bfed3bb47314b0b7e2cfb15",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        }
+      ]
     }
   ]
 }

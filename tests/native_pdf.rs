@@ -590,11 +590,13 @@ fn reader_loads_outline_only_after_request() {
         PdfWorker::spawn_for_reader(|| {}, crabpdf::app_paths::AppPaths::resolve(None, None))
             .unwrap();
     let receive = || worker.events.recv_timeout(Duration::from_secs(10)).unwrap();
-    worker.open(1, fixture("reading-sample.pdf")).unwrap();
+    worker.open(1, fixture("features-sample.pdf")).unwrap();
     assert!(matches!(receive(), WorkerEvent::Opened(1, Ok(_))));
     assert!(
         matches!(receive(), WorkerEvent::Details(1, Ok(details)) if details.outline.is_empty())
     );
     worker.outline(1).unwrap();
-    assert!(matches!(receive(), WorkerEvent::Outline(1, Ok(entries)) if !entries.is_empty()));
+    assert!(
+        matches!(receive(), WorkerEvent::Outline(1, Ok(entries)) if entries.len() == 2 && entries[1].page == Some(1))
+    );
 }

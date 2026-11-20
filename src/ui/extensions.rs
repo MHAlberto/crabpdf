@@ -1,4 +1,5 @@
 //! Extension manager and user-selected page regions.
+mod manager;
 mod panels;
 
 use super::*;
@@ -15,7 +16,7 @@ use std::{collections::BTreeMap, path::PathBuf, sync::mpsc};
 enum ManagementResult {
     Packages(Inventory),
     Updates(Vec<CatalogPackage>),
-    InstalledCatalog(Inventory),
+    Installed(Inventory, PackageKey),
     Catalog(Box<CatalogPackage>),
     Preview(PathBuf, Box<crabpdf_extension_api::Manifest>),
 }
@@ -33,6 +34,7 @@ struct ExtensionRun {
 struct ExtensionResult {
     document: Option<DocumentRevision>,
     result: Result<ExtensionOutput, String>,
+    reveal: bool,
 }
 
 fn package_key(package: &InstalledPackage) -> PackageKey {
@@ -48,6 +50,8 @@ pub(super) struct Extensions {
     panels: panels::Panels,
     loaded: bool,
     show_catalog_tab: bool,
+    focused: Option<PackageKey>,
+    pending_remove: Option<PackageKey>,
     operation_label: &'static str,
     code: String,
     updates: Vec<CatalogPackage>,
@@ -136,385 +140,6 @@ impl Extensions {
         }
     }
 
-    fn show_catalog(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, repository: &Repository) {
-        ui.strong("Instalar por código");
-        ui.hyperlink_to("Abrir catálogo de extensiones", catalog::CATALOG_URL);
-        ui.horizontal(|ui| {
-            let code = ui.add_enabled(
-                !self.busy(),
-                egui::TextEdit::singleline(&mut self.code)
-                    .hint_text("Código de 6 cifras")
-                    .char_limit(6)
-                    .desired_width(144.0),
-            );
-            let search = ui.add_enabled(
-                !self.busy() && valid_code(self.code.trim()),
-                egui::Button::new("Buscar"),
-            );
-            if !self.busy()
-                && valid_code(self.code.trim())
-                && (search.clicked()
-                    || (code.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter))))
-            {
-                let code = self.code.trim().to_owned();
-                self.operation_label = "Consultando el catálogo…";
-                self.catalog_preview = None;
-                self.preview = None;
-                self.manage(ctx, move || {
-                    catalog::lookup(&code)
-                        .map(|package| ManagementResult::Catalog(Box::new(package)))
-                });
-            }
-        });
-
-        for index in 0..self.updates.len() {
-            let entry = &self.updates[index].entry;
-            if ui
-                .button(format!("Ver {} {}", entry.name, entry.version))
-                .clicked()
-            {
-                self.catalog_preview = Some(Box::new(self.updates.remove(index)));
-                break;
-            }
-        }
-        if let Some(package) = &self.catalog_preview {
-            let entry = &package.entry;
-            ui.strong(format!("{} {}", entry.name, entry.version));
-            ui.label(&entry.description);
-            ui.label(format!(
-                "{} · {:.1} MiB",
-                package.asset.target,
-                package.asset.bytes as f64 / (1024.0 * 1024.0)
-            ));
-            ui.label("La extensión se ejecuta con los permisos de tu usuario.");
-            let installed = self.inventory.packages.iter().any(|existing| {
-                existing.manifest.id == entry.id && existing.manifest.version == entry.version
-            });
-            ui.horizontal(|ui| {
-                if installed {
-                    ui.label("Esta versión ya está instalada.");
-                }
-                if ui
-                    .add_enabled(
-                        !self.busy() && !installed,
-                        egui::Button::new("Descargar e instalar"),
-                    )
-                    .clicked()
-                {
-                    self.operation_label = "Descargando y verificando el paquete…";
-                    let package = self.catalog_preview.take().expect("a preview is displayed");
-                    let repository = repository.clone();
-                    self.manage(ctx, move || {
-                        catalog::install(&repository, &package)?;
-                        repository
-                            .inventory()
-                            .map(ManagementResult::InstalledCatalog)
-                    });
-                }
-                if ui.button("Descartar").clicked() {
-                    self.catalog_preview = None;
-                }
-            });
-        }
-    }
-
-    pub fn show(&mut self, ctx: &egui::Context, data: &std::path::Path, can_select: bool) -> bool {
-        let mut arm = false;
-        let repository = Repository::new(data);
-        self.show_tool(ctx, &repository, data, can_select, &mut arm);
-        self.panels.notifications(ctx);
-        if !self.open {
-            return arm;
-        }
-        let mut open = true;
-        let mut open_requested = false;
-        egui::Window::new("Gestor de extensiones")
-            .default_width(570.0)
-            .default_height(450.0)
-            .open(&mut open)
-            .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    ui.selectable_value(&mut self.show_catalog_tab, false, "Instaladas");
-                    ui.selectable_value(&mut self.show_catalog_tab, true, "Catálogo");
-                });
-                ui.separator();
-                egui::ScrollArea::vertical()
-                    .max_height(560.0)
-                    .show(ui, |ui| {
-                        if self.show_catalog_tab {
-                            self.show_catalog(ui, ctx, &repository);
-                            self.show_manager_status(ui, ctx);
-                            return;
-                        }
-                        ui.horizontal(|ui| {
-                            if ui
-                                .add_enabled(
-                                    !self.busy(),
-                                    egui::Button::new("Instalar desde carpeta…"),
-                                )
-                                .clicked()
-                            {
-                                self.picker = Some(
-                                    crate::desktop::dialogs::PendingDialog::extension_folder(),
-                                );
-                            }
-                            if ui
-                                .add_enabled(
-                                    !self.busy(),
-                                    egui::Button::new("Buscar actualizaciones"),
-                                )
-                                .clicked()
-                            {
-                                self.show_catalog_tab = true;
-                                let installed = self
-                                    .inventory.packages
-                                    .iter()
-                                    .map(|p| (p.manifest.id.clone(), p.manifest.version.clone()))
-                                    .chain(self.inventory.issues.iter().filter_map(|issue| {
-                                        Some((issue.id.clone(), issue.version.clone()?))
-                                    }))
-                                    .collect();
-                                self.operation_label = "Buscando actualizaciones…";
-                                self.manage(ctx, move || {
-                                    catalog::updates(installed).map(ManagementResult::Updates)
-                                });
-                            }
-                        });
-                        if let Some((path, manifest)) = self.preview.clone() {
-                            ui.separator();
-                            ui.strong(format!("{} {}", manifest.name, manifest.version));
-                            ui.label(&manifest.description);
-                            ui.label(
-                                "El paquete nativo se ejecuta con los permisos de tu usuario.",
-                            );
-                            for command in &manifest.commands {
-                                ui.label(format!(
-                                    "{} · entrada {:?} · salida {:?}",
-                                    command.title, command.input, command.output
-                                ));
-                            }
-                            ui.horizontal(|ui| {
-                                if ui
-                                    .add_enabled(
-                                        !self.busy(),
-                                        egui::Button::new("Instalar paquete"),
-                                    )
-                                    .clicked()
-                                {
-                                    self.preview = None;
-                                    let repository = repository.clone();
-                                    self.manage(ctx, move || {
-                                        repository.install(&path)?;
-                                        repository.inventory().map(ManagementResult::Packages)
-                                    });
-                                }
-                                if ui.button("Descartar").clicked() {
-                                    self.preview = None;
-                                }
-                            });
-                        }
-                        if self.inventory.over_limit {
-                            ui.label("Se alcanzó el límite del inventario. Desinstala versiones para ver las restantes.");
-                        }
-                        for index in 0..self.inventory.issues.len() {
-                            let issue = &self.inventory.issues[index];
-                            let id = issue.id.clone();
-                            let version = issue.version.clone();
-                            ui.group(|ui| {
-                                ui.strong(&id);
-                                ui.label(&self.inventory.issues[index].detail);
-                                if let Some(version) = version
-                                    && ui.add_enabled(!self.busy(), egui::Button::new("Desinstalar copia dañada")).clicked()
-                                {
-                                    let repository = repository.clone();
-                                    self.manage(ctx, move || {
-                                        repository.remove_version(&id, &version)?;
-                                        repository.inventory().map(ManagementResult::Packages)
-                                    });
-                                }
-                            });
-                        }
-                        if self.inventory.packages.is_empty() {
-                            ui.label("Instala un paquete para añadir herramientas al lector.");
-                        }
-                        for package in self.inventory.packages.clone() {
-                            ui.separator();
-                            ui.horizontal_wrapped(|ui| {
-                                ui.strong(&package.manifest.name);
-                                ui.label(format!("v{}", package.manifest.version));
-                                ui.small(if package.enabled {
-                                    "Activa"
-                                } else {
-                                    "Desactivada"
-                                });
-                            });
-                            ui.label(&package.manifest.description);
-                            ui.horizontal(|ui| {
-                                if ui
-                                    .add_enabled(
-                                        !self.busy(),
-                                        egui::Button::new(if package.enabled {
-                                            "Desactivar"
-                                        } else {
-                                            "Activar"
-                                        }),
-                                    )
-                                    .clicked()
-                                {
-                                    let package = package.clone();
-                                    let repository = repository.clone();
-                                    self.manage(ctx, move || {
-                                        repository.enable(&package, !package.enabled)?;
-                                        repository.inventory().map(ManagementResult::Packages)
-                                    });
-                                }
-                                if ui
-                                    .add_enabled(!self.busy(), egui::Button::new("Desinstalar"))
-                                    .clicked()
-                                {
-                                    let package = package.clone();
-                                    let repository = repository.clone();
-                                    self.manage(ctx, move || {
-                                        repository.remove(&package)?;
-                                        repository.inventory().map(ManagementResult::Packages)
-                                    });
-                                }
-                            });
-                            if package.enabled {
-                                if ui.button("Abrir extensión").clicked() {
-                                    self.panels.open(&package);
-                                    self.open = false;
-                                    open_requested = true;
-                                }
-                                for command in &package.manifest.commands {
-                                    let ready = !self.busy()
-                                        && (command.input == InputKind::None
-                                            || self.capture.as_ref().is_some_and(|capture| {
-                                                command.input == InputKind::Region
-                                                    || !capture.text.trim().is_empty()
-                                            }));
-                                    if ui
-                                        .add_enabled(ready, egui::Button::new(&command.title))
-                                        .clicked()
-                                    {
-                                        self.run(
-                                            ctx,
-                                            repository.clone(),
-                                            package.clone(),
-                                            command.clone(),
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                        ui.separator();
-                        if let (Some((_, page, _)), Some(capture)) =
-                            (self.selected, self.capture.as_ref())
-                        {
-                            ui.label(format!(
-                                "Área de la página {} · {} × {} px",
-                                page + 1,
-                                capture.width,
-                                capture.height
-                            ));
-                        }
-                        if ui
-                            .add_enabled(
-                                can_select && !self.busy(),
-                                egui::Button::new("Seleccionar área del PDF…"),
-                            )
-                            .clicked()
-                        {
-                            self.selecting = true;
-                            self.drag = None;
-                            self.capture = None;
-                            self.capture_error = None;
-                            self.selected = None;
-                            self.open = false;
-                            arm = true;
-                        }
-                        ui.label("También puedes usar Texto / Enviar selección a extensión.");
-                        self.show_manager_status(ui, ctx);
-                    });
-            });
-        self.open = open && !arm && !open_requested;
-        arm
-    }
-    fn show_tool(
-        &mut self,
-        ctx: &egui::Context,
-        repository: &Repository,
-        data: &std::path::Path,
-        can_select: bool,
-        arm: &mut bool,
-    ) {
-        if self.selecting {
-            return;
-        }
-        let Some(package) = self
-            .inventory
-            .packages
-            .iter()
-            .find(|p| p.enabled && self.panels.active.as_ref() == Some(&p.manifest.id))
-            .cloned()
-        else {
-            return;
-        };
-        let mut open = true;
-        egui::Window::new(&package.manifest.name)
-            .id(egui::Id::new(("extension-tool", &package.manifest.id)))
-            .default_width(if package.manifest.timer.is_some() {
-                240.0
-            } else {
-                400.0
-            })
-            .default_pos(ctx.content_rect().right_top() + egui::vec2(-445.0, 95.0))
-            .open(&mut open)
-            .show(ctx, |ui| {
-                if package.manifest.timer.is_some() {
-                    self.panels.timer(ui, &package.manifest.id);
-                } else {
-                    ui.horizontal_wrapped(|ui| {
-                        if ui
-                            .add_enabled(
-                                can_select && !self.busy(),
-                                egui::Button::new("Seleccionar área del PDF…"),
-                            )
-                            .clicked()
-                        {
-                            self.selecting = true;
-                            self.drag = None;
-                            self.capture = None;
-                            self.capture_error = None;
-                            self.selected = None;
-                            *arm = true;
-                        }
-                        for command in &package.manifest.commands {
-                            let ready = !self.busy()
-                                && (command.input == InputKind::None
-                                    || self.capture.as_ref().is_some_and(|capture| {
-                                        command.input == InputKind::Region
-                                            || !capture.text.trim().is_empty()
-                                    }));
-                            if ui
-                                .add_enabled(ready, egui::Button::new(&command.title))
-                                .clicked()
-                            {
-                                self.run(ctx, repository.clone(), package.clone(), command.clone());
-                            }
-                        }
-                    });
-                    self.show_capture_status(ui);
-                    self.show_run_status(ui, ctx, &package_key(&package));
-                }
-                ui.separator();
-                self.panels.shortcuts(ui, &package.manifest.id, data);
-            });
-        if !open {
-            self.panels.close();
-        }
-    }
-
     fn retain_results(&mut self) {
         self.results.retain(|key, _| {
             self.inventory
@@ -530,37 +155,6 @@ impl Extensions {
         }
         if let Some(error) = &self.capture_error {
             ui.label(error);
-        }
-    }
-
-    fn show_manager_status(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
-        self.show_capture_status(ui);
-        if self.operation.is_some() {
-            ui.horizontal(|ui| {
-                ui.spinner();
-                ui.label(if self.operation_label.is_empty() {
-                    "Actualizando extensiones…"
-                } else {
-                    self.operation_label
-                });
-            });
-        }
-        if let Some(message) = &self.message {
-            ui.label(message);
-        }
-        if let Some(key) = self.latest.clone()
-            && (self.results.contains_key(&key)
-                || self.running.as_ref().is_some_and(|run| run.owner == key))
-        {
-            if let Some(package) = self
-                .inventory
-                .packages
-                .iter()
-                .find(|p| p.manifest.id == key.0 && p.manifest.version == key.1)
-            {
-                ui.strong(&package.manifest.name);
-            }
-            self.show_run_status(ui, ctx, &key);
         }
     }
 
@@ -588,28 +182,37 @@ impl Extensions {
         let Some(entry) = self.results.get_mut(key) else {
             return;
         };
-        match &mut entry.result {
-            Err(error) => {
-                ui.label(error.as_str());
-            }
+        let response = match &mut entry.result {
+            Err(error) => ui.label(error.as_str()),
             Ok(output) => {
-                ui.separator();
-                ui.horizontal(|ui| {
-                    ui.strong(match output.kind {
-                        crabpdf_extension_api::OutputKind::Text => "Resultado",
-                        crabpdf_extension_api::OutputKind::Latex => "LaTeX",
+                ui.vertical(|ui| {
+                    ui.separator();
+                    ui.horizontal(|ui| {
+                        ui.strong(match output.kind {
+                            crabpdf_extension_api::OutputKind::Text => "Resultado",
+                            crabpdf_extension_api::OutputKind::Latex => "LaTeX",
+                        });
+                        if ui.button("Copiar resultado").clicked() {
+                            ctx.copy_text(output.text.clone());
+                        }
                     });
-                    if ui.button("Copiar resultado").clicked() {
-                        ctx.copy_text(output.text.clone());
-                    }
-                });
-                ui.add(
-                    egui::TextEdit::multiline(&mut output.text)
-                        .code_editor()
-                        .desired_rows(5)
-                        .desired_width(f32::INFINITY),
-                );
+                    egui::ScrollArea::vertical()
+                        .id_salt("extension-output")
+                        .max_height(144.0)
+                        .show(ui, |ui| {
+                            ui.add(
+                                egui::TextEdit::multiline(&mut output.text)
+                                    .code_editor()
+                                    .desired_rows(3)
+                                    .desired_width(f32::INFINITY),
+                            );
+                        });
+                })
+                .response
             }
+        };
+        if std::mem::take(&mut entry.reveal) {
+            response.scroll_to_me(None);
         }
     }
 
@@ -643,6 +246,8 @@ impl Extensions {
             else {
                 return;
             };
+            let image = (command.input == InputKind::Region)
+                .then(|| (capture.png.clone(), capture.width, capture.height));
             Invocation {
                 command,
                 page: page + 1,
@@ -653,7 +258,7 @@ impl Extensions {
                     bottom: bounds.bottom,
                 },
                 text: capture.text.clone(),
-                image: Some((capture.png.clone(), capture.width, capture.height)),
+                image,
             }
         };
         let owner = package_key(&package);
@@ -678,6 +283,7 @@ impl Extensions {
                     ExtensionResult {
                         document,
                         result: Err(error.to_string()),
+                        reveal: true,
                     },
                 );
             }
@@ -718,6 +324,7 @@ impl Extensions {
                     ExtensionResult {
                         document: run.document,
                         result,
+                        reveal: true,
                     },
                 );
             }
@@ -810,15 +417,25 @@ impl ReaderApp {
             };
             if let Some(result) = result {
                 self.extensions.operation = None;
+                self.extensions.operation_label = "";
                 match result {
                     Ok(ManagementResult::Packages(packages)) => {
                         self.extensions.inventory = packages;
                         self.extensions.retain_results();
                         self.extensions.message = None;
                     }
-                    Ok(ManagementResult::InstalledCatalog(packages)) => {
+                    Ok(ManagementResult::Installed(packages, key)) => {
                         self.extensions.inventory = packages;
                         self.extensions.retain_results();
+                        self.extensions.focused = Some(key);
+                        self.extensions.preview = None;
+                        self.extensions.catalog_preview = None;
+                        self.extensions.updates.retain(|p| {
+                            self.extensions
+                                .focused
+                                .as_ref()
+                                .is_none_or(|key| p.entry.id != key.0 || p.entry.version != key.1)
+                        });
                         self.extensions.show_catalog_tab = false;
                         self.extensions.message =
                             Some("Extensión instalada. Pulsa Activar para usarla.".into());
@@ -846,6 +463,7 @@ impl ReaderApp {
             self.extensions.picker = None;
             if let Some(path) = files.into_iter().next() {
                 let repository = Repository::new(&self.app_paths.data);
+                self.extensions.operation_label = "Revisando paquete local…";
                 self.extensions.manage(ctx, move || {
                     repository
                         .inspect(&path)

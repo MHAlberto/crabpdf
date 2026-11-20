@@ -141,7 +141,18 @@ jobs:
         run: |
           $metadata = cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
           $version = ($metadata.packages | Where-Object name -eq 'crabpdf').version
-          ./scripts/Test-Installer.ps1 -Architecture '${{ matrix.architecture }}' -Installer "artifacts/packages/crabpdf-$version-win-${{ matrix.architecture }}-setup.exe"
+          $arch = '${{ matrix.architecture }}'
+          $published = Get-Content -Raw -LiteralPath 'docs/releases/v0.6.0-publication.json' | ConvertFrom-Json
+          $previous = $published.assets | Where-Object name -eq "crabpdf-0.6.0-win-$arch-setup.exe"
+          if (@($previous).Count -ne 1) { throw 'Falta el instalador anterior en el manifiesto de publicación.' }
+          New-Item -ItemType Directory -Force -Path 'artifacts/installer-baseline' | Out-Null
+          $oldPath = "artifacts/installer-baseline/$($previous.name)"
+          Invoke-WebRequest -Uri $previous.url -OutFile $oldPath -MaximumRetryCount 3
+          if ((Get-Item -LiteralPath $oldPath).Length -ne $previous.bytes -or
+              (Get-FileHash -LiteralPath $oldPath -Algorithm SHA256).Hash -ne $previous.sha256) {
+            throw 'La descarga del instalador anterior no coincide con el manifiesto.'
+          }
+          ./scripts/Test-Installer.ps1 -Architecture $arch -Installer "artifacts/packages/crabpdf-$version-win-$arch-setup.exe" -PreviousInstaller $oldPath
       - name: Upload Windows packages and installer evidence
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4

@@ -188,7 +188,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mut saved = prefs.session[0].clone();
                 saved.path = inactive.clone();
                 saved.view_id = Some("offline-book".into());
-                prefs.session.insert(0, saved);
+                if prefs.session_active_view != prefs.session[0].view_id
+                    || prefs.session_active_view.is_none()
+                {
+                    return Err("El cierre no persistió la pestaña activa".into());
+                }
+                // The last tab is unreachable. Only the saved active view should open.
+                prefs.session.push(saved);
                 crabpdf::config::ProfileStore::save(&prefs, &output.join("preferences.toml"))?;
             } else if stage == "read" {
                 let prefs = crabpdf::config::ProfileStore::load(&output.join("preferences.toml"))?;

@@ -19,6 +19,8 @@ pub enum Package {
     WindowsPortable(&'static str),
     Debian,
     LinuxTar,
+    #[cfg(any(target_os = "macos", test))]
+    MacDmg(&'static str),
 }
 
 impl Package {
@@ -61,7 +63,13 @@ impl Package {
                 },
             )
         }
-        #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+        #[cfg(target_os = "macos")]
+        match std::env::consts::ARCH {
+            "aarch64" => Some(Self::MacDmg("arm64")),
+            "x86_64" => Some(Self::MacDmg("x64")),
+            _ => None,
+        }
+        #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
         None
     }
 
@@ -71,6 +79,8 @@ impl Package {
             Self::WindowsPortable(arch) => format!("win-{arch}.zip"),
             Self::Debian => "ubuntu24.04-amd64.deb".into(),
             Self::LinuxTar => "linux-x64.tar.gz".into(),
+            #[cfg(any(target_os = "macos", test))]
+            Self::MacDmg(arch) => format!("mac-{arch}.dmg"),
         };
         format!("crabpdf-{version}-{suffix}")
     }
@@ -265,11 +275,18 @@ mod tests {
         };
         let digest = || Some(format!("sha256:{}", "ab".repeat(32)));
         let current = Version::parse("0.4.3").unwrap();
+        assert_eq!(
+            Package::MacDmg("arm64").asset(&current),
+            "crabpdf-0.4.3-mac-arm64.dmg"
+        );
+        assert!(!Package::MacDmg("arm64").can_install());
         for package in [
             Package::WindowsSetup("x86"),
             Package::WindowsPortable("x64"),
             Package::Debian,
             Package::LinuxTar,
+            Package::MacDmg("arm64"),
+            Package::MacDmg("x64"),
         ] {
             let update = find_update(
                 vec![

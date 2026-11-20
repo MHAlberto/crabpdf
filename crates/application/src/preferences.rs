@@ -24,6 +24,8 @@ pub struct Preferences {
     pub reduce_motion: bool,
     pub recent: Vec<StoredDocument>,
     pub session: Vec<StoredDocument>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_active_view: Option<String>,
     pub favorites: Vec<Favorite>,
     pub library: Vec<LibraryEntry>,
     pub markup_color: [u8; 3],
@@ -39,6 +41,7 @@ impl Default for Preferences {
             reduce_motion: false,
             recent: Vec::new(),
             session: Vec::new(),
+            session_active_view: None,
             favorites: Vec::new(),
             library: Vec::new(),
             markup_color: [255, 230, 50],
@@ -97,6 +100,7 @@ impl Preferences {
         scalar!(native_titlebar);
         scalar!(reduce_motion);
         scalar!(markup_color);
+        scalar!(session_active_view);
         merge_entries(&base.recent, &self.recent, &mut merged.recent, |a, b| {
             a.path == b.path
         });
@@ -127,6 +131,14 @@ impl Preferences {
                     .filter(|view| !base.session.iter().any(|old| same_view(old, view))),
             );
             merged.session = ordered;
+        }
+        if let Some(active) = &merged.session_active_view
+            && !merged
+                .session
+                .iter()
+                .any(|view| view.view_id.as_ref() == Some(active))
+        {
+            merged.session_active_view = None;
         }
         merge_entries(
             &base.favorites,

@@ -22,6 +22,7 @@ use zip::ZipArchive;
 
 pub const CATALOG_URL: &str = crabpdf_extension_api::catalog::CATALOG_URL;
 
+#[derive(Clone)]
 pub struct CatalogPackage {
     pub entry: CatalogEntry,
     pub asset: CatalogAsset,

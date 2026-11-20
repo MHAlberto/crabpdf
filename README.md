@@ -33,7 +33,7 @@ Los instaladores de Windows se publican sin firma digital. Los paquetes de macOS
 
 ## Extensiones
 
-Abre **Extensiones → Gestor de extensiones → Catálogo**, escribe el código y pulsa **Buscar**. Activa el paquete después de instalarlo.
+Abre **Extensiones → Gestor de extensiones → Catálogo**, escribe el código y consulta su ficha. Activa el paquete después de instalarlo y abre su herramienta desde **Extensiones**.
 
 | Código | Extensión |
 | --- | --- |

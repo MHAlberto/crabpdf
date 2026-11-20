@@ -1,8 +1,8 @@
 api_version = 1
 id = "org.crabpdf.math-ocr"
 name = "OCR de ecuaciones"
-version = "0.1.3"
-host_version = ">=0.5.5, <0.7.0"
+version = "0.1.4"
+host_version = ">=0.5.5, <0.8.0"
 target = "@TARGET@"
 executable = "@EXE@"
 description = "Reconoce una ecuación del PDF y devuelve LaTeX. Descarga un modelo local de 179 MB desde su menú."

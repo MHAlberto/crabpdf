@@ -12,7 +12,7 @@ use std::{
 pub const API_VERSION: u32 = 1;
 pub const MAX_MESSAGE_BYTES: u64 = 1024 * 1024;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Manifest {
     pub api_version: u32,
@@ -35,7 +35,7 @@ pub struct TimerSpec {
     pub break_minutes: u32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExtensionCommand {
     pub id: String,

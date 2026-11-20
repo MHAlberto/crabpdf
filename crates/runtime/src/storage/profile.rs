@@ -324,8 +324,9 @@ mod tests {
                 manga: true,
                 position: None,
             }],
+            session_active_view: Some("vista-otro".into()),
             session: vec![StoredDocument {
-                view_id: None,
+                view_id: Some("vista-otro".into()),
                 path: PathBuf::from("otro.pdf"),
                 page: 0,
                 zoom: Zoom::FitPage,

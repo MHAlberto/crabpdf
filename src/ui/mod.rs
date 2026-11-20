@@ -248,6 +248,7 @@ impl ReaderApp {
         }
         let mut empty = AppState::default();
         empty.error = services.worker_error;
+        let active_view = preferences.session_active_view.clone();
         let session = if initial_path.is_none() && preferences.restore_session {
             preferences.session.clone()
         } else {
@@ -323,7 +324,7 @@ impl ReaderApp {
             #[cfg(test)]
             titlebar_control_rects: Vec::new(),
         };
-        app.restore_tabs(session);
+        app.restore_tabs(session, active_view.as_deref());
         if let Some(path) = initial_path {
             app.open_path(path);
         }

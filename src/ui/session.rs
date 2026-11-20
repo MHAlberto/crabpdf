@@ -49,7 +49,7 @@ impl ReaderApp {
         self.submit_active_open();
     }
 
-    pub(super) fn restore_tabs(&mut self, session: Vec<StoredDocument>) {
+    pub(super) fn restore_tabs(&mut self, session: Vec<StoredDocument>, active_view: Option<&str>) {
         if self.worker.is_none() {
             return;
         }
@@ -61,7 +61,9 @@ impl ReaderApp {
         }
         if !self.tabs.is_empty() {
             self.home = false;
-            self.active = self.tabs.len() - 1;
+            self.active = active_view
+                .and_then(|view| self.tabs.iter().position(|tab| tab.view_id == view))
+                .unwrap_or(self.tabs.len() - 1);
             self.open_deferred_tab();
         }
     }

@@ -409,9 +409,22 @@ impl Repository {
         plain(source)?;
         let source = fs::canonicalize(source)?;
         let manifest = self.inspect(&source)?;
+        self.install_reviewed(&source, &manifest)
+    }
+
+    /// Recheck the displayed manifest against the staged copy before publishing.
+    pub(crate) fn install_reviewed(&self, source: &Path, manifest: &Manifest) -> io::Result<()> {
+        plain(source)?;
+        let source = fs::canonicalize(source)?;
         self.install_into(&manifest.id, &manifest.version, |stage| {
             let mut limits = (0_u64, 0_usize);
-            copy_tree(&source, stage, 0, &mut limits)
+            copy_tree(&source, stage, 0, &mut limits)?;
+            if self.inspect(stage)? != *manifest {
+                return Err(bad(
+                    "El manifiesto cambió después de revisarlo. Vuelve a abrir la carpeta.",
+                ));
+            }
+            Ok(())
         })
     }
 

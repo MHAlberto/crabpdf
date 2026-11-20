@@ -6,9 +6,9 @@
       "id": "org.crabpdf.selection-info",
       "name": "Información de la selección",
       "description": "Ejemplo Rust que informa la imagen y el texto recibidos.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "api_version": 1,
-      "host_version": ">=0.5.0, <0.7.0",
+      "host_version": ">=0.5.0, <0.8.0",
       "example_targets": [
         "x86_64-pc-windows-msvc",
         "i686-pc-windows-msvc",
@@ -24,11 +24,11 @@
         "x86_64-unknown-linux-gnu"
       ],
       "code": "100002",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "description": "Reconoce una ecuación del PDF y devuelve LaTeX. Descarga un modelo local de 179 MB desde su menú.",
       "id": "org.crabpdf.math-ocr",
       "name": "OCR de ecuaciones",
-      "host_version": ">=0.5.5, <0.7.0"
+      "host_version": ">=0.5.5, <0.8.0"
     },
     {
       "api_version": 1,
@@ -40,11 +40,11 @@
         "x86_64-apple-darwin"
       ],
       "code": "100003",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": "Reloj sobre el PDF con sesiones de 25 minutos, descansos de 5 minutos y avisos al terminar.",
       "id": "org.crabpdf.pomodoro",
       "name": "Pomodoro",
-      "host_version": ">=0.5.5, <0.7.0"
+      "host_version": ">=0.5.5, <0.8.0"
     }
   ]
 }

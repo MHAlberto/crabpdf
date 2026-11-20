@@ -27,8 +27,8 @@ try {
 api_version = 1
 id = "org.crabpdf.selection-info"
 name = "Información de la selección"
-version = "0.1.2"
-host_version = ">=0.5.0, <0.7.0"
+version = "0.1.3"
+host_version = ">=0.5.0, <0.8.0"
 target = "$Target"
 executable = "$exe"
 description = "Ejemplo Rust que informa la imagen y el texto recibidos."

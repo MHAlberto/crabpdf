@@ -28,6 +28,13 @@ impl ReaderApp {
                 })
             })
             .collect();
+        self.preferences.session_active_view = self.tabs.get(self.active).and_then(|tab| {
+            self.preferences
+                .session
+                .iter()
+                .any(|view| view.view_id.as_ref() == Some(&tab.view_id))
+                .then(|| tab.view_id.clone())
+        });
         for saved in &self.preferences.session {
             if let Some(old) = self
                 .preferences

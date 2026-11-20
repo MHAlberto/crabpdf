@@ -6,6 +6,14 @@ impl<'a> PdfiumEngine<'a> {
         self.read_details(true)
     }
 
+    pub(crate) fn can_copy(&self) -> Result<bool, ReaderError> {
+        Ok(self
+            .document()?
+            .permissions()
+            .can_extract_text_and_graphics()
+            .unwrap_or(false))
+    }
+
     pub(crate) fn read_details(
         &self,
         include_outline: bool,
@@ -73,10 +81,7 @@ impl<'a> PdfiumEngine<'a> {
             },
             outline,
             properties,
-            can_copy: document
-                .permissions()
-                .can_extract_text_and_graphics()
-                .unwrap_or(false),
+            can_copy: self.can_copy()?,
             can_annotate: self.mark_warning.is_none()
                 && document
                     .permissions()

@@ -358,6 +358,7 @@ impl ReaderApp {
             self.home = false;
             self.open_deferred_tab();
             self.reveal_tab = true;
+            self.schedule_save();
         }
         if let Some(index) = close {
             self.close_index(index);

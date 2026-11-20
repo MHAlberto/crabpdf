@@ -74,13 +74,26 @@ impl Timer {
 
     fn show(&mut self, ui: &mut egui::Ui) {
         let secs = self.remaining.as_secs() + u64::from(self.remaining.subsec_nanos() != 0);
-        ui.label(if self.resting { "Descanso" } else { "Enfoque" });
+        ui.horizontal(|ui| {
+            ui.strong(if self.resting { "Descanso" } else { "Enfoque" });
+            if self.deadline.is_some() {
+                ui.small("En curso");
+            }
+        });
         ui.label(
             egui::RichText::new(format!("{:02}:{:02}", secs / 60, secs % 60))
                 .monospace()
                 .size(32.0),
         );
-        ui.horizontal(|ui| {
+        let minutes = if self.resting {
+            self.settings.break_minutes
+        } else {
+            self.settings.focus_minutes
+        };
+        let duration = f64::from(minutes) * 60.0;
+        let progress = 1.0 - (self.remaining.as_secs_f64() / duration).clamp(0.0, 1.0);
+        ui.add(egui::ProgressBar::new(progress as f32));
+        ui.horizontal_wrapped(|ui| {
             if let Some(deadline) = self.deadline {
                 if ui.button("Pausar").clicked() {
                     self.remaining = deadline.saturating_duration_since(Instant::now());
@@ -297,7 +310,11 @@ impl Panels {
                     }
                 });
             }
-            if self.recording.is_some() {
+            if self
+                .recording
+                .as_ref()
+                .is_some_and(|(owner, _)| owner == id)
+            {
                 ui.label("Pulsa Alt+Mayús y la tecla que quieras. Esc cancela.");
             }
             if let Some(message) = &self.shortcut_message {

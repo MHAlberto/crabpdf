@@ -5,14 +5,14 @@ CrabPDF 0.5 admite paquetes nativos opcionales y el SDK Rust `crabpdf-extension-
 ## Instalar y usar
 
 1. Abre **Extensiones → Gestor de extensiones…**.
-2. Pulsa **Instalar desde carpeta…** y elige la carpeta que contiene `extension.toml`.
+2. Pulsa **Desde carpeta…** y elige la carpeta que contiene `extension.toml`.
 3. Revisa el nombre, versión y comandos. Pulsa **Instalar paquete** y después **Activar**.
-4. Pulsa **Seleccionar área del PDF…** y arrastra un rectángulo sobre una ecuación. También puedes seleccionar texto de una página y elegir **Texto → Enviar selección a extensión**.
+4. Pulsa **Abrir herramienta → Seleccionar área…** y arrastra un rectángulo sobre una ecuación. También puedes seleccionar texto de una página y elegir **Texto → Enviar selección a extensión**.
 5. Abre el comando del paquete. Su resultado aparece en la misma ventana y puedes editarlo o pulsar **Copiar resultado**.
 
 En pantalla completa encontrarás Extensiones en la barra flotante del borde superior. Escape cancela la selección del área.
 
-Los paquetes se guardan en `extensions/` dentro del directorio de datos del perfil. Cada versión tiene su propia carpeta. Activar otra versión cambia el registro de ese paquete de forma atómica. La desinstalación retira la versión elegida. Los paquetes instalados empiezan desactivados.
+Los paquetes se guardan en `extensions/` dentro del directorio de datos del perfil. Cada versión tiene su propia carpeta. Activar otra versión cambia el registro de ese paquete de forma atómica. La desinstalación retira la versión elegida. Los paquetes instalados empiezan desactivados. Desde **Instaladas** puedes buscar actualizaciones, consultar las versiones y gestionar los atajos. Para retirar un paquete, abre **Detalles del paquete → Desinstalar…** y confirma la versión mostrada.
 
 ## OCR de ecuaciones y Pomodoro
 
@@ -24,9 +24,9 @@ Desde la 0.5.5, busca **100002** para OCR o **100003** para Pomodoro en **Extens
 
 ## Instalar por código
 
-Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/extensions/) y copia el código de seis cifras. Abre **Extensiones → Gestor de extensiones → Catálogo**, introduce el código en **Instalar por código** y pulsa **Buscar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
+Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/extensions/) y copia el código de seis cifras. Abre **Extensiones → Gestor de extensiones → Catálogo**, introduce el código en **Instalar por código** y pulsa **Consultar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.
 
-La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recibe documentos ni selecciones. CrabPDF verifica el tamaño y SHA-256 del ZIP y compara el manifiesto con la ficha. Si instalas una versión nueva, puedes mantener la anterior activa hasta que decidas cambiarla.
+La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recibe documentos ni selecciones. CrabPDF verifica el tamaño y SHA-256 del ZIP y compara el manifiesto con la ficha. Si instalas una versión nueva, puedes mantener la anterior activa hasta que decidas cambiarla, siempre que ambas sean compatibles con tu versión de CrabPDF.
 
 ## Publicar en el catalogo
 

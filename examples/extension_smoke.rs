@@ -62,8 +62,13 @@ impl eframe::App for Smoke {
                 self.phase = 3;
                 self.started = Instant::now();
             }
-            3 if self.started.elapsed() > Duration::from_millis(1500) => {
-                let pos = egui::pos2(130.0, 210.0);
+            3 if self.started.elapsed() > Duration::from_millis(800) && !self.captured => {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+                self.captured = true;
+            }
+            3 if self.started.elapsed() > Duration::from_millis(1800) => {
+                // The fixture's selected package is shown in the desktop detail pane.
+                let pos = egui::pos2(534.0, 541.0);
                 self.events.push(egui::Event::PointerMoved(pos));
                 for pressed in [true, false] {
                     self.events.push(egui::Event::PointerButton {
@@ -74,11 +79,16 @@ impl eframe::App for Smoke {
                     });
                 }
                 self.phase = 4;
+                self.captured = false;
             }
             4 if self.app.extension_result().is_some_and(|result| {
                 result.contains("Página 1") && result.contains("Recorte")
-            }) && !self.captured =>
+            }) =>
             {
+                self.phase = 5;
+                self.started = Instant::now();
+            }
+            5 if self.started.elapsed() > Duration::from_millis(400) && !self.captured => {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
                 self.captured = true;
             }
@@ -91,17 +101,24 @@ impl eframe::App for Smoke {
             })
         });
         if let Some(image) = screenshot {
+            let screenshot_name = if self.phase < 4 {
+                "manager.png"
+            } else {
+                "extensions.png"
+            };
             let bytes: Vec<_> = image.pixels.iter().flat_map(|p| p.to_array()).collect();
             image::save_buffer(
-                self.output.join("extensions.png"),
+                self.output.join(screenshot_name),
                 &bytes,
                 image.width() as u32,
                 image.height() as u32,
                 image::ColorType::Rgba8,
             )
             .unwrap();
-            *self.outcome.lock().unwrap() = true;
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            if self.phase >= 4 {
+                *self.outcome.lock().unwrap() = true;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
         }
         ctx.request_repaint_after(Duration::from_millis(30));
     }
@@ -110,8 +127,11 @@ impl eframe::App for Smoke {
     }
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if std::env::var_os("CRABPDF_DATA_DIR").is_some() {
+        return Err("Unset CRABPDF_DATA_DIR to use this smoke test's isolated profile".into());
+    }
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let output = root.join("artifacts/extension-smoke");
+    let output = root.join(format!("artifacts/extension-smoke-{}", std::process::id()));
     std::fs::create_dir_all(&output)?;
     let data = output.join("data");
     let repository = Repository::new(&data);
@@ -121,6 +141,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let package = repository.list()?.remove(0);
     repository.enable(&package, true)?;
+    let pomodoro = root.join(format!(
+        "artifacts/extension-build/pomodoro-{}",
+        crabpdf::desktop::extensions::target()
+    ));
+    if pomodoro.is_dir() {
+        repository.install(&pomodoro)?;
+    }
     let outcome = Arc::new(Mutex::new(false));
     let result = Arc::clone(&outcome);
     // All profile and document data are scoped to this test's output directory.

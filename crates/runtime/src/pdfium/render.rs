@@ -100,7 +100,7 @@ impl PdfiumEngine<'_> {
         {
             return Err(invalid());
         }
-        if !self.details()?.can_copy {
+        if !self.can_copy()? {
             return Err(ReaderError::new(
                 ErrorKind::Protected,
                 "El documento restringe la copia de contenido.",

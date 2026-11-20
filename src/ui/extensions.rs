@@ -270,6 +270,9 @@ impl Extensions {
                                     .inventory.packages
                                     .iter()
                                     .map(|p| (p.manifest.id.clone(), p.manifest.version.clone()))
+                                    .chain(self.inventory.issues.iter().filter_map(|issue| {
+                                        Some((issue.id.clone(), issue.version.clone()?))
+                                    }))
                                     .collect();
                                 self.operation_label = "Buscando actualizaciones…";
                                 self.manage(ctx, move || {

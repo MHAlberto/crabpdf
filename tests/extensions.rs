@@ -23,7 +23,7 @@ fn manifest() -> Manifest {
         id: "org.crabpdf.test".into(),
         name: "Prueba".into(),
         version: "0.1.0".into(),
-        host_version: ">=0.5.0, <0.6.0".into(),
+        host_version: format!("={}", env!("CARGO_PKG_VERSION")),
         target: target(),
         executable: "tool".into(),
         description: "Fixture".into(),

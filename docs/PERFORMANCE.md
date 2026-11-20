@@ -1,5 +1,28 @@
 # Rendimiento y memoria
 
+## CrabPDF 0.6 en Windows x64
+
+Se compararon 0.5.5 y 0.6.0 en el mismo equipo Windows 10 con la misma biblioteca PDFium. La sesión de prueba tenía diez PDF locales que sumaban 954.412.014 bytes. Ambas ejecuciones recibieron la misma lista y el mismo PDF activo. El perfil y los datos de prueba quedaron aislados.
+
+| Restauración de sesión | 0.5.5 | 0.6.0 |
+| --- | ---: | ---: |
+| Tiempo hasta el título del PDF activo | 16,07 s | 1,39 s |
+| Pico de RAM residente durante 25 s | 1.482,0 MiB | 84,8 MiB |
+| RAM residente a los 25 s | 1.476,3 MiB | 83,6 MiB |
+| CPU acumulada durante 25 s | 7,33 s | 0,91 s |
+
+El lector abre el PDF activo y mantiene en el perfil el resto de las pestañas. Cada PDF pendiente se abre al seleccionar su pestaña. Se midió un recorrido por versión. El título indica que la apertura llegó a la interfaz. El recorrido gráfico de restauración comprobó por separado el render, la posición de lectura, la escala y la prioridad de los argumentos de inicio. Las cifras pueden variar según el PDF activo, el equipo y la caché del sistema.
+
+La segunda prueba abrió los diez PDF y renderizó la primera página, la central y la última, dos veces cada una, al 125 %. Se midieron tiempo de CPU y conjunto de trabajo del proceso de manera externa. `workload_probe` genera un registro de páginas, bytes y tiempos por fase sin incluir nombres de documentos.
+
+```powershell
+cargo run --locked --release --example workload_probe -- artifacts/workload-probe PDF1 PDF2
+```
+
+Con los diez PDF abiertos, el pico de RAM residente pasó de 2.215 a 2.217 MiB y la CPU acumulada pasó de 15,78 a 15,55 s. El conjunto de trabajo máximo quedó en el mismo rango en este recorrido.
+
+Se descartó limitar el motor a tres documentos residentes. El pico bajó de 2.215 a 2.117 MiB, pero la CPU subió de 15,78 a 46,02 s. La lectura por búfer de 64 KiB también se descartó. Alcanzó 2.217 MiB y 18,41 s de CPU. El ahorro medido al restaurar la sesión aplica a los documentos que todavía no se han abierto.
+
 ## Visor de 0.4.5 en Windows
 
 El visor y la captura de la posición de lectura consultan solo las filas cercanas a la vista. Al construir el diseño, cada página se mide una vez y las filas se preparan sin listas temporales por par. Las páginas sin mosaicos tampoco necesitan reservar una lista para dibujarse.

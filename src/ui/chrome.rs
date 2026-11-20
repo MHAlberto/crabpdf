@@ -186,7 +186,7 @@ impl ReaderApp {
                                                                 .file_name()
                                                                 .unwrap_or_default()
                                                                 .to_string_lossy();
-                                                            let label = if tab.reader.state.opening.is_some() {
+                                                            let label = if tab.reader.state.opening.is_some() && !tab.deferred_open {
                                                                 format!("{name} …")
                                                             } else {
                                                                 name.into_owned()

@@ -1,6 +1,6 @@
 # Documentación de CrabPDF
 
-La versión pública es **0.5.5**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.5.5) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
+La versión pública es **0.6.0**, de desarrollo. [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.6.0) · [Web](https://mhalberto.github.io/crabpdf/) · [Repositorio](../README.md)
 
 ## Empezar
 
@@ -32,6 +32,10 @@ La versión pública es **0.5.5**, de desarrollo. [Descargas](https://github.com
 Una ruta completada de arquitectura no demuestra paridad de funciones. La impresión, la edición general, SyncTeX y la accesibilidad completa siguen pendientes. V2 contempla extensiones; no se presenta como disponible.
 
 ## Entregas y evidencia
+
+- [Notas 0.6.0](releases/v0.6.0.md) sobre restauración diferida, extensiones e instalación.
+- [Publicación 0.6.0](releases/v0.6.0-publication.json) con paquetes, pruebas y hashes SHA-256.
+- [Rendimiento](PERFORMANCE.md) con la prueba de inicio y navegación de diez PDF grandes.
 
 - [Notas 0.5.5](releases/v0.5.5.md) sobre OCR, Pomodoro, el gestor de extensiones y la web.
 - [Publicación 0.5.5](releases/v0.5.5-publication.json) con la procedencia y los hashes de los paquetes.

@@ -25,17 +25,17 @@ async function digest(filename) {
 
 function card(entry) {
   const { code, name, description, version, assets, host_version } = entry;
-  const targets = assets.map(({ target }) => platforms.get(target)).join(" · ");
+  const targets = assets.map(({ target }) => platforms.get(target)).join(", ");
   return `<article class="extension-entry">
     <div>
-      <h3 class="text-lg font-semibold tracking-tight">${escape(name)}</h3>
-      <p class="mt-2 text-sm leading-6 text-muted">${escape(description)}</p>
-      <p class="mt-3 text-xs leading-5 text-muted">Versión ${version} · ${escape(targets)} · CrabPDF ${escape(host_version)}</p>
+      <h2>${escape(name)}</h2>
+      <p>${escape(description)}</p>
+      <p class="extension-meta">${escape(targets)}<br>Paquete ${escape(version)} para CrabPDF ${escape(host_version)}</p>
     </div>
     <div class="extension-code">
-      <code aria-label="Código de extensión ${code}">${code}</code>
-      <button type="button" data-extension-code="${code}" class="js-only button button-secondary justify-center py-2">Copiar código</button>
-      <p data-extension-status role="status" class="text-xs text-muted"></p>
+      <code id="code-${code}" aria-label="Código de extensión ${code}">${code}</code>
+      <button type="button" class="button secondary" hidden data-copy="code-${code}" data-copied="Código copiado." aria-describedby="copy-${code}" aria-label="Copiar código ${code}">Copiar código</button>
+      <p id="copy-${code}" class="copy-status" role="status"></p>
     </div>
   </article>`;
 }

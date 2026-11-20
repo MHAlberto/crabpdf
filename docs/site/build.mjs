@@ -1,5 +1,6 @@
 import { mkdir, copyFile, readFile, writeFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { buildExtensions, escape } from "./extensions.mjs";
 import { sitePages } from "./pages.mjs";
 import { fileURLToPath } from "node:url";
@@ -11,39 +12,37 @@ const { version } = JSON.parse(await readFile(path.join(docs, "site/release.json
 if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(version)) throw new Error("Invalid public release version.");
 const release = JSON.parse(await readFile(path.join(docs, "releases/v" + version + "-publication.json"), "utf8"));
 if (release.version !== version) throw new Error("Release metadata does not match its publication record.");
-const megabytes = (suffix) => {
-  const asset = release.assets.find((asset) => asset.name === "crabpdf-" + version + suffix);
-  if (!asset || !Number.isSafeInteger(asset.bytes) || asset.bytes <= 0) throw new Error("Missing release asset: " + suffix);
-  return String(Math.round(asset.bytes / 1_000_000));
-};
 const extensions = await buildExtensions(docs, repo, output);
-const tokens = {
-  extension_cards: extensions.cards,
-  version,
-  windows_installer_mb: megabytes("-win-x64-setup.exe"),
-  windows_zip_mb: megabytes("-win-x64.zip"),
-  ubuntu_deb_mb: megabytes("-ubuntu24.04-amd64.deb"),
-  linux_tar_mb: megabytes("-linux-x64.tar.gz"),
-};
-const source = await readFile(path.join(docs, "index.html"), "utf8");
-const pages = await sitePages(source, docs, version, escape);
+const reader = "screenshots/0.6.0-reading.png";
+const search = "screenshots/0.6.0-search.png";
+const imageSize = {};
+for (const [key, filename] of [["reader", reader], ["search", search]]) {
+  const png = await readFile(path.join(docs, filename));
+  if (png.length < 24 || png.toString("ascii", 12, 16) !== "IHDR") {
+    throw new Error("Invalid screenshot: " + filename);
+  }
+  imageSize[key + "_width"] = png.readUInt32BE(16);
+  imageSize[key + "_height"] = png.readUInt32BE(20);
+}
+const revisions = {};
+for (const [key, filename] of [["css", "site/styles/site.css"], ["js", "site/app.js"]]) {
+  const bytes = await readFile(path.join(docs, filename));
+  revisions[key + "_revision"] = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
+}
+const pages = await sitePages(docs, release, extensions.cards, { ...imageSize, ...revisions });
 for (const page of pages) {
-  const html = page.html.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, name) => {
-    if (!Object.hasOwn(tokens, name)) throw new Error("Unknown website token: " + name);
-    return tokens[name];
-  });
   const destination = path.join(output, page.path);
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, html);
+  await writeFile(destination, page.html);
 }
 
 // One canonical source for the logo and screenshots; only public files are copied.
 const assets = [
   [path.join(docs, "site/app.js"), "site/app.js"],
   [path.join(repo, "assets/crabpdf-logo.svg"), "site/assets/crabpdf-logo.svg"],
-  [path.join(docs, "screenshots/dark.png"), "site/assets/reading.png"],
-  [path.join(docs, "screenshots/highlight.png"), "site/assets/marks.png"],
-  [path.join(docs, "screenshots/library-formats.png"), "site/assets/library.png"],
+  [path.join(docs, "site/styles/site.css"), "site/assets/site.css"],
+  [path.join(docs, reader), "site/assets/reading.png"],
+  [path.join(docs, search), "site/assets/search.png"],
 ];
 for (const [source, relative] of assets) {
   const destination = path.join(output, relative);
@@ -79,8 +78,7 @@ for (const [name, relative] of guides) {
   await writeFile(destination, markdown.replace(/\]\(([^\s)]+)\)/g,
     (match, href) => destinations.has(href) ? "](" + destinations.get(href) + ")" : match));
 }
-// Tailwind writes its output here before this script runs.
-const files = [...pages.map((page) => page.path), "site/assets/site.css", ...extensions.files, ...guides.values(), ...assets.map(([, relative]) => relative)];
+const files = [...pages.map((page) => page.path), ...extensions.files, ...guides.values(), ...assets.map(([, relative]) => relative)];
 async function walk(folder, prefix = "") {
   const result = [];
   for (const entry of await readdir(folder, { withFileTypes: true })) {
@@ -94,6 +92,6 @@ async function walk(folder, prefix = "") {
 if (JSON.stringify((await walk(output)).sort()) !== JSON.stringify([...files].sort())) {
   throw new Error("Unexpected files in dist/site. Review the output before publishing.");
 }
-const bytes = (await Promise.all(files.map(async (file) => (await readFile(path.join(output, file))).length)))
+const bytes = (await Promise.all(files.map(async (file) => (await stat(path.join(output, file))).size)))
   .reduce((sum, size) => sum + size, 0);
 console.log("Website " + version + ": " + files.length + " public files, " + bytes + " bytes in dist/site.");

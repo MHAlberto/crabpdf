@@ -1,0 +1,56 @@
+<section class="shell hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <a class="release-label" href="./historial/">CrabPDF {{ version }}</a>
+    <h1 id="hero-title">Lector PDF<br> de escritorio</h1>
+    <p>Lee y anota tus documentos, organiza tus pestañas y retoma donde te quedaste. Todo desde tu equipo.</p>
+    <div class="actions">
+      <a class="button primary" href="#descargas" data-download>Ver descargas</a>
+      <a class="plain-link" href="./documentacion/">Guía de uso</a>
+    </div>
+  </div>
+  <figure class="hero-figure">
+    <a class="frame" href="./site/assets/reading.png">
+      <img src="./site/assets/reading.png" width="{{ reader_width }}" height="{{ reader_height }}" alt="CrabPDF abierto en Windows con un PDF de series de Fourier">
+    </a>
+    <figcaption>CrabPDF {{ version }} en Windows. Documento de muestra.</figcaption>
+  </figure>
+</section>
+
+<section id="descargas" class="download-section">
+  <div class="shell">
+    <div class="section-heading">
+      <h2>Descargas</h2>
+      <a class="plain-link" href="{{ release_url }}">Todos los archivos de {{ version }}</a>
+    </div>
+    <div class="platforms">
+      {{ platform_downloads }}
+    </div>
+    <div class="download-notes">
+      <p>{{ signature_note }}</p>
+      <a href="{{ checksums_url }}">Sumas SHA-256</a>
+    </div>
+  </div>
+</section>
+
+<section id="lectura" class="shell reading-section" aria-labelledby="reading-title">
+  <figure class="reading-figure">
+    <a href="./site/assets/search.png"><img src="./site/assets/search.png" width="{{ search_width }}" height="{{ search_height }}" loading="lazy" alt="CrabPDF en tema oscuro con miniaturas de página y resultados de búsqueda"></a>
+    <figcaption>Búsqueda y miniaturas en el lector.</figcaption>
+  </figure>
+  <div class="reading-copy">
+    <h2 id="reading-title">Lectura y anotaciones</h2>
+    <dl class="reading-list">
+      <div><dt>Busca y navega</dt><dd>Ve a un capítulo desde el índice o encuentra una palabra en todo el PDF.</dd></div>
+      <div><dt>Marca y copia texto</dt><dd>Resalta, subraya y copia selecciones que abarcan varias páginas.</dd></div>
+      <div id="formatos"><dt>Abre otros formatos</dt><dd>Lee EPUB, DjVu, XPS y cómics, además de PDF. <a href="https://github.com/MHAlberto/crabpdf/blob/main/docs/FORMATS_AND_ANNOTATIONS.md">Formatos admitidos</a></dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="extensiones" class="shell extension-callout">
+  <div>
+    <h2>Extensiones</h2>
+    <p>Agrega OCR de ecuaciones o un temporizador Pomodoro desde el lector.</p>
+  </div>
+  <a class="button secondary" href="./extensions/">Explorar catálogo</a>
+</section>

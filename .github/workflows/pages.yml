@@ -20,7 +20,6 @@ on:
       - 'rust-toolchain.toml'
       - 'LICENSE'
       - 'docs/package.json'
-      - 'docs/package-lock.json'
       - '.github/workflows/pages.yml'
   pull_request:
     paths:
@@ -40,7 +39,6 @@ on:
       - 'rust-toolchain.toml'
       - 'LICENSE'
       - 'docs/package.json'
-      - 'docs/package-lock.json'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -178,8 +176,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: npm
-          cache-dependency-path: docs/package-lock.json
       - uses: actions/download-artifact@v4
         if: needs.reuse-example.outputs.run != ''
         with:
@@ -194,12 +190,9 @@ jobs:
           pattern: catalog-example-*
           merge-multiple: true
           path: artifacts/site-extensions
-      - name: Install website build tools
-        working-directory: docs
-        run: npm ci --no-audit --no-fund
       - name: Build static website and check references
         working-directory: docs
-        run: npm run build && npm run check
+        run: node --check site/app.js && node site/build.mjs && node site/check.mjs
       - uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/main'
         with:

@@ -1,99 +1,73 @@
-// Static enhancement only: downloads and all essential content also work without JS.
-(() => {
-  const root = document.documentElement;
-  root.classList.add("js");
+const root = document.documentElement;
+const themeButton = document.querySelector("[data-theme-toggle]");
+const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+const themeKey = "crabpdf-site-theme";
+const explicitScheme = !CSS.supports("color", "light-dark(white, black)");
+
+function showTheme() {
+  const dark = root.dataset.theme === "dark" || (!root.dataset.theme && systemTheme.matches);
+  const label = dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro";
+  themeButton.setAttribute("aria-label", label);
+  themeButton.title = label;
+  return dark;
+}
+
+if (themeButton) {
   try {
-    const saved = localStorage.getItem("crabpdf-site-theme");
+    const saved = localStorage.getItem(themeKey);
     if (saved === "dark" || saved === "light") root.dataset.theme = saved;
-  } catch { /* Private browsing or blocked storage keeps the default theme. */ }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const themeButton = document.querySelector("#theme-toggle");
-    const updateThemeLabel = () => {
-      const dark = root.dataset.theme !== "light";
-      themeButton.setAttribute("aria-label", dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
-      themeButton.setAttribute("aria-pressed", String(!dark));
-    };
-    updateThemeLabel();
-    themeButton.addEventListener("click", () => {
-      root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
-      try { localStorage.setItem("crabpdf-site-theme", root.dataset.theme); } catch {}
-      updateThemeLabel();
-    });
-
-    const menuButton = document.querySelector("#nav-toggle");
-    const nav = document.querySelector("#main-nav");
-    const setMenu = (open) => {
-      menuButton.setAttribute("aria-expanded", String(open));
-      menuButton.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
-      nav.classList.toggle("is-open", open);
-    };
-    menuButton.addEventListener("click", () => setMenu(menuButton.getAttribute("aria-expanded") !== "true"));
-    nav.addEventListener("click", (event) => { if (event.target.closest("a")) setMenu(false); });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && menuButton.getAttribute("aria-expanded") === "true") {
-        setMenu(false); menuButton.focus();
-      }
-    });
-
-    // Tab behavior follows the WAI-ARIA pattern. Without JS, every panel stays visible.
-    for (const tablist of document.querySelectorAll('[role="tablist"]')) {
-      const tabs = [...tablist.querySelectorAll('[role="tab"]')];
-      const activate = (current, focus = false) => {
-        for (const tab of tabs) {
-          const selected = tab === current;
-          tab.setAttribute("aria-selected", String(selected));
-          tab.tabIndex = selected ? 0 : -1;
-          document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
-        }
-        if (focus) current.focus();
-      };
-      const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent;
-      const systemTab = /Win/i.test(platform) ? "tab-windows"
-        : /Linux|X11/i.test(platform) && !/Android/i.test(navigator.userAgent) ? "tab-linux"
-        : /Mac/i.test(platform) ? "tab-macos" : "";
-      const initial = tabs.find((tab) => tab.id === systemTab)
-        || tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0];
-      activate(initial);
-      tablist.addEventListener("click", (event) => {
-        const tab = event.target.closest('[role="tab"]');
-        if (tabs.includes(tab)) activate(tab);
-      });
-      tablist.addEventListener("keydown", (event) => {
-        if (event.altKey || event.ctrlKey || event.metaKey) return;
-        const index = tabs.indexOf(document.activeElement);
-        if (index < 0) return;
-        let next;
-        if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-        if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;
-        if (event.key === "Home") next = 0;
-        if (event.key === "End") next = tabs.length - 1;
-        if (next !== undefined) { event.preventDefault(); activate(tabs[next], true); }
-      });
+  } catch {
+    // The system theme is still available when local storage is blocked.
+  }
+  if (explicitScheme && !root.dataset.theme) root.dataset.theme = systemTheme.matches ? "dark" : "light";
+  showTheme();
+  themeButton.hidden = false;
+  themeButton.addEventListener("click", () => {
+    root.dataset.theme = showTheme() ? "light" : "dark";
+    showTheme();
+    try {
+      localStorage.setItem(themeKey, root.dataset.theme);
+    } catch {
+      // The selected theme still applies to this page.
     }
-
-    for (const button of document.querySelectorAll("[data-extension-code]")) {
-      button.addEventListener("click", async () => {
-        const status = button.parentElement.querySelector("[data-extension-status]");
-        try {
-          await navigator.clipboard.writeText(button.dataset.extensionCode);
-          status.textContent = "Código copiado.";
-        } catch {
-          status.textContent = "Selecciona y copia el código manualmente.";
-        }
-      });
-    }
-
-    const copyButton = document.querySelector("#copy-install");
-    copyButton?.addEventListener("click", async () => {
-      const command = document.querySelector("#ubuntu-command").textContent;
-      const status = document.querySelector("#copy-status");
-      try {
-        await navigator.clipboard.writeText(command);
-        status.textContent = "Comando copiado.";
-      } catch {
-        status.textContent = "Selecciona y copia el comando que aparece arriba.";
-      }
-    });
   });
-})();
+  systemTheme.addEventListener("change", showTheme);
+}
+
+const download = document.querySelector("[data-download]");
+if (download) {
+  const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent;
+  const mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)
+    || (/Mac/i.test(platform) && navigator.maxTouchPoints > 1);
+  if (!mobile) {
+    const id = /^Win/i.test(platform) ? "windows"
+      : /Mac/i.test(platform) ? "macos"
+      : /Linux|X11/i.test(platform) ? "linux"
+      : "";
+    const section = id && document.getElementById(id);
+    if (section?.dataset.downloadLabel) {
+      download.href = "#" + id;
+      download.textContent = section.dataset.downloadLabel;
+    }
+  }
+}
+
+for (const button of document.querySelectorAll("[data-copy]")) {
+  const target = document.getElementById(button.dataset.copy);
+  const status = document.getElementById(button.getAttribute("aria-describedby"));
+  if (!target || !status) continue;
+  button.hidden = false;
+  button.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(target.textContent.trim());
+      status.textContent = button.dataset.copied;
+    } catch {
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      const selection = getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      status.textContent = "Texto seleccionado. Puedes copiarlo con el teclado.";
+    }
+  });
+}

@@ -13,7 +13,8 @@ for (const page of ["index.html", "extensions/index.html", "documentacion/index.
     if (reference.startsWith("#")) {
       if (!ids.includes(reference.slice(1))) throw new Error("Broken fragment: " + reference);
     } else if (reference.startsWith("./") || reference.startsWith("../")) {
-      const [pathname, fragment] = reference.split("#");
+      const [resource, fragment] = reference.split("#");
+      const pathname = resource.split("?")[0];
       const target = path.resolve(directory, pathname.endsWith("/") ? pathname + "index.html" : pathname);
       if (fragment && !(await readFile(target, "utf8")).includes(`id="${fragment}"`)) {
         throw new Error("Broken fragment: " + reference);
@@ -22,7 +23,7 @@ for (const page of ["index.html", "extensions/index.html", "documentacion/index.
       await access(target);
     }
   }
-  for (const [, target] of html.matchAll(/aria-(?:controls|labelledby)="([^"]+)"/g)) {
+  for (const [, target] of html.matchAll(/aria-(?:controls|labelledby|describedby)="([^"]+)"/g)) {
     for (const id of target.split(" ")) if (!ids.includes(id)) throw new Error("Broken accessible reference: " + id);
   }
   for (const [tag] of html.matchAll(/<img\b[^>]+>/g)) {

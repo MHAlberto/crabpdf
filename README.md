@@ -1,82 +1,54 @@
 # CrabPDF
 
-<p><img src="assets/crabpdf-logo.svg" width="88" height="88" alt="Logo de CrabPDF"></p>
+<img src="assets/crabpdf-logo.svg" width="72" height="72" align="right" alt="">
 
-Lector local de PDF, libros electrónicos y cómics, desarrollado en Rust con egui/eframe y PDFium. Sin cuentas ni telemetría.
+Lector de escritorio para PDF, libros electrónicos y cómics. Abre varios documentos en pestañas, marca pasajes y continúa la lectura desde tu equipo.
 
-[Web](https://mhalberto.github.io/crabpdf/) · [Descargas](https://github.com/MHAlberto/crabpdf/releases/tag/v0.6.0) · [Documentación](docs/README.md) · [Contribuir](CONTRIBUTING.md)
+**[Descargar CrabPDF 0.6.0](https://mhalberto.github.io/crabpdf/#descargas)** · [Catálogo de extensiones](https://mhalberto.github.io/crabpdf/extensions/) · [Guía de uso](docs/USAGE.md)
 
-**Versión pública: 0.6.0, de desarrollo, para Windows, Ubuntu/Linux y macOS.** La meta de 1.0 es la paridad de funciones con la revisión fijada de SumatraPDF. Ese objetivo todavía no se ha alcanzado.
-
-[0.6.0](docs/releases/v0.6.0.md) incorpora restauración diferida de pestañas, índices bajo demanda y una actualización de Windows que conserva los datos de usuario. [Mediciones de rendimiento](docs/PERFORMANCE.md).
-
-![CrabPDF con un documento de prueba abierto](docs/screenshots/light.png)
+[![CrabPDF 0.6.0 abierto en Windows con un PDF de series de Fourier](docs/screenshots/0.6.0-reading.png)](docs/screenshots/0.6.0-reading.png)
 
 ## Descargar
 
-| Plataforma | Paquetes |
+| Sistema | Descargas de 0.6.0 |
 | --- | --- |
-| Windows x64, 0.6.0 | [Instalador EXE](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x64-setup.exe) · [ZIP portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x64.zip) |
-| Windows x86, 0.6.0 | [Instalador EXE](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x86-setup.exe) · [ZIP portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x86.zip) |
-| Ubuntu 24.04 x64, 0.6.0 | [Paquete DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-ubuntu24.04-amd64.deb) |
-| Linux x64, 0.6.0 | [TAR.GZ](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-linux-x64.tar.gz), para glibc 2.36 o posterior |
-| macOS Apple Silicon, 15.0 o posterior | [DMG](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-arm64.dmg) · [ZIP](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-arm64.zip) |
-| macOS Intel, 15.0 o posterior | [DMG](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-x64.dmg) · [ZIP](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-x64.zip) |
+| Windows 10 y 11 x64 | [Instalador](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x64-setup.exe) · [Portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x64.zip) |
+| Windows x86 | [Instalador](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x86-setup.exe) · [Portable](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-win-x86.zip) |
+| Ubuntu 24.04 x64 y Linux x64 | [DEB](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-ubuntu24.04-amd64.deb) · [TAR.GZ para glibc 2.36+](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-linux-x64.tar.gz) |
+| macOS 15+ con Apple Silicon | [DMG](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-arm64.dmg) · [ZIP](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-arm64.zip) |
+| macOS 15+ con Intel | [DMG](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-x64.dmg) · [ZIP](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/crabpdf-0.6.0-mac-x64.zip) |
 
-[Notas de 0.6.0](docs/releases/v0.6.0.md) · [SHA-256](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/SHA256SUMS-v0.6.0.txt) · [Procedencia de 0.6.0](docs/releases/v0.6.0-publication.json) · [Entrega anterior 0.5.5](docs/releases/v0.5.5.md)
+[Notas de 0.6.0](docs/releases/v0.6.0.md) · [Sumas SHA-256](https://github.com/MHAlberto/crabpdf/releases/download/v0.6.0/SHA256SUMS-v0.6.0.txt) · [Procedencia de los paquetes](docs/releases/v0.6.0-publication.json)
 
-La interfaz se ha comprobado en Windows 10 x64 y Ubuntu 24.04 con escritorio virtual; x86 se prueba bajo WOW64. La prueba de macOS se realizó en macOS 15. Windows 11 físico, Windows de 32 bits nativo y Wayland necesitan validación propia. Los instaladores de Windows se publican sin firma digital. Los paquetes de macOS llevan firma ad hoc y se distribuyen sin notarización.
+Los instaladores de Windows se publican sin firma digital. Los paquetes de macOS llevan firma ad hoc y se distribuyen sin notarización. La interfaz se comprobó en Windows 10 x64, Ubuntu 24.04 y macOS 15. El ejecutable Windows x86 se comprobó bajo WOW64. [Pruebas y alcance por plataforma](docs/VALIDATION.md).
 
-En Ubuntu:
+## Lectura y anotaciones
 
-```sh
-sudo apt install ./crabpdf-0.6.0-ubuntu24.04-amd64.deb
-```
+- Busca en el texto o salta a un capítulo desde el índice. Elige lectura continua, dos páginas, modo libro o pantalla completa.
+- Resalta y subraya. Copia selecciones entre páginas y guarda una copia del PDF con tus marcas.
+- Guarda favoritos, consulta recientes y retoma la posición de cada documento. Al restaurar una sesión se abre primero la pestaña activa.
+- Además de PDF, abre EPUB, Kindle sin DRM, DjVu, XPS, CHM y cómics. [Formatos y límites](docs/FORMATS_AND_ANNOTATIONS.md).
 
-En Windows puedes usar el instalador 0.6.0 o descomprimir su ZIP portable. Conserva `pdfium.dll` y `format-tools/` junto al ejecutable portable. El tar de Linux incluye sus requisitos en `INSTALL-LINUX.md`.
+![Búsqueda y miniaturas en CrabPDF en modo oscuro](docs/screenshots/0.6.0-search.png)
 
 ## Extensiones
 
-Instala desde el [catálogo web](https://mhalberto.github.io/crabpdf/extensions/). Usa **100002** para OCR de ecuaciones o **100003** para Pomodoro. Cada extensión activa tiene un menú propio y atajos para abrir y cerrar. [Guía de extensiones](docs/EXTENSIONS.md).
+Abre **Extensiones → Gestor de extensiones → Catálogo**, escribe el código y pulsa **Buscar**. Activa el paquete después de instalarlo.
 
-## Qué puedes hacer
+| Código | Extensión |
+| --- | --- |
+| `100002` | OCR de ecuaciones. Convierte una región del PDF a LaTeX con un modelo que se descarga por separado. |
+| `100003` | Pomodoro. Temporizador con avisos en el lector. |
+| `100001` | Información de la selección. Ejemplo de la API de extensiones. |
 
-- Leer PDF, EPUB, Kindle sin DRM, FictionBook, XPS, DjVu, CHM, cómics, imágenes y texto. [Extensiones y límites](docs/FORMATS_AND_ANNOTATIONS.md).
-- Navegar en lectura continua, página única, páginas enfrentadas, modo libro o manga, con zoom y precarga.
-- Seleccionar y copiar texto entre páginas en lectura continua, buscar, resaltar y subrayar texto de una página y exportar un PDF con las marcas.
-- Abrir varios documentos en pestañas, separar una pestaña en otra ventana y retomar el punto de lectura.
-- Organizar recientes y frecuentes con portadas y guardar favoritos por libro.
-- Leer en pantalla completa, alternar temas o invertir los colores del documento con **F6**.
+[Catálogo y compatibilidad](https://mhalberto.github.io/crabpdf/extensions/) · [Crear una extensión en Rust](docs/EXTENSIONS.md)
 
-La impresión, la edición general de formularios/anotaciones, SyncTeX y la accesibilidad completa siguen pendientes. **Ayuda → Buscar actualizaciones…** ofrece el paquete de GitHub para la plataforma y el tipo de instalación. [Alcance hacia 1.0](docs/ROADMAP.md).
+## Desarrollo
 
-## Usar y desarrollar
+El lector y la API se desarrollan en Rust. La interfaz usa egui/eframe y la lectura de PDF usa PDFium. La web usa HTML, CSS y JavaScript nativos.
 
-La [guía de uso](docs/USAGE.md) reúne los atajos, parámetros CLI, preferencias y ubicación de los datos.
+- [Compilar CrabPDF](docs/DEVELOPMENT.md) · [Arquitectura](docs/ARCHITECTURE.md) · [Contribuir](CONTRIBUTING.md)
+- [Rendimiento](docs/PERFORMANCE.md) · [Pruebas](docs/VALIDATION.md) · [Plan hacia 1.0](docs/V1_PLAN.md)
+- [Construir la web](docs/WEBSITE.md)
 
-Para compilar necesitas Rust **1.96.0**, fijado en `rust-toolchain.toml`, y las herramientas del sistema indicadas en la [guía de desarrollo](docs/DEVELOPMENT.md). PDFium y los conversores son componentes nativos; el proyecto aún no tiene un motor íntegramente Rust.
-
-Las bibliotecas internas se pueden comprobar sin ventana ni PDFium:
-
-```sh
-cargo test -p crabpdf-core -p crabpdf-application --locked
-```
-
-## Organización
-
-```text
-crates/core/          Tipos, geometría y punto de lectura
-crates/application/   Reglas de lectura, perfil y protocolo
-crates/runtime/       PDFium, importadores, cachés y almacenamiento
-src/desktop/          Servicios nativos y composición
-src/ui/               Interfaz egui
-assets/               Identidad visual original
-tests/                Contratos y documentos de prueba
-docs/                 Guías, planes, evidencia e historial
-```
-
-[Arquitectura](docs/ARCHITECTURE.md) · [Rendimiento y límites de las mediciones](docs/PERFORMANCE.md) · [Pruebas](docs/VALIDATION.md) · [Plan de trabajo](docs/V1_PLAN.md)
-
-## Licencias
-
-El código de CrabPDF se distribuye bajo [MIT](LICENSE). PDFium, los conversores y las demás dependencias conservan sus licencias y avisos: [componentes de terceros](docs/THIRD_PARTY_NOTICES.md). Las entregas incluyen los textos correspondientes y las fuentes de los conversores.
+El código se distribuye bajo [MIT](LICENSE). Los motores y conversores conservan sus [licencias y avisos](docs/THIRD_PARTY_NOTICES.md).

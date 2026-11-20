@@ -16,7 +16,7 @@ Pulsa **Dos páginas** en la barra para mostrar las páginas lado a lado. Pulsa 
 
 ## Extensiones
 
-Abre **Extensiones → Gestor de extensiones → Catálogo** e introduce el código de seis cifras. Pulsa **Buscar**, revisa la ficha y elige **Descargar e instalar**. Ve a **Instaladas** y pulsa **Activar**. La extensión aparece en el menú **Extensiones** con sus propios comandos y atajos.
+Abre **Extensiones → Gestor de extensiones → Catálogo** e introduce el código de seis cifras. Pulsa **Consultar**, revisa la ficha y elige **Descargar e instalar**. CrabPDF abre la ficha del paquete en **Instaladas**. Pulsa **Activar** y después **Abrir herramienta**. La extensión también aparece en el menú **Extensiones**, donde puedes volver a abrir su panel.
 
 Usa **100002** para OCR de ecuaciones, **100003** para Pomodoro o **100001** para el ejemplo de selección. Para OCR, abre su panel, descarga el modelo, selecciona el área de una ecuación y ejecuta **Reconocer como LaTeX**. [Guía de extensiones](EXTENSIONS.md).
 
@@ -26,6 +26,7 @@ Abre **Ayuda → Buscar actualizaciones…**. CrabPDF consulta las publicaciones
 
 - En Windows, la app guarda la sesión y se cierra para que el instalador actualice la carpeta registrada. Cierra también otras ventanas de CrabPDF si el instalador lo solicita.
 - En Ubuntu, el paquete DEB se instala con apt. Autoriza la operación en el diálogo del sistema y vuelve a abrir CrabPDF al finalizar.
+- En macOS, abre el enlace de descarga del DMG correspondiente a tu equipo e instala la aplicación desde ese paquete.
 - En las ediciones portables, usa el enlace de descarga y extrae el paquete completo en una carpeta nueva. En Linux, la consulta usa curl.
 
 Las preferencias, los favoritos y las anotaciones se conservan en el perfil de usuario.

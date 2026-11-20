@@ -18,13 +18,25 @@ on:
         description: Verify packages for the selected commit before tagging
         default: false
         type: boolean
+      publish_draft:
+        description: Publish the specified draft from successful workflows
+        type: string
+      verified_ci:
+        description: CI run ID for the tagged commit
+        type: string
+      verified_packages:
+        description: Cross-platform package run ID for the tagged commit
+        type: string
+      format_sources_sha256:
+        description: SHA-256 of the uploaded format-tools source archive
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   mac:
-    if: inputs.platforms != 'linux'
+    if: inputs.publish_draft == '' && inputs.platforms != 'linux'
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +114,7 @@ jobs:
           retention-days: 14
 
   linux:
-    if: inputs.platforms != 'mac'
+    if: inputs.publish_draft == '' && inputs.platforms != 'mac'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -167,3 +179,23 @@ jobs:
             artifacts/linux-installed-hashes.log
           if-no-files-found: warn
           retention-days: 14
+
+  publish:
+    if: inputs.publish_draft != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify and publish the tagged packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_DRAFT: ${{ inputs.publish_draft }}
+          VERIFIED_CI: ${{ inputs.verified_ci }}
+          VERIFIED_PACKAGES: ${{ inputs.verified_packages }}
+          FORMAT_SOURCES_SHA256: ${{ inputs.format_sources_sha256 }}
+        run: cargo run --locked --release --manifest-path tools/publish/Cargo.toml

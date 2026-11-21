@@ -217,6 +217,7 @@ mod tests {
         tab.reader.finish_open(
             1,
             Ok(DocumentInfo {
+                source_fingerprint: None,
                 path: "book.pdf".into(),
                 page_count: 1,
             }),

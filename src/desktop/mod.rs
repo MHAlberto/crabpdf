@@ -6,3 +6,5 @@ mod downloads;
 pub mod extensions;
 pub mod shell;
 pub mod updates;
+
+pub(crate) mod printing;

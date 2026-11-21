@@ -475,6 +475,7 @@ mod titlebar_tests {
             tab.reader.state.finish_open(
                 id,
                 Ok(DocumentInfo {
+                    source_fingerprint: None,
                     path,
                     page_count: 3,
                 }),

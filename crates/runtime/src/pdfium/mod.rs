@@ -79,10 +79,17 @@ impl<'a> PdfiumEngine<'a> {
         prepared: &Path,
         password: Option<&str>,
     ) -> Result<DocumentInfo, ReaderError> {
+        let source_fingerprint = crate::source::fingerprint(path);
         let document = self
             .pdfium
             .load_pdf_from_file(prepared, password)
             .map_err(map_open_error)?;
+        if source_fingerprint != crate::source::fingerprint(path) {
+            return Err(ReaderError::new(
+                ErrorKind::File,
+                "El archivo cambió durante la apertura. Vuelve a abrirlo.",
+            ));
+        }
         let page_count = document.pages().len() as usize;
         if page_count == 0 {
             return Err(ReaderError::new(
@@ -96,7 +103,11 @@ impl<'a> PdfiumEngine<'a> {
             crate::formats::Format::detect(path),
             Ok(crate::formats::Format::Pdf)
         );
-        self.prepared_signature = match crate::formats::prepared_signature(path, prepared) {
+        let signature = match source_fingerprint.filter(|_| self.legacy_pdf) {
+            Some(identity) => Ok(format!("pdf:{identity:016x}")),
+            None => crate::formats::prepared_signature(path, prepared),
+        };
+        self.prepared_signature = match signature {
             Ok(signature) => Some(signature),
             Err(error) => {
                 self.mark_warning = Some(error);
@@ -117,7 +128,9 @@ impl<'a> PdfiumEngine<'a> {
         };
         self.marks.clear();
         self.mark_indices.clear();
-        self.mark_store = crate::annotations::path_in(path, &self.data_directory);
+        self.mark_store = source_fingerprint.map(|identity| {
+            crate::annotations::path_for_fingerprint(&self.data_directory, identity)
+        });
         if self.prepared_signature.is_some() {
             self.mark_warning = None;
         }
@@ -148,6 +161,7 @@ impl<'a> PdfiumEngine<'a> {
         self.revision = 0;
         Ok(DocumentInfo {
             path: path.to_owned(),
+            source_fingerprint,
             page_count,
         })
     }

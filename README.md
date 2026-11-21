@@ -47,6 +47,8 @@ Abre **Extensiones → Gestor de extensiones → Catálogo**, escribe el código
 
 ## Desarrollo
 
+La versión 0.8.0 incorpora el cuaderno de lectura, recuperación de marcas de PDFs idénticos, colecciones e impresión. [Cambios de 0.8.0](docs/releases/v0.8.0.md).
+
 El lector y la API se desarrollan en Rust. La interfaz usa egui/eframe y la lectura de PDF usa PDFium. La web usa HTML, CSS y JavaScript nativos.
 
 - [Compilar CrabPDF](docs/DEVELOPMENT.md) · [Arquitectura](docs/ARCHITECTURE.md) · [Contribuir](CONTRIBUTING.md)

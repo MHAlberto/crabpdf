@@ -1,7 +1,8 @@
 use super::ReaderApp;
 use crate::{
+    application::notebook::{MAX_NOTE_TEXT, Note, NoteAnchor, NoteKind},
     application::selection::TextRange,
-    document::{DocumentId, PageContent, ReaderError},
+    document::{Bounds, DocumentId, PageContent, ReaderError},
 };
 use eframe::egui;
 use std::ops::RangeInclusive;
@@ -43,6 +44,8 @@ pub(super) struct ClipboardCopy {
     remaining: RangeInclusive<usize>,
     text: String,
     error: Option<&'static str>,
+    note: bool,
+    region: Option<Bounds>,
 }
 
 impl ClipboardCopy {
@@ -53,6 +56,8 @@ impl ClipboardCopy {
             remaining: range.pages(),
             text: String::new(),
             error: None,
+            note: false,
+            region: None,
         }
     }
 
@@ -80,17 +85,26 @@ impl ClipboardCopy {
             .iter()
             .filter(|glyph| selection.contains(glyph.index) && !glyph.text.is_empty())
             .peekable();
-        if glyphs.peek().is_none() {
-            return;
+        let Some(first) = glyphs.peek() else { return };
+        if self.note && page == *self.range.pages().start() {
+            self.region = first.bounds;
         }
+        let (limit, too_large) = if self.note {
+            (
+                MAX_NOTE_TEXT,
+                "La selección supera el tamaño admitido por una cita.",
+            )
+        } else {
+            (MAX_CLIPBOARD_BYTES, COPY_TOO_LARGE)
+        };
         if !self.text.is_empty() {
             let end = self.text.trim_end_matches(['\r', '\n']).len();
             self.text.truncate(end);
             self.text.push_str("\n\n");
         }
         for glyph in glyphs {
-            if self.text.len().saturating_add(glyph.text.len()) > MAX_CLIPBOARD_BYTES {
-                self.error = Some(COPY_TOO_LARGE);
+            if self.text.len().saturating_add(glyph.text.len()) > limit {
+                self.error = Some(too_large);
                 return;
             }
             self.text.push_str(&glyph.text);
@@ -173,6 +187,23 @@ impl ReaderApp {
         }
     }
 
+    pub(super) fn capture_notebook_quote(&mut self, ctx: &egui::Context) {
+        let Some(tab) = self.tabs.get(self.active) else {
+            return;
+        };
+        let Some(range) = tab.reader.selection.range() else {
+            return;
+        };
+        let mut copy = ClipboardCopy::new(tab.reader.id, range);
+        copy.note = true;
+        self.copy_after_drag = None;
+        self.clipboard_copy = Some(copy);
+        self.advance_copy(ctx);
+        if self.clipboard_copy.is_some() {
+            self.notice = Some("Preparando la cita…".into());
+        }
+    }
+
     pub(super) fn advance_copy(&mut self, ctx: &egui::Context) {
         if let Some(id) = self.copy_after_drag.take()
             && !self.home
@@ -208,7 +239,36 @@ impl ReaderApp {
                 return;
             }
             let Some(page) = copy.next_page() else {
-                if !copy.text.is_empty() {
+                if copy.note {
+                    if !copy.text.trim().is_empty() {
+                        let pages = copy.range.pages();
+                        let start = *pages.start();
+                        let end = *pages.end();
+                        let anchor = NoteAnchor {
+                            first_page: start,
+                            last_page: end,
+                            region: copy.region,
+                        };
+                        let anchor = if anchor.is_valid() {
+                            anchor
+                        } else {
+                            NoteAnchor {
+                                region: None,
+                                ..anchor
+                            }
+                        };
+                        self.draft_note(
+                            copy.id,
+                            Note {
+                                id: 0,
+                                kind: NoteKind::Quote,
+                                anchor,
+                                excerpt: copy.text,
+                                comment: String::new(),
+                            },
+                        );
+                    }
+                } else if !copy.text.is_empty() {
                     ctx.copy_text(copy.text);
                     if copy.range.single_page().is_none() {
                         self.notice = Some("Selección copiada.".into());

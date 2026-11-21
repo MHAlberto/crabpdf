@@ -329,6 +329,15 @@ impl ReaderApp {
                                 tab.reader.local_marks = count;
                                 tab.reader.selection.clear();
                             }
+                            if count > 0
+                                && let Some(path) = self
+                                    .tabs
+                                    .iter()
+                                    .find(|tab| tab.reader.id == id)
+                                    .map(|tab| tab.reader.path.clone())
+                            {
+                                self.remember_notebook_marks(id, path);
+                            }
                             self.notice = Some(
                                 "Marca conservada. Guardar una copia la incluye en el PDF.".into(),
                             );
@@ -338,6 +347,7 @@ impl ReaderApp {
                         }
                     }
                 }
+                WorkerEvent::PrintPrepared(id, result) => self.printing.prepared(ctx, id, result),
                 WorkerEvent::Saved(_, path, result) => match result {
                     Ok(()) => self.notice = Some(format!("Copia guardada: {}", path.display())),
                     Err(error) => self.error(error),

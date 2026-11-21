@@ -29,6 +29,14 @@ impl ReaderApp {
         if action.needs_document() && self.state().document.is_none() {
             return false;
         }
+        if matches!(action, Action::Notebook | Action::NotebookQuote)
+            && !self.tabs.get(self.active).is_some_and(|tab| {
+                crabpdf_application::formats::Format::detect(&tab.reader.path).ok()
+                    == Some(crabpdf_application::formats::Format::Pdf)
+            })
+        {
+            return false;
+        }
         match action {
             Action::Highlight | Action::Underline => {
                 self.tabs.get(self.active).is_some_and(|tab| {
@@ -71,7 +79,7 @@ impl ReaderApp {
                 .details
                 .as_ref()
                 .is_some_and(|details| details.can_copy),
-            Action::ExtensionSelection | Action::Copy => {
+            Action::NotebookQuote | Action::ExtensionSelection | Action::Copy => {
                 self.tabs.get(self.active).is_some_and(|t| {
                     t.reader.selection.range().is_some() || t.view.selection_drag.is_some()
                 }) && self
@@ -180,6 +188,7 @@ impl ReaderApp {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(!maximized));
             }
             Action::SaveAs => self.save_dialog(),
+            Action::Print => self.open_print(ctx),
             Action::Close => self.close_index(self.active),
             Action::CloseAll => {
                 while !self.tabs.is_empty() {
@@ -355,6 +364,9 @@ impl ReaderApp {
             Action::FindNext => self.step_search(true),
             Action::FindPrevious => self.step_search(false),
             Action::Copy => self.copy_selection(ctx),
+            Action::Notebook => self.open_notebook(),
+            Action::NotebookQuote => self.capture_notebook_quote(ctx),
+            Action::Collections => self.collections.open = true,
             Action::SelectAll => {
                 let tab = &mut self.tabs[self.active];
                 let id = tab.reader.id;

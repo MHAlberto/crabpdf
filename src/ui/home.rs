@@ -15,6 +15,7 @@ impl ReaderApp {
                 ui.heading("Tu biblioteca");
                 ui.add_space(14.0);
                 if ui.button("Abrir documento…").clicked() { self.execute(Action::Open, ui.ctx()); }
+                if ui.button("Colecciones").clicked() { self.execute(Action::Collections, ui.ctx()); }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if ui.selectable_label(self.library_frequent, "Frecuentes").clicked() { self.library_frequent = true; }
                     if ui.selectable_label(!self.library_frequent, "Recientes").clicked() { self.library_frequent = false; }

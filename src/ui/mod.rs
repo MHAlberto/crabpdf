@@ -1,5 +1,6 @@
 mod actions;
 mod chrome;
+mod collections;
 mod events;
 mod extensions;
 mod home;
@@ -7,7 +8,9 @@ mod icons;
 mod input;
 mod key_scroll;
 mod motion;
+mod notebook;
 mod panels;
+mod printing;
 mod raster;
 mod requests;
 mod selection_geometry;
@@ -50,6 +53,7 @@ enum Sidebar {
     Thumbnails,
     Outline,
     Favorites,
+    Notebook,
 }
 fn consume_reader_key(ctx: &egui::Context, modifiers: egui::Modifiers, key: egui::Key) -> bool {
     ctx.input_mut(|input| {
@@ -116,6 +120,9 @@ pub struct ReaderApp {
     settings_open: bool,
     updates: updates::UpdateDialog,
     extensions: extensions::Extensions,
+    notebook: notebook::NotebookPanel,
+    collections: collections::Collections,
+    printing: printing::PrintDialog,
     notice: Option<String>,
     notice_started: Option<(String, Instant)>,
     last_title: Option<WindowTitleIdentity>,
@@ -309,6 +316,9 @@ impl ReaderApp {
             settings_open: false,
             updates: updates::UpdateDialog::default(),
             extensions: extensions::Extensions::default(),
+            notebook: notebook::NotebookPanel::default(),
+            collections: collections::Collections::default(),
+            printing: printing::PrintDialog::default(),
             notice: None,
             notice_started: None,
             entrance: motion::Entrance::default(),
@@ -534,6 +544,7 @@ impl eframe::App for ReaderApp {
         self.shortcuts(ctx);
         self.open_deferred_tab();
         self.advance_copy(ctx);
+        self.poll_notebook(ctx);
         for (index, tab) in self.tabs.iter_mut().enumerate() {
             if self.home || index != self.active || tab.reader.selection.range().is_none() {
                 tab.view.selection_geometry.clear();
@@ -644,6 +655,8 @@ impl eframe::App for ReaderApp {
             self.fullscreen_controls = None;
         }
         self.dialogs(ui.ctx());
+        self.show_collections(ui.ctx());
+        self.show_printing(ui.ctx());
         self.updates.show(ui.ctx());
         let can_select = self
             .state()
@@ -656,6 +669,37 @@ impl eframe::App for ReaderApp {
             && let Some(tab) = self.tabs.get_mut(self.active)
         {
             tab.view.selection_drag = None;
+        }
+        if std::mem::take(&mut self.extensions.current_page_requested)
+            && let Some(document) = self.state().document.as_ref()
+        {
+            self.capture_for_extension(
+                document.page,
+                crate::document::Bounds {
+                    left: 0.0,
+                    top: 0.0,
+                    right: 1.0,
+                    bottom: 1.0,
+                },
+                ui.ctx(),
+            );
+        }
+        if let Some(((id, revision), note)) = self.extensions.note_request.take()
+            && !self.home
+            && self.tabs.get(self.active).is_some_and(|tab| {
+                tab.reader.id == id
+                    && tab.reader.state.content_revision == revision
+                    && tab
+                        .reader
+                        .state
+                        .details
+                        .as_ref()
+                        .is_some_and(|details| details.can_copy)
+            })
+        {
+            self.extensions.open = false;
+            self.extensions.close_tool();
+            self.draft_note(id, note);
         }
         self.resize_edges(ui.ctx());
         if let Some(worker) = &self.worker {
@@ -675,6 +719,7 @@ impl eframe::App for ReaderApp {
         }
     }
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        self.notebook.finish();
         self.save_preferences();
         self.config_warning = self.profile.finish().err();
     }

@@ -598,6 +598,7 @@ impl ReaderApp {
                                 ui.separator();
                                 for action in [
                                     Action::Copy,
+                                    Action::NotebookQuote,
                                     Action::ExtensionSelection,
                                     Action::Extensions,
                                     Action::SelectAll,

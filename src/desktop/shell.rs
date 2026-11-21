@@ -179,6 +179,7 @@ mod window_tests {
                     tab.finish_open(
                         8,
                         Ok(DocumentInfo {
+                            source_fingerprint: None,
                             path: saved.path.clone(),
                             page_count: 10,
                         }),

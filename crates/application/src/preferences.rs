@@ -1,7 +1,7 @@
 //! Profile values and book-scoped rules, independent of storage.
 use crate::{
     favorites::Favorite,
-    profile::{LibraryEntry, StoredDocument},
+    profile::{LibraryEntry, ReadingCollection, StoredDocument},
 };
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -28,6 +28,8 @@ pub struct Preferences {
     pub session_active_view: Option<String>,
     pub favorites: Vec<Favorite>,
     pub library: Vec<LibraryEntry>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub collections: Vec<ReadingCollection>,
     pub markup_color: [u8; 3],
 }
 
@@ -44,6 +46,7 @@ impl Default for Preferences {
             session_active_view: None,
             favorites: Vec::new(),
             library: Vec::new(),
+            collections: Vec::new(),
             markup_color: [255, 230, 50],
         }
     }
@@ -145,6 +148,12 @@ impl Preferences {
             &self.favorites,
             &mut merged.favorites,
             |a, b| a.path == b.path && a.page == b.page,
+        );
+        merge_entries(
+            &base.collections,
+            &self.collections,
+            &mut merged.collections,
+            |a, b| a.id == b.id,
         );
         merged.library.retain(|item| {
             !base.library.iter().any(|old| old.path == item.path)

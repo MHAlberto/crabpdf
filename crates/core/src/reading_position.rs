@@ -15,6 +15,18 @@ pub struct ReadingPosition {
 }
 
 impl ReadingPosition {
+    pub fn centered(page: usize, x: f32, y: f32) -> Option<Self> {
+        let encode = |value: f32| (value * UNIT as f32).round() as u32;
+        ((0.0..=1.0).contains(&x) && (0.0..=1.0).contains(&y)).then(|| Self {
+            schema: 1,
+            page,
+            page_x: encode(x),
+            page_y: encode(y),
+            viewport_x: UNIT / 2,
+            viewport_y: UNIT / 2,
+        })
+    }
+
     pub fn page(self) -> usize {
         self.page
     }

@@ -600,3 +600,35 @@ fn reader_loads_outline_only_after_request() {
         matches!(receive(), WorkerEvent::Outline(1, Ok(entries)) if entries.len() == 2 && entries[1].page == Some(1))
     );
 }
+
+#[test]
+#[ignore = "Requires the native PDFium 7881 library"]
+fn prepares_print_range_with_annotations_without_touching_source() {
+    use crabpdf::document::{MarkupKind, TextMarkup};
+    let pdfium = bind_pdfium().unwrap();
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(format!("artifacts/print-range-{}", std::process::id()));
+    std::fs::create_dir_all(&root).unwrap();
+    let source = root.join("source.pdf");
+    std::fs::copy(fixture("reading-sample.pdf"), &source).unwrap();
+    let original_bytes = std::fs::read(&source).unwrap();
+    let mut engine = PdfiumEngine::with_data_directory(&pdfium, root.join("profile"));
+    assert_eq!(engine.open(&source).unwrap().page_count, 2);
+    engine
+        .add_markup(TextMarkup {
+            page: 0,
+            start: 0,
+            end: 5,
+            kind: MarkupKind::Highlight,
+            color: [255, 230, 50],
+        })
+        .unwrap();
+    let output = root.join("selected.pdf");
+    assert!(engine.prepare_print(&source, "1").is_err());
+    assert!(engine.prepare_print(&output, "3").is_err());
+    engine.prepare_print(&output, "1").unwrap();
+    let document = pdfium.load_pdf_from_file(&output, None).unwrap();
+    assert_eq!(document.pages().len(), 1);
+    assert!(!document.pages().get(0).unwrap().annotations().is_empty());
+    assert_eq!(std::fs::read(source).unwrap(), original_bytes);
+}

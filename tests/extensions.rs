@@ -19,6 +19,7 @@ fn root(name: &str) -> PathBuf {
 }
 fn manifest() -> Manifest {
     Manifest {
+        runtime: Default::default(),
         api_version: 1,
         id: "org.crabpdf.test".into(),
         name: "Prueba".into(),
@@ -301,4 +302,66 @@ fn actual_native_package_runs_returns_latex_and_cancels_without_blocking_the_hos
         .is_err()
     );
     repository.remove(&installed).unwrap();
+}
+
+#[test]
+#[ignore = "Requires the optional Wasmtime CLI and a wasm32-wasip1 protocol fixture"]
+fn wasi_can_use_exchange_but_cannot_read_a_host_file() {
+    use crabpdf_extension_api::ExtensionRuntime;
+    let module = std::env::var_os("CRABPDF_TEST_WASI_EXTENSION")
+        .map(PathBuf::from)
+        .unwrap();
+    let root = root("ext-wasi");
+    let source = root.join("package");
+    std::fs::create_dir_all(&source).unwrap();
+    let mut manifest = manifest();
+    manifest.runtime = ExtensionRuntime::Wasi;
+    manifest.executable = "fixture.wasm".into();
+    let command = manifest.commands.first_mut().unwrap();
+    command.input = InputKind::Text;
+    command.output = OutputKind::Text;
+    let command = command.clone();
+    std::fs::copy(&module, source.join("fixture.wasm")).unwrap();
+    std::fs::write(
+        source.join("extension.toml"),
+        toml::to_string(&manifest).unwrap(),
+    )
+    .unwrap();
+    let sentinel = root.join("host-only.txt");
+    std::fs::write(&sentinel, "not shared").unwrap();
+    let repository = Repository::new(&root.join("profile"));
+    repository.install(&source).unwrap();
+    let package = repository.list().unwrap().remove(0);
+    repository.enable(&package, true).unwrap();
+    let package = repository.list().unwrap().remove(0);
+    let input = Invocation {
+        command,
+        page: 1,
+        region: Region {
+            left: 0.0,
+            top: 0.0,
+            right: 1.0,
+            bottom: 1.0,
+        },
+        text: sentinel
+            .canonicalize()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned(),
+        image: None,
+    };
+    let run = RunningExtension::spawn(repository, package, input, || {}).unwrap();
+    // A cold Wasmtime process must compile the module before the first request.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(60);
+    loop {
+        if let Some(result) = run.poll() {
+            assert!(result.unwrap().text.contains("archivo externo inaccesible"));
+            break;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "WASI fixture timed out"
+        );
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
 }

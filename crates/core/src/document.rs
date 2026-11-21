@@ -9,6 +9,7 @@ pub const MAX_SEARCH_HITS: usize = 10_000;
 #[derive(Clone, Debug)]
 pub struct DocumentInfo {
     pub path: PathBuf,
+    pub source_fingerprint: Option<u64>,
     pub page_count: usize,
 }
 
@@ -147,7 +148,7 @@ pub struct Cover {
 }
 
 /// Coordinates use the unrotated displayed PDF page, normalized, origin at top-left.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Bounds {
     pub left: f32,
     pub top: f32,

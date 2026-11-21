@@ -65,10 +65,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         let details_ms = began.elapsed().as_secs_f64() * 1_000.0;
+        let first_key = key(id, 0);
+        worker.render(first_key)?;
+        loop {
+            match worker.events.recv_timeout(wait)? {
+                WorkerEvent::Rendered(received, result) if received == first_key => {
+                    result?;
+                    worker.release_render(received)?;
+                    break;
+                }
+                WorkerEvent::Unavailable(error) => return Err(error.into()),
+                _ => {}
+            }
+        }
+        let first_raster_ms = began.elapsed().as_secs_f64() * 1_000.0;
         documents.push((id, pages));
         visits.push(serde_json::json!({
             "document": id, "file_bytes": bytes, "pages": pages,
-            "opened_ms": opened_ms, "details_ms": details_ms,
+            "opened_ms": opened_ms, "details_ms": details_ms, "first_raster_ms": first_raster_ms,
         }));
     }
     phase("navigation")?;
@@ -97,6 +111,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    let mut latency: Vec<_> = rendered
+        .iter()
+        .filter_map(|sample| sample["ready_ms"].as_f64())
+        .collect();
+    latency.sort_by(f64::total_cmp);
+    let p95 = latency.get((95 * latency.len()).div_ceil(100).saturating_sub(1));
     phase("all-open")?;
     std::thread::sleep(Duration::from_millis(750));
     for &(id, _) in &documents {
@@ -107,8 +127,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::write(
         output.join("timings.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
-            "schema": 1, "version": env!("CARGO_PKG_VERSION"), "os": std::env::consts::OS,
+            "schema": 2, "version": env!("CARGO_PKG_VERSION"), "os": std::env::consts::OS,
             "architecture": std::env::consts::ARCH, "documents": visits, "renders": rendered,
+            "navigation_p95_ready_ms": p95,
+            "notes": "Native raster readiness, excludes GPU and display presentation.",
         }))?,
     )?;
     std::thread::sleep(Duration::from_millis(750));

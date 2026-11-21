@@ -252,6 +252,7 @@ mod tests {
         tab.state.finish_open(
             7,
             Ok(DocumentInfo {
+                source_fingerprint: None,
                 path: path.clone(),
                 page_count: 2,
             }),

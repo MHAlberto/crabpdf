@@ -22,6 +22,14 @@ Desde la 0.5.5, busca **100002** para OCR o **100003** para Pomodoro en **Extens
 - **Recuperación.** En **Instaladas**, los paquetes dañados aparecen con su diagnóstico y se pueden desinstalar antes de volver a descargarlos. Si falla el registro de activación, pulsa **Activar** en la versión que quieras recuperar.
 - **Pomodoro.** Pulsa **Iniciar** en el panel sobre el PDF. Puedes pausar o reiniciar la sesión. Al terminar, el lector muestra un aviso y solicita atención al sistema. El reloj sigue en marcha al cerrar su ventana.
 
+## OCR de texto local en desarrollo 0.8
+
+El paquete opcional **OCR de texto** se construye con **Build-ExtensionExample.ps1 -TextOcr**. Instálalo desde **artifacts/extensions/text-ocr**. Usa **Usar página actual** o elige un área, ejecuta el reconocimiento en español o inglés y guarda el resultado en el cuaderno para buscarlo después. Requiere Tesseract con el idioma instalado. Si está en otra ubicación, configura **CRABPDF_TESSERACT** con la ruta absoluta a su ejecutable. [Instalación de Tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html).
+
+## Módulos WASI en desarrollo 0.8
+
+Un manifiesto puede declarar el valor **wasi** en la propiedad **runtime** y un ejecutable **.wasm** compilado para **wasm32-wasip1**. Configura **CRABPDF_WASMTIME** con la ruta absoluta al CLI Wasmtime. El módulo recibe únicamente el directorio temporal de intercambio. El host configura límites de ejecución y memoria y desactiva la red del módulo. Los paquetes nativos siguen requiriendo confianza y el catálogo se mantiene curado. [Opciones WASI de Wasmtime](https://docs.wasmtime.dev/cli-options.html).
+
 ## Instalar por código
 
 Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/extensions/) y copia el código de seis cifras. Abre **Extensiones → Gestor de extensiones → Catálogo**, introduce el código en **Instalar por código** y pulsa **Consultar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.

@@ -117,6 +117,52 @@
           "release_tag": "crabpdf-extension-packages-0.8"
         }
       ]
+    },
+    {
+      "code": "100004",
+      "id": "org.crabpdf.text-ocr",
+      "name": "OCR de texto",
+      "description": "Reconoce texto en español o inglés en una región escaneada. Requiere Tesseract instalado en el equipo.",
+      "version": "0.1.0",
+      "api_version": 1,
+      "host_version": ">=0.7.0, <0.9.0",
+      "assets": [
+        {
+          "target": "aarch64-apple-darwin",
+          "file": "crabpdf-ext-100004-0.1.0-aarch64-apple-darwin.zip",
+          "bytes": 240113,
+          "sha256": "4b59b11726aed0ae7cdb5c9d8d9359651b2f104570a88d232ad8637115af11d7",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "i686-pc-windows-msvc",
+          "file": "crabpdf-ext-100004-0.1.0-i686-pc-windows-msvc.zip",
+          "bytes": 215992,
+          "sha256": "671fd52c4e90a81e3be03bb2b6d9965b1c94dac810b538203bde8cfebf9d8296",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-apple-darwin",
+          "file": "crabpdf-ext-100004-0.1.0-x86_64-apple-darwin.zip",
+          "bytes": 251148,
+          "sha256": "f09886fdf09ff92b5423bed6abdd275ff899864e39cfb67eb7dc688eac23ad72",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100004-0.1.0-x86_64-pc-windows-msvc.zip",
+          "bytes": 231612,
+          "sha256": "988bfeadf2d8ec9237bc845caf154fd8914e05432c57c2a918bdd6c52287681e",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100004-0.1.0-x86_64-unknown-linux-gnu.zip",
+          "bytes": 260145,
+          "sha256": "a8eeb10bdd0bdf5d75bedad0430d8b293a960cc0f32e87a4e5a21f3b15202162",
+          "release_tag": "crabpdf-extension-packages-0.8"
+        }
+      ]
     }
   ]
 }

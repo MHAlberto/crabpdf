@@ -223,6 +223,20 @@ pub(super) fn run(
                     break;
                 }
             }
+            Command::PreparePrint(id, path, range) => {
+                let result = if let Some(engine) = documents.get_mut(&id) {
+                    let result = engine.prepare_print(&path, &range);
+                    if !send(WorkerEvent::Changed(id, engine.annotation_state())) {
+                        break;
+                    }
+                    result
+                } else {
+                    Err(super::worker_error())
+                };
+                if !send(WorkerEvent::PrintPrepared(id, result)) {
+                    break;
+                }
+            }
             Command::Mark(id, mark) => {
                 let Some(engine) = documents.get_mut(&id) else {
                     continue;

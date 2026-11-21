@@ -16,10 +16,16 @@ pub fn path(source: &Path) -> Option<PathBuf> {
 }
 
 pub fn path_in(source: &Path, data_directory: &Path) -> Option<PathBuf> {
-    Some(data_directory.join("annotations").join(format!(
-        "{:016x}.toml",
-        crate::formats::fingerprint(source)?
-    )))
+    Some(path_for_fingerprint(
+        data_directory,
+        crate::formats::fingerprint(source)?,
+    ))
+}
+
+pub(crate) fn path_for_fingerprint(data_directory: &Path, identity: u64) -> PathBuf {
+    data_directory
+        .join("annotations")
+        .join(format!("{identity:016x}.toml"))
 }
 
 pub fn load(

@@ -16,6 +16,8 @@ pub enum Icon {
 pub fn button(ui: &mut Ui, icon: Icon, tooltip: &str, enabled: bool, selected: bool) -> Response {
     ui.add_enabled_ui(enabled, |ui| {
         let (rect, response) = ui.allocate_exact_size(egui::vec2(30.0, 30.0), Sense::click());
+        response
+            .widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, enabled, tooltip));
         let visuals = ui.style().interact(&response);
         if response.hovered() || response.has_focus() || selected {
             ui.painter().rect_filled(
@@ -27,6 +29,10 @@ pub fn button(ui: &mut Ui, icon: Icon, tooltip: &str, enabled: bool, selected: b
                     visuals.bg_fill
                 },
             );
+        }
+        if response.has_focus() {
+            ui.painter()
+                .rect_stroke(rect, 6, ui.visuals().selection.stroke, StrokeKind::Inside);
         }
         paint(ui, icon, rect.shrink(7.0), visuals.fg_stroke.color);
         response

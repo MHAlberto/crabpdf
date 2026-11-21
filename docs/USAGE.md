@@ -20,6 +20,18 @@ Abre **Extensiones → Gestor de extensiones → Catálogo** e introduce el cód
 
 Usa **100002** para OCR de ecuaciones, **100003** para Pomodoro o **100001** para el ejemplo de selección. Para OCR, abre su panel, descarga el modelo, selecciona el área de una ecuación y ejecuta **Reconocer como LaTeX**. [Guía de extensiones](EXTENSIONS.md).
 
+## Cuaderno y colecciones en 0.8
+
+En un PDF, abre **Paneles → Cuaderno de lectura** o usa **Ctrl/⌘ + Mayús + J**. Guarda una cita con **Texto → Guardar en el cuaderno** o añade **Nueva nota**. Usa **Guardar nota** o **Ctrl/⌘ + Intro**. La página de cada entrada abre el pasaje y **Exportar Markdown…** guarda el cuaderno. El menú de cada entrada también exporta solo esa nota.
+
+Las notas de un PDF idéntico se encuentran al abrirlo con otro nombre o ruta. Abre el cuaderno antes de mover un PDF con marcas antiguas para registrar su huella. Después, **Recuperar marcas** aplica las marcas registradas al PDF idéntico y conserva el archivo anterior. Los PDF modificados conservan cuadernos separados.
+
+Desde **Paneles → Colecciones de lectura** guarda un grupo de pestañas. Cuando abres la colección, CrabPDF activa su pestaña de lectura y carga las demás al seleccionarlas.
+
+## Impresión en 0.8
+
+Abre **Archivo → Imprimir…** o pulsa **Ctrl/⌘ + P**. Elige la impresora y el rango, por ejemplo **2,4-7**. Puedes usar el área imprimible del controlador. En Linux y macOS se utiliza CUPS. La copia temporal contiene las páginas seleccionadas y requiere permiso de impresión de alta calidad.
+
 ## Actualizar CrabPDF
 
 Abre **Ayuda → Buscar actualizaciones…**. CrabPDF consulta las publicaciones del proyecto cuando eliges esta acción. Si aparece **Descargar e instalar**, la app verifica el tamaño y SHA-256 del paquete antes de abrir el instalador.

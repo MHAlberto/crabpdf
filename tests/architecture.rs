@@ -42,6 +42,7 @@ fn workspace_dependencies_follow_the_selected_architecture() {
                 "roxmltree",
                 "serde_json",
                 "crc32fast",
+                "sha2",
             ],
         ),
     ];

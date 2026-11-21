@@ -87,7 +87,7 @@ jobs:
           EOF
           apt_options=(-o "Dir::Etc::sourcelist=$sources" -o Dir::Etc::sourceparts=- -o Acquire::Retries=3)
           sudo apt-get "${apt_options[@]}" update --error-on=any
-          sudo apt-get "${apt_options[@]}" install -y libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libegl1-mesa-dev libwayland-dev libxkbcommon-dev libdbus-1-dev
+          sudo apt-get "${apt_options[@]}" install -y libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libegl1-mesa-dev libwayland-dev libxkbcommon-dev libdbus-1-dev tesseract-ocr tesseract-ocr-eng
       - name: Install Rust from rust-toolchain.toml
         shell: bash
         run: rustup show && rustup target add '${{ matrix.target }}'
@@ -102,7 +102,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Extension fixture build failed.' }
           $exe = if ($IsWindows) { 'protocol_fixture.exe' } else { 'protocol_fixture' }
           $env:CRABPDF_TEST_EXTENSION = (Resolve-Path "target/${{ matrix.target }}/debug/examples/$exe").Path
-          cargo test --locked --target '${{ matrix.target }}' --test extensions -- --ignored --test-threads=1
+          cargo test --locked --target '${{ matrix.target }}' --test extensions -- --ignored --exact actual_native_package_runs_returns_latex_and_cancels_without_blocking_the_host --test-threads=1
           if ($LASTEXITCODE) { throw 'Extension protocol test failed.' }
       - name: Core and application without native libraries
         run: cargo test -p crabpdf-core -p crabpdf-application --locked --target '${{ matrix.target }}'
@@ -118,6 +118,17 @@ jobs:
           "RUST_READER_PDFIUM=$((Resolve-Path (Join-Path $destination $library)).Path)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Functional engine tests (no window)
         run: cargo test --locked --target '${{ matrix.target }}' --test native_pdf -- --ignored --test-threads=1
+      - name: Package optional text OCR
+        shell: pwsh
+        run: ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -TextOcr -Archive
+      - name: Verify the optional OCR text package on Linux
+        if: runner.os == 'Linux'
+        run: cargo test --locked --target x86_64-unknown-linux-gnu --test text_ocr -- --ignored --test-threads=1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: text-ocr-${{ matrix.target }}
+          path: artifacts/site-extensions/text-ocr-*.zip
+          if-no-files-found: error
       - name: Prepare Windows format decoders and samples
         if: runner.os == 'Windows'
         shell: pwsh
@@ -142,8 +153,8 @@ jobs:
           $metadata = cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
           $version = ($metadata.packages | Where-Object name -eq 'crabpdf').version
           $arch = '${{ matrix.architecture }}'
-          $published = Get-Content -Raw -LiteralPath 'docs/releases/v0.6.0-publication.json' | ConvertFrom-Json
-          $previous = $published.assets | Where-Object name -eq "crabpdf-0.6.0-win-$arch-setup.exe"
+          $published = Get-Content -Raw -LiteralPath 'docs/releases/v0.7.0-publication.json' | ConvertFrom-Json
+          $previous = $published.assets | Where-Object name -eq "crabpdf-0.7.0-win-$arch-setup.exe"
           if (@($previous).Count -ne 1) { throw 'Falta el instalador anterior en el manifiesto de publicación.' }
           New-Item -ItemType Directory -Force -Path 'artifacts/installer-baseline' | Out-Null
           $oldPath = "artifacts/installer-baseline/$($previous.name)"

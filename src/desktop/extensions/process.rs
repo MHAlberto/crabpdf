@@ -1,14 +1,15 @@
 //! One explicit invocation in a background thread, with bounded file exchange.
 use super::{InstalledPackage, Repository};
 use crabpdf_extension_api::{
-    API_VERSION, ExtensionCommand, ExtensionOutput, InputKind, MAX_MESSAGE_BYTES, Request,
-    Response, SelectionImage,
+    API_VERSION, ExtensionCommand, ExtensionOutput, ExtensionRuntime, InputKind, MAX_MESSAGE_BYTES,
+    Request, Response, SelectionImage,
 };
+use process_wrap::std::{ChildWrapper, CommandWrap};
 use std::{
     fs::{self, File},
     io,
     path::PathBuf,
-    process::{Child, Command, Stdio},
+    process::{Command, Stdio},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -129,7 +130,7 @@ impl Drop for Scratch {
         let _ = Self::clean(&self.0);
     }
 }
-struct ChildGuard(Child);
+struct ChildGuard(Box<dyn ChildWrapper>);
 impl Drop for ChildGuard {
     fn drop(&mut self) {
         let _ = self.0.kill();
@@ -162,6 +163,7 @@ fn invoke(
     }
     let work = Work::create()?;
     let request_id = getrandom::u64().map_err(io::Error::other)?;
+    let wasi = package.manifest.runtime == ExtensionRuntime::Wasi;
     let image = if command.input == InputKind::Region {
         let (png, width, height) = input
             .image
@@ -178,7 +180,11 @@ fn invoke(
         use std::io::Write;
         File::create_new(&path)?.write_all(&png)?;
         Some(SelectionImage {
-            png_path: path,
+            png_path: if wasi {
+                PathBuf::from("selection.png")
+            } else {
+                path
+            },
             width,
             height,
         })
@@ -198,25 +204,85 @@ fn invoke(
     let response_path = work.0.join("response.json");
     crabpdf_extension_api::write_message(&request_path, &request)?;
     let executable = fs::canonicalize(package.directory.join(&package.manifest.executable))?;
-    let data = repository.model_data(&package.manifest.id)?;
-    let scratch = Scratch::create(&data)?;
-    let mut process = Command::new(executable);
+    let mut process = if wasi {
+        let runner = std::env::var_os("CRABPDF_WASMTIME")
+            .map(PathBuf::from)
+            .filter(|path| path.is_absolute() && path.is_file())
+            .ok_or_else(|| {
+                io::Error::other("Configura CRABPDF_WASMTIME con la ruta absoluta de Wasmtime.")
+            })?;
+        let mut process = Command::new(runner);
+        process
+            .current_dir(&work.0)
+            .args([
+                "run",
+                "--dir=.",
+                "-W",
+                "max-memory-size=134217728,fuel=100000000",
+                "-S",
+                "inherit-network=n,inherit-env=n,tcp=n,udp=n",
+            ])
+            .arg(&executable)
+            .args([
+                "--crabpdf-request",
+                "request.json",
+                "--crabpdf-response",
+                "response.json",
+            ]);
+        process
+    } else {
+        Command::new(executable)
+    };
+    process.env_clear();
+    // Retain the scratch directory through process exit and response validation.
+    let native_scratch;
+    if !wasi {
+        let data = repository.model_data(&package.manifest.id)?;
+        native_scratch = Scratch::create(&data)?;
+        process
+            .current_dir(&package.directory)
+            .env("CRABPDF_EXTENSION_DATA", &data)
+            .env("CRABPDF_EXTENSION_SCRATCH", &native_scratch.0)
+            .arg("--crabpdf-request")
+            .arg(&request_path)
+            .arg("--crabpdf-response")
+            .arg(&response_path);
+    }
+    for variable in [
+        "PATH",
+        "SystemRoot",
+        "WINDIR",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
+        "ProgramFiles",
+        "ProgramFiles(x86)",
+        "ProgramW6432",
+        "LANG",
+        "LC_ALL",
+        "LC_CTYPE",
+        "SSL_CERT_FILE",
+        "SSL_CERT_DIR",
+        "CRABPDF_TESSERACT",
+        "TESSDATA_PREFIX",
+    ] {
+        if let Some(value) = std::env::var_os(variable) {
+            process.env(variable, value);
+        }
+    }
     process
-        .current_dir(&package.directory)
-        .env("CRABPDF_EXTENSION_DATA", &data)
-        .env("CRABPDF_EXTENSION_SCRATCH", &scratch.0)
-        .arg("--crabpdf-request")
-        .arg(&request_path)
-        .arg("--crabpdf-response")
-        .arg(&response_path)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
+    let mut process = CommandWrap::from(process);
     #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        process.creation_flags(0x08000000);
-    }
+    process
+        .wrap(process_wrap::std::CreationFlags(
+            windows::Win32::System::Threading::CREATE_NO_WINDOW,
+        ))
+        .wrap(process_wrap::std::JobObject);
+    #[cfg(unix)]
+    process.wrap(process_wrap::std::ProcessGroup::leader());
     let mut child = ChildGuard(process.spawn()?);
     let started = Instant::now();
     loop {

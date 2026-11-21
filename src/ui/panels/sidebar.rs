@@ -25,6 +25,7 @@ impl ReaderApp {
                         ("Páginas", Sidebar::Thumbnails),
                         ("Índice", Sidebar::Outline),
                         ("Favoritos", Sidebar::Favorites),
+                        ("Cuaderno", Sidebar::Notebook),
                     ] {
                         if ui
                             .add(egui::Button::new(name).selected(self.sidebar == side))
@@ -36,6 +37,7 @@ impl ReaderApp {
                 });
                 ui.separator();
                 match self.sidebar {
+                    Sidebar::Notebook => self.notebook_panel(ui),
                     Sidebar::Thumbnails => {
                         let Some(tab) = self.tabs.get(self.active) else {
                             ui.label("Abre un documento.");

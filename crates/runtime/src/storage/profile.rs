@@ -343,6 +343,7 @@ mod tests {
                 label: "Introducción".into(),
             }],
             library: Vec::new(),
+            collections: Vec::new(),
         };
         let text = toml::to_string(&p).unwrap();
         assert_eq!(toml::from_str::<Preferences>(&text).unwrap(), p);

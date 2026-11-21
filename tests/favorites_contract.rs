@@ -26,6 +26,7 @@ label = "Other"
     state.finish_open(
         17,
         Ok(DocumentInfo {
+            source_fingerprint: None,
             path: "Lecturas/niño.epub".into(),
             page_count: 10,
         }),

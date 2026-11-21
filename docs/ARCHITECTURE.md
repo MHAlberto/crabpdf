@@ -1,12 +1,13 @@
 # Arquitectura de CrabPDF
 
-CrabPDF usa un monolito modular en un workspace de cuatro paquetes Rust. La versión pública 0.4.1 incorpora esta organización. Los cambios posteriores de mantenimiento se registran en la [revisión del repositorio](REPOSITORY_REVIEW.md). La decisión está en [ADR-0001](adr/0001-modular-architecture.md), el plan original en [ARCHITECTURE_MIGRATION.md](ARCHITECTURE_MIGRATION.md) y la ejecución final en [PHASE_6.md](architecture/PHASE_6.md).
+CrabPDF organiza el lector en capas Rust dentro de un workspace que también contiene el SDK de extensiones y el ayudante de instalación de Windows. La versión pública 0.4.1 incorpora esta organización. Los cambios posteriores de mantenimiento se registran en la [revisión del repositorio](REPOSITORY_REVIEW.md). La decisión está en [ADR-0001](adr/0001-modular-architecture.md), el plan original en [ARCHITECTURE_MIGRATION.md](ARCHITECTURE_MIGRATION.md) y la ejecución final en [PHASE_6.md](architecture/PHASE_6.md).
 
 ```mermaid
 flowchart TD
     Desktop["crabpdf: desktop, CLI e interfaz"] --> Application["crabpdf-application: lectura y protocolo"]
     Desktop --> Runtime["crabpdf-runtime: trabajadores y adaptadores"]
-    Desktop --> Core["crabpdf-core: tipos y geometría"]
+    Desktop --> Core
+    Desktop --> Extensions["crabpdf-extension-api: contrato de paquetes"]["crabpdf-core: tipos y geometría"]
     Runtime --> Application
     Runtime --> Core
     Application --> Core
@@ -65,6 +66,10 @@ Los modelos de preferencias y su reconciliación viven en application. El adapta
 No cambian las variables de entorno, rutas heredadas, TOML, esquema 2 de marcas, identidad de archivos, firma preparada ni nombres de caché v4. `runtime::source::fingerprint` conserva la canonicalización/tamaño/fecha/hash anterior; no se convierte en un hash de contenido.
 
 Los importadores mantienen límites de tamaño/entradas, validación de rutas, cancelación, timeout y comprobación de integridad. Una caché sólo se publica como utilizable al verificar todas sus partes y el manifiesto. La reparación de un PDF preparado rechazado conserva su identidad y bloqueo, sin borrar el original.
+
+El cuaderno local de 0.8 usa una huella SHA-256 del PDF nativo calculada en un hilo de disco. Guarda anotaciones de estudio en archivos separados de las preferencias y de las marcas PDF, con bloqueo y comparación de la entrada original antes de editar. La lista de marcas sigue usando el esquema legado y permite recuperar marcas registradas en un PDF idéntico.
+
+El adaptador de impresión crea el PDF temporal con rangos en el dueño de PDFium y entrega ese resultado al servicio de impresión en otro hilo. Windows usa el motor del sistema y las plataformas Unix usan CUPS.
 
 ## Rust y componentes nativos
 

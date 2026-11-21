@@ -105,6 +105,7 @@ fn current_search_failure_preserves_partial_matches_document_errors_and_metadata
     tab.finish_open(
         7,
         Ok(DocumentInfo {
+            source_fingerprint: None,
             path: "book.pdf".into(),
             page_count: 3,
         }),

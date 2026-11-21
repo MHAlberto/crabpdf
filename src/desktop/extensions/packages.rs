@@ -1,6 +1,6 @@
 //! Folder packages, immutable versions and per-package atomic activation.
 use crate::fileops::atomic_write;
-use crabpdf_extension_api::{API_VERSION, Manifest};
+use crabpdf_extension_api::{API_VERSION, ExtensionRuntime, Manifest};
 use std::{
     fs::{self, File},
     io::{self, Read},
@@ -183,6 +183,13 @@ impl Repository {
             return Ok(manifest);
         }
         let executable = safe_relative(&manifest.executable)?;
+        if manifest.runtime == ExtensionRuntime::Wasi
+            && executable.extension().and_then(|ext| ext.to_str()) != Some("wasm")
+        {
+            return Err(bad(
+                "Las extensiones WASI deben indicar un ejecutable .wasm.",
+            ));
+        }
         let mut path = directory.to_owned();
         for component in executable.components() {
             path.push(component);

@@ -10,6 +10,7 @@ pub enum Action {
     CloseRight,
     Reopen,
     SaveAs,
+    Print,
     Reload,
     NewWindow,
     DuplicateWindow,
@@ -66,6 +67,9 @@ pub enum Action {
     Thumbnails,
     Outline,
     Favorites,
+    Notebook,
+    NotebookQuote,
+    Collections,
     ToggleFavorite,
     Theme,
     Invert,
@@ -95,6 +99,7 @@ impl Action {
         Self::CloseRight,
         Self::Reopen,
         Self::SaveAs,
+        Self::Print,
         Self::Reload,
         Self::NewWindow,
         Self::DuplicateWindow,
@@ -151,6 +156,9 @@ impl Action {
         Self::Thumbnails,
         Self::Outline,
         Self::Favorites,
+        Self::Notebook,
+        Self::NotebookQuote,
+        Self::Collections,
         Self::ToggleFavorite,
         Self::Theme,
         Self::Invert,
@@ -178,6 +186,7 @@ impl Action {
                 | Self::Exit
                 | Self::CheckUpdate
                 | Self::Extensions
+                | Self::Collections
                 | Self::NextTab
                 | Self::PreviousTab
                 | Self::MoveTabLeft

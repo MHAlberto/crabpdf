@@ -26,6 +26,7 @@ pub(super) enum Command {
     Search(SearchRequest),
     SearchPage(SearchRequest, usize),
     Save(DocumentId, PathBuf),
+    PreparePrint(DocumentId, PathBuf, String),
     Mark(DocumentId, TextMarkup),
     UndoMark(DocumentId),
 }
@@ -39,6 +40,7 @@ impl Command {
             | Self::Outline(id)
             | Self::Capture(id, ..)
             | Self::Save(id, ..)
+            | Self::PreparePrint(id, ..)
             | Self::Mark(id, ..)
             | Self::UndoMark(id) => *id,
             Self::Render(key) | Self::ReleaseRender(key) => key.document_id,

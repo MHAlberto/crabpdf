@@ -635,6 +635,15 @@ impl Extensions {
                 self.selected = None;
                 return true;
             }
+            if ui
+                .add_enabled(
+                    can_select && !self.busy(),
+                    egui::Button::new("Usar página actual"),
+                )
+                .clicked()
+            {
+                self.current_page_requested = true;
+            }
             self.show_capture_status(ui);
             ui.add_space(4.0);
         }

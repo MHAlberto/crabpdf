@@ -197,6 +197,15 @@ impl PdfWorker {
     pub fn stop_search(&self, id: DocumentId, generation: u64) -> Result<(), ReaderError> {
         self.mailbox.stop_search(id, generation)
     }
+    pub fn prepare_print(
+        &self,
+        id: DocumentId,
+        path: PathBuf,
+        range: String,
+    ) -> Result<(), ReaderError> {
+        self.enqueue(Command::PreparePrint(id, path, range))
+    }
+
     pub fn save(&self, id: DocumentId, path: PathBuf) -> Result<(), ReaderError> {
         self.enqueue(Command::Save(id, path))
     }

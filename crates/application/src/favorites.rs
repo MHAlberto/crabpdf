@@ -75,6 +75,7 @@ mod tests {
 
     fn document(path: &str) -> DocumentInfo {
         DocumentInfo {
+            source_fingerprint: None,
             path: path.into(),
             page_count: 10,
         }

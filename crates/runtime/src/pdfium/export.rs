@@ -2,6 +2,49 @@
 use super::*;
 
 impl<'a> PdfiumEngine<'a> {
+    pub fn prepare_print(&mut self, path: &Path, range: &str) -> Result<(), ReaderError> {
+        let _guard = self
+            .mark_store
+            .as_deref()
+            .map(crate::annotations::lock)
+            .transpose()?;
+        self.refresh_marks()?;
+        if path.exists() {
+            return Err(ReaderError::new(
+                ErrorKind::File,
+                "La copia de impresión ya existe.",
+            ));
+        }
+        let original = self.document()?;
+        if !original
+            .permissions()
+            .can_print_high_quality()
+            .unwrap_or(false)
+        {
+            return Err(ReaderError::new(
+                ErrorKind::Protected,
+                "Este PDF restringe la impresión de alta calidad.",
+            ));
+        }
+        let range =
+            crate::application::printing::pages(range, original.pages().len().max(0) as usize)
+                .map_err(|message| ReaderError::new(ErrorKind::File, message))?;
+        let mut prepared = self.pdfium.create_new_pdf().map_err(map_render_error)?;
+        prepared
+            .pages_mut()
+            .copy_pages_from_document(original, &range, 0)
+            .map_err(map_render_error)?;
+        crate::fileops::atomic_write(path, |output| {
+            prepared
+                .save_to_writer(output)
+                .map_err(std::io::Error::other)
+        })
+        .map_err(|error| {
+            ReaderError::new(ErrorKind::File, "No se pudo preparar la impresión.")
+                .with_details(error.to_string())
+        })
+    }
+
     pub fn save_copy(&mut self, path: &Path) -> Result<(), ReaderError> {
         let _guard = self
             .mark_store

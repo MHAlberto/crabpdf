@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writeln!(file, "action,label,shortcut,requires_document,status")?;
     for action in Action::ALL {
         let status = match action {
-            Action::Copy | Action::SelectAll => "Parcial: selección de una página y permisos PDF",
+            Action::Copy | Action::SelectAll => "Funcional: selección de texto con permisos PDF",
             Action::Find | Action::FindNext | Action::FindPrevious => {
                 "Funcional: búsqueda progresiva, límite 10000 coincidencias"
             }

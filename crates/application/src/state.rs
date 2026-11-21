@@ -259,6 +259,7 @@ mod tests {
 
     fn info() -> DocumentInfo {
         DocumentInfo {
+            source_fingerprint: None,
             path: PathBuf::from("test.pdf"),
             page_count: 3,
         }

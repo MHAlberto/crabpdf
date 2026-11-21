@@ -26,3 +26,11 @@ pub struct LibraryEntry {
     pub title: String,
     pub opens: u64,
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ReadingCollection {
+    pub id: String,
+    pub name: String,
+    pub active_view: Option<String>,
+    pub tabs: Vec<StoredDocument>,
+}

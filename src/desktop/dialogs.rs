@@ -76,6 +76,18 @@ impl PendingDialog {
             future: Box::pin(async move { future.await.map(|file| vec![file]) }),
         }
     }
+    pub fn markdown(id: DocumentId, name: String) -> Self {
+        let future = rfd::AsyncFileDialog::new()
+            .set_title("Exportar cuaderno")
+            .add_filter("Markdown", &["md"])
+            .set_file_name(name)
+            .save_file();
+        Self {
+            document: Some(id),
+            future: Box::pin(async move { future.await.map(|file| vec![file]) }),
+        }
+    }
+
     pub fn extension_folder() -> Self {
         let future = rfd::AsyncFileDialog::new()
             .set_title("Carpeta del paquete de extensión")

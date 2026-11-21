@@ -31,6 +31,7 @@ pub enum WorkerEvent {
         error: ReaderError,
     },
     Saved(DocumentId, PathBuf, Result<(), ReaderError>),
+    PrintPrepared(DocumentId, Result<(), ReaderError>),
     Marked(DocumentId, Result<(usize, usize), ReaderError>),
     Unavailable(ReaderError),
 }

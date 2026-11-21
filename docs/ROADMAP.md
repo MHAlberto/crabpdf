@@ -2,7 +2,7 @@
 
 Alcance actualizado por el usuario el **13 de octubre de 2026**.
 
-La versión pública actual es **0.4.4**, de desarrollo. El [plan ejecutable](V1_PLAN.md), el [backlog R00–R30](V1_BACKLOG.csv) y la [validación](VALIDATION.md) distinguen lo realizado de lo pendiente. Los informes anteriores están en el [historial](history/README.md).
+La publicación del lector que sirve de referencia es [**0.7.0**](releases/v0.7.0-publication.json). El desarrollo de 0.8.0 incorpora un cuaderno local, recuperación de marcas, colecciones y preparación de impresión. El [plan ejecutable](V1_PLAN.md), el [backlog R00–R30](V1_BACKLOG.csv) y la [validación](VALIDATION.md) distinguen lo realizado de lo pendiente. Los informes anteriores están en el [historial](history/README.md).
 
 ## Extensiones adelantadas en 0.5.0
 
@@ -118,7 +118,7 @@ La validación local se automatiza con `scripts/Test-Local.ps1` y entornos Linux
 
 V1 requiere inventario exhaustivo, paridad funcional y visual verificada, diferencias de plataforma resueltas, pruebas de todos los formatos, evidencia de rendimiento y entrega instalable/portable validada. No basta que compile la UI. La revisión de dependencias y avisos debe corresponder a los paquetes concretos entregados.
 
-La entrega pública es **0.4.4, de desarrollo**. R09 se completó como extracción de arquitectura; la paridad funcional y la aceptación cuantitativa A00/A07 siguen abiertas. [Resultados y límites actuales](VALIDATION.md).
+La última entrega pública documentada del lector es [**0.7.0**](releases/v0.7.0-publication.json). R09 se completó como extracción de arquitectura; la paridad funcional y la aceptación cuantitativa A00/A07 siguen abiertas. [Resultados y límites actuales](VALIDATION.md).
 
 ## Versión 2: extensiones opcionales en Rust y WebAssembly
 

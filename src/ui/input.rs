@@ -173,6 +173,8 @@ impl ReaderApp {
             let extension_panel_closed = self.extensions.close_tool();
             let dismissing = extension_panel_closed
                 || self.extensions.open
+                || self.printing.open
+                || self.collections.open
                 || self.palette_open
                 || self.go_to_open
                 || self.zoom_open
@@ -183,6 +185,8 @@ impl ReaderApp {
                         .tabs
                         .get(self.active)
                         .is_some_and(|tab| tab.reader.password_needed || tab.view.search.open);
+            self.printing.open = false;
+            self.collections.open = false;
             self.extensions.open = false;
             self.palette_open = false;
             self.go_to_open = false;
@@ -219,6 +223,8 @@ impl ReaderApp {
             || self.properties_open
             || self.settings_open
             || self.extensions.open
+            || self.printing.open
+            || self.collections.open
             || self
                 .tabs
                 .get(self.active)
@@ -260,6 +266,12 @@ impl ReaderApp {
                 Action::Reopen,
             ),
             (egui::Modifiers::COMMAND, egui::Key::S, Action::SaveAs),
+            (egui::Modifiers::COMMAND, egui::Key::P, Action::Print),
+            (
+                egui::Modifiers::COMMAND | egui::Modifiers::SHIFT,
+                egui::Key::J,
+                Action::Notebook,
+            ),
             (egui::Modifiers::COMMAND, egui::Key::F, Action::Find),
             (
                 egui::Modifiers::COMMAND,

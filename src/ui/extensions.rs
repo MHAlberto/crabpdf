@@ -7,6 +7,7 @@ use crate::desktop::extensions::{
     InstalledPackage, Inventory, Invocation, Repository, RunningExtension,
     catalog::{self, CatalogPackage},
 };
+use crabpdf_application::notebook::{MAX_NOTE_TEXT, Note, NoteAnchor, NoteKind};
 use crabpdf_core::document::{Bounds, SelectionCapture};
 use crabpdf_extension_api::catalog::valid_code;
 use crabpdf_extension_api::{ExtensionCommand, ExtensionOutput, InputKind, Region};
@@ -26,6 +27,7 @@ type DocumentRevision = (DocumentId, u64);
 struct ExtensionRun {
     owner: PackageKey,
     document: Option<DocumentRevision>,
+    origin: Option<NoteAnchor>,
     process: RunningExtension,
     cancelling: bool,
     discarded: bool,
@@ -33,6 +35,7 @@ struct ExtensionRun {
 
 struct ExtensionResult {
     document: Option<DocumentRevision>,
+    origin: Option<NoteAnchor>,
     result: Result<ExtensionOutput, String>,
     reveal: bool,
 }
@@ -61,6 +64,7 @@ pub(super) struct Extensions {
     picker: Option<crate::desktop::dialogs::PendingDialog>,
     preview: Option<(PathBuf, crabpdf_extension_api::Manifest)>,
     pub selecting: bool,
+    pub(super) current_page_requested: bool,
     drag: Option<(DocumentId, usize, egui::Pos2)>,
     selected: Option<(DocumentRevision, usize, Bounds)>,
     capture: Option<SelectionCapture>,
@@ -70,6 +74,7 @@ pub(super) struct Extensions {
     running: Option<ExtensionRun>,
     results: BTreeMap<PackageKey, ExtensionResult>,
     latest: Option<PackageKey>,
+    pub(super) note_request: Option<(DocumentRevision, Note)>,
     message: Option<String>,
 }
 impl Extensions {
@@ -196,6 +201,30 @@ impl Extensions {
                             ctx.copy_text(output.text.clone());
                         }
                     });
+                    if let (Some(document), Some(anchor)) = (entry.document, entry.origin)
+                        && ui
+                            .add_enabled(
+                                !output.text.trim().is_empty()
+                                    && output.text.len() <= MAX_NOTE_TEXT,
+                                egui::Button::new("Guardar en el cuaderno"),
+                            )
+                            .clicked()
+                    {
+                        self.note_request = Some((
+                            document,
+                            Note {
+                                id: 0,
+                                kind: if output.kind == crabpdf_extension_api::OutputKind::Latex {
+                                    NoteKind::Latex
+                                } else {
+                                    NoteKind::Quote
+                                },
+                                anchor,
+                                excerpt: output.text.clone(),
+                                comment: String::new(),
+                            },
+                        ));
+                    }
                     egui::ScrollArea::vertical()
                         .id_salt("extension-output")
                         .max_height(144.0)
@@ -261,6 +290,14 @@ impl Extensions {
                 image,
             }
         };
+        let origin = document.and_then(|identity| {
+            let (selected, page, region) = self.selected?;
+            (selected == identity).then_some(NoteAnchor {
+                first_page: page,
+                last_page: page,
+                region: Some(region),
+            })
+        });
         let owner = package_key(&package);
         self.latest = Some(owner.clone());
         self.results.remove(&owner);
@@ -272,6 +309,7 @@ impl Extensions {
                 self.running = Some(ExtensionRun {
                     owner,
                     document,
+                    origin,
                     process,
                     cancelling: false,
                     discarded: false,
@@ -282,6 +320,7 @@ impl Extensions {
                     owner,
                     ExtensionResult {
                         document,
+                        origin,
                         result: Err(error.to_string()),
                         reveal: true,
                     },
@@ -323,6 +362,7 @@ impl Extensions {
                     run.owner,
                     ExtensionResult {
                         document: run.document,
+                        origin: run.origin,
                         result,
                         reveal: true,
                     },

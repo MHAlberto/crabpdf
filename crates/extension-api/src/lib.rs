@@ -22,10 +22,26 @@ pub struct Manifest {
     pub host_version: String,
     pub target: String,
     pub executable: String,
+    #[serde(default, skip_serializing_if = "ExtensionRuntime::is_native")]
+    pub runtime: ExtensionRuntime,
     pub description: String,
     pub commands: Vec<ExtensionCommand>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timer: Option<TimerSpec>,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExtensionRuntime {
+    #[default]
+    Native,
+    Wasi,
+}
+
+impl ExtensionRuntime {
+    fn is_native(&self) -> bool {
+        *self == Self::Native
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

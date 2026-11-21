@@ -47,6 +47,7 @@ fn tab(id: u64) -> ReadingTab {
     tab.finish_open(
         id,
         Ok(DocumentInfo {
+            source_fingerprint: None,
             path: "same.pdf".into(),
             page_count: 8,
         }),

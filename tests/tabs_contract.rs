@@ -33,6 +33,7 @@ fn loaded(tab: &mut ReadingTab) -> OpenOutcome {
     tab.finish_open(
         tab.id,
         Ok(DocumentInfo {
+            source_fingerprint: None,
             path: tab.path.clone(),
             page_count: 10,
         }),

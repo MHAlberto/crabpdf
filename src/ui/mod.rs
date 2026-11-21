@@ -625,6 +625,7 @@ impl eframe::App for ReaderApp {
             ui.style_mut().animation_time = duration;
         }
         let fullscreen_reading = self.fullscreen && self.state().document.is_some();
+        let room_for_sidebar = !self.extensions.dock_visible() || ui.available_width() >= 660.0;
         if fullscreen_reading {
             self.tab_drag = None;
         }
@@ -638,15 +639,33 @@ impl eframe::App for ReaderApp {
             }
             self.search_bar(ui);
             self.notices(ui);
-            self.sidebar_panel(ui);
+            if room_for_sidebar {
+                self.sidebar_panel(ui);
+            }
         } else {
             // Search and errors appear only when requested; ordinary reading
             // uses the entire viewport and keeps the windowed preferences.
             self.search_bar(ui);
             self.notices(ui);
-            if !self.presentation {
+            if !self.presentation && room_for_sidebar {
                 self.sidebar_panel(ui);
             }
+        }
+        let can_select = self
+            .state()
+            .details
+            .as_ref()
+            .is_some_and(|details| details.can_copy);
+        if !self.presentation
+            && self.extensions.dock(
+                ui,
+                &self.app_paths.data,
+                can_select,
+                self.preferences.reading_totals,
+            )
+            && let Some(tab) = self.tabs.get_mut(self.active)
+        {
+            tab.view.selection_drag = None;
         }
         self.document_view(ui);
         if fullscreen_reading && !self.presentation {
@@ -658,18 +677,7 @@ impl eframe::App for ReaderApp {
         self.show_collections(ui.ctx());
         self.show_printing(ui.ctx());
         self.updates.show(ui.ctx());
-        let can_select = self
-            .state()
-            .details
-            .as_ref()
-            .is_some_and(|details| details.can_copy);
-        if self
-            .extensions
-            .show(ui.ctx(), &self.app_paths.data, can_select)
-            && let Some(tab) = self.tabs.get_mut(self.active)
-        {
-            tab.view.selection_drag = None;
-        }
+        self.extensions.show(ui.ctx(), &self.app_paths.data);
         if std::mem::take(&mut self.extensions.current_page_requested)
             && let Some(document) = self.state().document.as_ref()
         {

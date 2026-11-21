@@ -1,5 +1,5 @@
+use super::timer::Timer;
 use super::*;
-use crabpdf_extension_api::TimerSpec;
 use std::{
     collections::BTreeMap,
     fs::{self, File},
@@ -18,97 +18,6 @@ pub(super) struct Panels {
     next_reload: Option<Instant>,
     recording: Option<(String, usize)>,
     shortcut_message: Option<String>,
-}
-
-struct Timer {
-    settings: TimerSpec,
-    remaining: Duration,
-    deadline: Option<Instant>,
-    resting: bool,
-    notice: Option<&'static str>,
-}
-
-impl Timer {
-    fn new(settings: TimerSpec) -> Self {
-        Self {
-            settings,
-            remaining: Duration::from_secs(u64::from(settings.focus_minutes) * 60),
-            deadline: None,
-            resting: false,
-            notice: None,
-        }
-    }
-
-    fn reset(&mut self) {
-        *self = Self::new(self.settings);
-    }
-
-    fn tick(&mut self, ctx: &egui::Context) {
-        let Some(deadline) = self.deadline else {
-            return;
-        };
-        self.remaining = deadline.saturating_duration_since(Instant::now());
-        if self.remaining.is_zero() {
-            self.deadline = None;
-            self.resting = !self.resting;
-            let (minutes, notice) = if self.resting {
-                (
-                    self.settings.break_minutes,
-                    "Terminó el enfoque. Es hora de descansar.",
-                )
-            } else {
-                (
-                    self.settings.focus_minutes,
-                    "Terminó el descanso. Puedes volver a enfocarte.",
-                )
-            };
-            self.remaining = Duration::from_secs(u64::from(minutes) * 60);
-            self.notice = Some(notice);
-            ctx.send_viewport_cmd(egui::ViewportCommand::RequestUserAttention(
-                egui::UserAttentionType::Informational,
-            ));
-        } else {
-            ctx.request_repaint_after(self.remaining.min(Duration::from_secs(1)));
-        }
-    }
-
-    fn show(&mut self, ui: &mut egui::Ui) {
-        let secs = self.remaining.as_secs() + u64::from(self.remaining.subsec_nanos() != 0);
-        ui.horizontal(|ui| {
-            ui.strong(if self.resting { "Descanso" } else { "Enfoque" });
-            if self.deadline.is_some() {
-                ui.small("En curso");
-            }
-        });
-        ui.label(
-            egui::RichText::new(format!("{:02}:{:02}", secs / 60, secs % 60))
-                .monospace()
-                .size(32.0),
-        );
-        let minutes = if self.resting {
-            self.settings.break_minutes
-        } else {
-            self.settings.focus_minutes
-        };
-        let duration = f64::from(minutes) * 60.0;
-        let progress = 1.0 - (self.remaining.as_secs_f64() / duration).clamp(0.0, 1.0);
-        ui.add(egui::ProgressBar::new(progress as f32));
-        ui.horizontal_wrapped(|ui| {
-            if let Some(deadline) = self.deadline {
-                if ui.button("Pausar").clicked() {
-                    self.remaining = deadline.saturating_duration_since(Instant::now());
-                    self.deadline = None;
-                }
-            } else if ui.button("Iniciar").clicked() {
-                self.notice = None;
-                self.deadline = Some(Instant::now() + self.remaining);
-                ui.ctx().request_repaint();
-            }
-            if ui.button("Reiniciar").clicked() {
-                self.reset();
-            }
-        });
-    }
 }
 
 const MODIFIERS: egui::Modifiers = egui::Modifiers::ALT.plus(egui::Modifiers::SHIFT);
@@ -221,15 +130,12 @@ impl Panels {
                 false
             }
         });
-        if let Some(id) = &self.active
-            && let Some(settings) = packages
-                .iter()
-                .find(|p| p.enabled && &p.manifest.id == id)
-                .and_then(|package| package.manifest.timer)
-        {
-            self.timers
-                .entry(id.clone())
-                .or_insert_with(|| Timer::new(settings));
+        for package in packages.iter().filter(|package| package.enabled) {
+            if let Some(settings) = package.manifest.timer {
+                self.timers
+                    .entry(package.manifest.id.clone())
+                    .or_insert_with(|| Timer::new(settings));
+            }
         }
         if self
             .active
@@ -238,10 +144,6 @@ impl Panels {
         {
             self.close();
         }
-        for timer in self.timers.values_mut() {
-            timer.tick(ctx);
-        }
-
         if let Some((id, slot)) = self.recording.clone() {
             let key = ctx.input_mut(|input| {
                 let index = input.events.iter().position(|event| {
@@ -329,23 +231,21 @@ impl Panels {
         }
     }
 
-    pub(super) fn notifications(&mut self, ctx: &egui::Context) {
-        for (id, timer) in &mut self.timers {
-            let Some(message) = timer.notice else {
-                continue;
-            };
-            egui::Window::new("Pomodoro")
-                .id(egui::Id::new(("timer-notice", id)))
-                .anchor(egui::Align2::RIGHT_BOTTOM, [-18.0, -18.0])
-                .resizable(false)
-                .collapsible(false)
-                .show(ctx, |ui| {
-                    ui.label(message);
-                    if ui.button("Entendido").clicked() {
-                        timer.notice = None;
-                    }
-                });
+    pub(super) fn clock(&self, id: &str) -> Option<(&Timer, String)> {
+        let timer = self.timers.get(id)?;
+        Some((timer, timer.clock()))
+    }
+
+    pub(super) fn tick_timers(&mut self, ctx: &egui::Context) -> (u64, Option<&'static str>) {
+        let mut count = 0;
+        let mut notice = None;
+        for timer in self.timers.values_mut() {
+            if let Some(completion) = timer.tick(ctx) {
+                count += u64::from(completion.focus);
+                notice = Some(completion.message);
+            }
         }
+        (count, notice)
     }
 }
 

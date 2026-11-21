@@ -495,7 +495,11 @@ impl ReaderApp {
             (egui::Modifiers::SHIFT, egui::Key::I, Action::Invert),
             (egui::Modifiers::NONE, egui::Key::C, Action::Continuous),
         ];
+        let extension_command = self.extensions.command_has_focus(ctx);
         for (modifiers, key, action) in bindings {
+            if extension_command && matches!(key, egui::Key::Enter | egui::Key::Space) {
+                continue;
+            }
             if consume_reader_key(ctx, modifiers, key) {
                 self.execute(action, ctx);
             }

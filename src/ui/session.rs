@@ -102,6 +102,7 @@ impl ReaderApp {
             return;
         }
         self.forget_tab_cache(id);
+        self.extensions.forget_document(id);
         // A fresh worker identity rejects replies still in transit from the old document.
         self.next_id += 1;
         let id = self.next_id;
@@ -130,6 +131,7 @@ impl ReaderApp {
             self.empty.error = Some(error);
         }
         self.forget_tab_cache(tab.reader.id);
+        self.extensions.forget_document(tab.reader.id);
         if index < self.active {
             self.active -= 1;
         } else {

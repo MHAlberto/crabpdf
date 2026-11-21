@@ -30,6 +30,19 @@ Instala y activa **OCR de texto** con el código **100004** en el catálogo. Par
 
 Un manifiesto puede declarar el valor **wasi** en la propiedad **runtime** y un ejecutable **.wasm** compilado para **wasm32-wasip1**. Configura **CRABPDF_WASMTIME** con la ruta absoluta al CLI Wasmtime. El módulo recibe únicamente el directorio temporal de intercambio. El host configura límites de ejecución y memoria y desactiva la red del módulo. Los paquetes nativos siguen requiriendo confianza y el catálogo se mantiene curado. [Opciones WASI de Wasmtime](https://docs.wasmtime.dev/cli-options.html).
 
+## Paneles integrados en 0.8.1
+
+Las extensiones activas aparecen en **Herramientas** en la barra de lectura. Elige una para abrir el panel lateral. Puedes cambiar de herramienta arriba del panel y usar los mismos accesos en la barra flotante de pantalla completa. Los atajos de abrir y cerrar se conservan.
+
+- **Pomodoro** muestra el tiempo restante en la barra. Abre el panel para iniciar, pausar, continuar o reiniciar la fase. El reloj sigue al cerrar el panel y el aviso se muestra en el lector al terminar.
+- **OCR** comparte el panel lateral. El panel se oculta al seleccionar un área, reaparece con el recorte listo y permite copiar o guardar el resultado en el cuaderno.
+- **Estadísticas de lectura** muestra el documento actual, la sesión y los totales históricos. Cuenta visitas al abrir o cambiar de página y mide el tiempo con el documento en primer plano. También registra los enfoques completados con Pomodoro cuando ambas extensiones están activas. Los totales se guardan en el perfil local. El detalle por documento corresponde a su pestaña durante la sesión.
+- **Guía de lectura** pinta una franja que permanece a la misma altura del visor al desplazar el PDF. Puedes ajustar posición y altura en el panel. Cerrar el panel conserva la franja y desactivar el paquete la retira.
+
+Los paquetes locales se preparan con `scripts/Build-ToolExtensions.ps1 -Target x86_64-pc-windows-msvc -Statistics` y `-ReadingGuide`. Los ZIP quedan en `artifacts/site-extensions` y sus carpetas listas para instalar quedan en `artifacts/extension-build`. Para otro sistema usa su target Rust.
+
+El SDK 0.5 añade la propiedad opcional `panel`. El host reconoce `reading_statistics` y `reading_guide` con `executable = ""` y `commands = []`. El protocolo de ejecución se mantiene en API 1 y los manifiestos existentes siguen siendo compatibles.
+
 ## Instalar por código
 
 Abre el [catálogo oficial](https://mhalberto.github.io/crabpdf/extensions/) y copia el código de seis cifras. Abre **Extensiones → Gestor de extensiones → Catálogo**, introduce el código en **Instalar por código** y pulsa **Consultar**. Revisa la ficha antes de pulsar **Descargar e instalar**. Luego pulsa **Activar**. El código `100001` instala el ejemplo **Información de la selección**.

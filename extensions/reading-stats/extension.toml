@@ -1,0 +1,10 @@
+api_version = 1
+id = "org.crabpdf.reading-stats"
+name = "Estadísticas de lectura"
+version = "0.1.0"
+host_version = ">=0.8.1, <0.9.0"
+target = "@TARGET@"
+executable = ""
+description = "Consulta tu tiempo de lectura, visitas a páginas y sesiones de enfoque completadas."
+commands = []
+panel = "reading_statistics"

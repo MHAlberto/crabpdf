@@ -407,6 +407,10 @@ impl ReaderApp {
                         {
                             self.execute(Action::Theme, ui.ctx());
                         }
+                        if ui.available_width() >= 60.0 {
+                            let compact = ui.available_width() < 165.0;
+                            self.extensions.reader_controls(ui, compact);
+                        }
                         if ui.available_width() > 70.0 {
                             ui.add(
                                 egui::Label::new(

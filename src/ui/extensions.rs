@@ -1,6 +1,9 @@
 //! Extension manager and user-selected page regions.
+mod guide;
 mod manager;
 mod panels;
+mod statistics;
+mod timer;
 
 use super::*;
 use crate::desktop::extensions::{
@@ -10,7 +13,7 @@ use crate::desktop::extensions::{
 use crabpdf_application::notebook::{MAX_NOTE_TEXT, Note, NoteAnchor, NoteKind};
 use crabpdf_core::document::{Bounds, SelectionCapture};
 use crabpdf_extension_api::catalog::valid_code;
-use crabpdf_extension_api::{ExtensionCommand, ExtensionOutput, InputKind, Region};
+use crabpdf_extension_api::{ExtensionCommand, ExtensionOutput, HostPanel, InputKind, Region};
 use eframe::egui::{Color32, Rect, Stroke, StrokeKind};
 use std::{collections::BTreeMap, path::PathBuf, sync::mpsc};
 
@@ -51,6 +54,8 @@ fn package_key(package: &InstalledPackage) -> PackageKey {
 pub(super) struct Extensions {
     pub open: bool,
     panels: panels::Panels,
+    statistics: statistics::Statistics,
+    guide: guide::ReadingGuide,
     loaded: bool,
     show_catalog_tab: bool,
     focused: Option<PackageKey>,
@@ -70,6 +75,8 @@ pub(super) struct Extensions {
     capture: Option<SelectionCapture>,
     pending: Option<u64>,
     capture_error: Option<String>,
+    focus_command: bool,
+    command_button: Option<egui::Id>,
     serial: u64,
     running: Option<ExtensionRun>,
     results: BTreeMap<PackageKey, ExtensionResult>,
@@ -110,6 +117,119 @@ impl Extensions {
             Err(e) => self.message = Some(e.to_string()),
         }
     }
+    pub(super) fn forget_document(&mut self, document: DocumentId) {
+        self.statistics.forget(document);
+    }
+
+    pub(super) fn reader_controls(&mut self, ui: &mut egui::Ui, compact: bool) {
+        let mut selected = None;
+        let mut has_tools = false;
+        for package in self
+            .inventory
+            .packages
+            .iter()
+            .filter(|package| package.enabled)
+        {
+            has_tools = true;
+            let id = &package.manifest.id;
+            if let Some((timer, clock)) = self.panels.clock(id) {
+                let tooltip = format!("{} · {}", package.manifest.name, timer.phase());
+                if ui
+                    .add(
+                        egui::Button::new(egui::RichText::new(clock).monospace())
+                            .selected(self.panels.active.as_ref() == Some(id) || timer.running()),
+                    )
+                    .on_hover_text(tooltip)
+                    .clicked()
+                {
+                    selected = Some(package.clone());
+                }
+                // Other timers remain accessible from the tool list.
+                break;
+            }
+        }
+        if has_tools && !compact {
+            ui.menu_button("Herramientas", |ui| {
+                for package in self
+                    .inventory
+                    .packages
+                    .iter()
+                    .filter(|package| package.enabled)
+                {
+                    if ui.button(&package.manifest.name).clicked() {
+                        selected = Some(package.clone());
+                        ui.close();
+                    }
+                }
+            });
+        }
+        if let Some(package) = selected {
+            self.toggle_tool(&package);
+        }
+    }
+
+    pub(super) fn dock_visible(&self) -> bool {
+        self.panels.active.is_some() && !self.open && !self.selecting
+    }
+
+    pub(super) fn command_has_focus(&self, ctx: &egui::Context) -> bool {
+        self.dock_visible()
+            && self
+                .command_button
+                .is_some_and(|id| ctx.memory(|memory| memory.has_focus(id)))
+    }
+
+    fn route_selection(&mut self) {
+        let mut eligible = self.inventory.packages.iter().filter(|package| {
+            package.enabled
+                && package
+                    .manifest
+                    .commands
+                    .iter()
+                    .any(|command| command.input != InputKind::None)
+        });
+        if self
+            .panels
+            .active
+            .as_ref()
+            .is_some_and(|id| eligible.clone().any(|package| &package.manifest.id == id))
+        {
+            return;
+        }
+        self.panels.close();
+        if let Some(first) = eligible.next() {
+            if eligible.next().is_some() {
+                self.focused = Some(package_key(first));
+                self.show_catalog_tab = false;
+                self.preview = None;
+            } else {
+                self.panels.open(first);
+            }
+        }
+    }
+
+    pub(super) fn statistics_button(&mut self, ui: &mut egui::Ui) {
+        if let Some(package) = self
+            .inventory
+            .packages
+            .iter()
+            .find(|p| p.enabled && p.manifest.panel == Some(HostPanel::ReadingStatistics))
+            && ui.button("Estadísticas").clicked()
+        {
+            let package = package.clone();
+            self.toggle_tool(&package);
+        }
+    }
+
+    fn toggle_tool(&mut self, package: &InstalledPackage) {
+        if self.panels.active.as_ref() == Some(&package.manifest.id) && !self.open {
+            self.panels.close();
+        } else {
+            self.panels.open(package);
+        }
+        self.open = false;
+    }
+
     pub(super) fn menu_entries(&mut self, ui: &mut egui::Ui) {
         if self
             .inventory
@@ -427,6 +547,7 @@ impl ReaderApp {
             && self.extensions.pending.is_none()
             && self.extensions.running.is_none()
             && self.extensions.picker.is_none()
+            && !self.extensions.statistics.has_pending_save()
         {
             return;
         }
@@ -512,6 +633,35 @@ impl ReaderApp {
             }
         }
         self.extensions.poll_run();
+        let (focus_sessions, notice) = self.extensions.panels.tick_timers(ctx);
+        if let Some(notice) = notice {
+            self.notice = Some(notice.into());
+        }
+        let statistics_enabled = self.extensions.inventory.packages.iter().any(|package| {
+            package.enabled && package.manifest.panel == Some(HostPanel::ReadingStatistics)
+        });
+        let current = statistics_enabled
+            .then(|| {
+                self.state()
+                    .document
+                    .as_ref()
+                    .map(|document| (document.id, document.page))
+            })
+            .flatten();
+        if self.extensions.statistics.sample(
+            ctx,
+            current,
+            ctx.input(|input| input.focused),
+            if statistics_enabled {
+                focus_sessions
+            } else {
+                0
+            },
+            &mut self.preferences.reading_totals,
+        ) {
+            self.schedule_save();
+        }
+
         if self.extensions.selecting && self.notice.is_none() {
             self.notice=Some("Arrastra un rectángulo sobre la ecuación o el área que quieras enviar. Escape cancela.".into());
         }
@@ -546,6 +696,8 @@ impl ReaderApp {
         self.notice = None;
         self.extensions.selecting = false;
         self.extensions.drag = None;
+        self.extensions.focus_command = false;
+        self.extensions.route_selection();
         self.extensions.open = self.extensions.panels.active.is_none();
         if let Some(worker) = &self.worker {
             match worker.capture(
@@ -580,7 +732,10 @@ impl ReaderApp {
         }
         self.extensions.pending = None;
         match result {
-            Ok(capture) => self.extensions.capture = Some(capture),
+            Ok(capture) => {
+                self.extensions.capture = Some(capture);
+                self.extensions.focus_command = true;
+            }
             Err(error) => self.extensions.capture_error = Some(error.to_string()),
         }
     }

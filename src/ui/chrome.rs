@@ -88,6 +88,7 @@ impl ReaderApp {
                                 action = Some(Action::Next);
                             }
                             self.facing_button(ui);
+                            self.extensions.reader_controls(ui, false);
                             for (label, choice) in [
                                 ("Ajustar ancho", Action::FitWidth),
                                 ("Buscar", Action::Find),

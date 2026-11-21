@@ -28,6 +28,16 @@ pub struct Manifest {
     pub commands: Vec<ExtensionCommand>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timer: Option<TimerSpec>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub panel: Option<HostPanel>,
+}
+
+/// A panel contributed by a package and rendered by the reader.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HostPanel {
+    ReadingStatistics,
+    ReadingGuide,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]

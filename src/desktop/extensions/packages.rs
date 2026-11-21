@@ -138,7 +138,9 @@ impl Repository {
             || manifest.name.is_empty()
             || manifest.name.len() > 120
             || manifest.description.len() > 2000
-            || (manifest.commands.is_empty() && manifest.timer.is_none())
+            || (manifest.commands.is_empty()
+                && manifest.timer.is_none()
+                && manifest.panel.is_none())
             || manifest.commands.len() > 16
         {
             return Err(bad("Identidad, API o comandos incompatibles."));
@@ -171,6 +173,18 @@ impl Repository {
             {
                 return Err(bad("Identificador o título de comando inválido."));
             }
+        }
+        if manifest.panel.is_some() {
+            if manifest.timer.is_some()
+                || !manifest.commands.is_empty()
+                || !manifest.executable.is_empty()
+                || manifest.runtime != ExtensionRuntime::Native
+            {
+                return Err(bad(
+                    "Los paneles del lector no se combinan con ejecutables ni temporizadores.",
+                ));
+            }
+            return Ok(manifest);
         }
         if let Some(timer) = manifest.timer {
             if !manifest.commands.is_empty()

@@ -118,6 +118,18 @@ jobs:
           "RUST_READER_PDFIUM=$((Resolve-Path (Join-Path $destination $library)).Path)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Functional engine tests (no window)
         run: cargo test --locked --target '${{ matrix.target }}' --test native_pdf -- --ignored --test-threads=1
+      - name: Package optional reading panels
+        shell: pwsh
+        run: |
+          ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}' -Statistics
+          ./scripts/Build-ToolExtensions.ps1 -Target '${{ matrix.target }}' -ReadingGuide
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reading-panels-${{ matrix.target }}
+          path: |
+            artifacts/site-extensions/reading-stats-*.zip
+            artifacts/site-extensions/reading-guide-*.zip
+          if-no-files-found: error
       - name: Package optional text OCR
         shell: pwsh
         run: ./scripts/Build-ExtensionExample.ps1 -Target '${{ matrix.target }}' -TextOcr -Archive
@@ -153,8 +165,8 @@ jobs:
           $metadata = cargo metadata --locked --offline --no-deps --format-version 1 | ConvertFrom-Json
           $version = ($metadata.packages | Where-Object name -eq 'crabpdf').version
           $arch = '${{ matrix.architecture }}'
-          $published = Get-Content -Raw -LiteralPath 'docs/releases/v0.7.0-publication.json' | ConvertFrom-Json
-          $previous = $published.assets | Where-Object name -eq "crabpdf-0.7.0-win-$arch-setup.exe"
+          $published = Get-Content -Raw -LiteralPath 'docs/releases/v0.8.0-publication.json' | ConvertFrom-Json
+          $previous = $published.assets | Where-Object name -eq "crabpdf-0.8.0-win-$arch-setup.exe"
           if (@($previous).Count -ne 1) { throw 'Falta el instalador anterior en el manifiesto de publicación.' }
           New-Item -ItemType Directory -Force -Path 'artifacts/installer-baseline' | Out-Null
           $oldPath = "artifacts/installer-baseline/$($previous.name)"

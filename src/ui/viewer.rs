@@ -535,6 +535,9 @@ impl ReaderApp {
                                     );
                                 }
                             }
+                            if !self.presentation {
+                                self.extensions.paint_reading_guide(ui, rect);
+                            }
                             let response = ui.interact(
                                 rect,
                                 egui::Id::new(("page", id, placement.page)),

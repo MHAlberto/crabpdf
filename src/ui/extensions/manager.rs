@@ -1,9 +1,9 @@
 //! Native extension workspace. Package and process operations stay in the controller.
 use super::*;
 
-use crabpdf_extension_api::{Manifest, OutputKind};
+use crabpdf_extension_api::OutputKind;
 
-fn palette(ui: &egui::Ui) -> theme::Palette {
+pub(super) fn palette(ui: &egui::Ui) -> theme::Palette {
     theme::palette(if ui.visuals().dark_mode {
         Theme::Dark
     } else {
@@ -11,7 +11,7 @@ fn palette(ui: &egui::Ui) -> theme::Palette {
     })
 }
 
-fn primary(ui: &mut egui::Ui, enabled: bool, label: &str) -> egui::Response {
+pub(super) fn primary(ui: &mut egui::Ui, enabled: bool, label: &str) -> egui::Response {
     let colors = palette(ui);
     ui.add_enabled(
         enabled,
@@ -57,15 +57,12 @@ fn command_data(command: &ExtensionCommand) -> &'static str {
 }
 
 impl Extensions {
-    pub fn show(&mut self, ctx: &egui::Context, data: &std::path::Path, can_select: bool) -> bool {
-        let repository = Repository::new(data);
-        self.panels.notifications(ctx);
+    pub(in crate::ui) fn show(&mut self, ctx: &egui::Context, data: &std::path::Path) {
         if !self.open {
-            return self.show_tool(ctx, &repository, data, can_select);
+            return;
         }
-
+        let repository = Repository::new(data);
         let mut open = true;
-        let mut arm = false;
         let screen = ctx.content_rect();
         let viewport = screen.size();
         let width = (viewport.x - 48.0).clamp(250.0, 744.0);
@@ -104,15 +101,11 @@ impl Extensions {
                         } else if self.show_catalog_tab {
                             self.show_catalog(ui, ctx, &repository);
                         } else {
-                            arm = self.show_installed(ui, ctx, &repository, data, can_select);
+                            self.show_installed(ui, ctx, &repository, data);
                         }
                     });
             });
-        self.open &= open && !arm;
-        if arm {
-            self.panels.close();
-        }
-        arm
+        self.open &= open;
     }
 
     fn show_installed(
@@ -121,15 +114,14 @@ impl Extensions {
         ctx: &egui::Context,
         repository: &Repository,
         data: &std::path::Path,
-        can_select: bool,
-    ) -> bool {
+    ) {
         let active = self.inventory.packages.iter().filter(|p| p.enabled).count();
         ui.horizontal_wrapped(|ui| {
             ui.strong("Biblioteca");
             muted(
                 ui,
                 format!(
-                    "{} instaladas · {active} activas",
+                    "{} versiones · {active} activas",
                     self.inventory.packages.len()
                 ),
             );
@@ -157,7 +149,6 @@ impl Extensions {
             }
         });
         ui.add_space(4.0);
-        let mut arm = false;
         if self.inventory.packages.is_empty() {
             if self.operation.is_none() {
                 surface(ui, |ui| {
@@ -205,7 +196,7 @@ impl Extensions {
                         |ui| {
                             ui.set_max_width(detail_width);
                             surface(ui, |ui| {
-                                arm = self.show_package(ui, ctx, repository, data, can_select);
+                                self.show_package(ui, ctx, repository, data);
                             });
                         },
                     );
@@ -213,7 +204,7 @@ impl Extensions {
             } else {
                 self.package_list(ui);
                 surface(ui, |ui| {
-                    arm = self.show_package(ui, ctx, repository, data, can_select);
+                    self.show_package(ui, ctx, repository, data);
                 });
             }
         }
@@ -242,7 +233,6 @@ impl Extensions {
                 break;
             }
         }
-        arm
     }
 
     fn package_list(&mut self, ui: &mut egui::Ui) {
@@ -253,12 +243,33 @@ impl Extensions {
             } else {
                 "Inactiva"
             };
-            let label = format!("{}\n{} · {}", package.manifest.name, key.1, status);
+            let colors = palette(ui);
+            let mut label = egui::text::LayoutJob::default();
+            label.append(
+                &format!("{}\n", package.manifest.name),
+                0.0,
+                egui::TextFormat::simple(
+                    egui::FontId::proportional(14.0),
+                    ui.visuals().text_color(),
+                ),
+            );
+            label.append(
+                &format!("{} · {status}", key.1),
+                0.0,
+                egui::TextFormat::simple(
+                    egui::FontId::proportional(11.0),
+                    if package.enabled {
+                        colors.accent
+                    } else {
+                        colors.muted
+                    },
+                ),
+            );
             let selected = self.focused.as_ref() == Some(&key);
             if ui
                 .add_sized(
                     [ui.available_width(), 48.0],
-                    egui::Button::selectable(selected, label).wrap(),
+                    egui::Button::new(label).selected(selected).wrap(),
                 )
                 .clicked()
             {
@@ -274,10 +285,9 @@ impl Extensions {
         ctx: &egui::Context,
         repository: &Repository,
         data: &std::path::Path,
-        can_select: bool,
-    ) -> bool {
+    ) {
         let Some(key) = self.focused.clone() else {
-            return false;
+            return;
         };
         let Some(package) = self
             .inventory
@@ -286,7 +296,7 @@ impl Extensions {
             .find(|p| p.manifest.id == key.0 && p.manifest.version == key.1)
             .cloned()
         else {
-            return false;
+            return;
         };
         let manifest = &package.manifest;
         let active_version = self
@@ -311,7 +321,7 @@ impl Extensions {
 
         ui.horizontal_wrapped(|ui| {
             let busy = self.busy();
-            if package.enabled && primary(ui, !busy, "Abrir herramienta").clicked() {
+            if package.enabled && primary(ui, !busy, "Abrir panel").clicked() {
                 self.panels.open(&package);
                 self.open = false;
             }
@@ -343,15 +353,26 @@ impl Extensions {
         });
 
         if package.enabled {
-            if manifest.timer.is_none() && !manifest.commands.is_empty() {
-                ui.separator();
-                if self.show_commands(ui, ctx, repository, &package, can_select) {
-                    return true;
-                }
-            }
-            self.show_run_status(ui, ctx, &key);
             ui.separator();
+            if let (Some((_, page, _)), Some(_)) = (self.selected, &self.capture)
+                && manifest
+                    .commands
+                    .iter()
+                    .any(|command| command.input != InputKind::None)
+            {
+                muted(ui, format!("Selección lista en la página {}", page + 1));
+            } else {
+                muted(
+                    ui,
+                    "Disponible en la barra de lectura y en el menú Extensiones.",
+                );
+            }
             self.panels.shortcuts(ui, &key.0, data);
+        } else if manifest.panel == Some(HostPanel::ReadingStatistics) {
+            muted(
+                ui,
+                "Al activarla se registran los totales de lectura en este equipo.",
+            );
         }
         ui.collapsing("Detalles del paquete", |ui| {
             muted(ui, &key.0);
@@ -375,7 +396,6 @@ impl Extensions {
                 self.confirm_removal(ui, ctx, repository, &key, &manifest.name);
             }
         });
-        false
     }
 
     fn confirm_removal(
@@ -627,22 +647,31 @@ impl Extensions {
             } else {
                 "Seleccionar área…"
             };
-            if primary(ui, can_select && !self.busy(), label).clicked() {
+            let select = can_select && !self.busy();
+            let arm = ui
+                .horizontal_wrapped(|ui| {
+                    let area = if self.capture.is_none() {
+                        primary(ui, select, label)
+                    } else {
+                        ui.add_enabled(select, egui::Button::new(label))
+                    };
+                    if ui
+                        .add_enabled(select, egui::Button::new("Usar página actual"))
+                        .clicked()
+                    {
+                        self.current_page_requested = true;
+                    }
+                    area.clicked()
+                })
+                .inner;
+            if arm {
                 self.selecting = true;
                 self.drag = None;
                 self.capture = None;
                 self.capture_error = None;
                 self.selected = None;
+                self.focus_command = false;
                 return true;
-            }
-            if ui
-                .add_enabled(
-                    can_select && !self.busy(),
-                    egui::Button::new("Usar página actual"),
-                )
-                .clicked()
-            {
-                self.current_page_requested = true;
             }
             self.show_capture_status(ui);
             ui.add_space(4.0);
@@ -660,66 +689,110 @@ impl Extensions {
                         .as_ref()
                         .is_some_and(|capture| !capture.text.trim().is_empty()),
                 };
-            ui.horizontal_wrapped(|ui| {
-                if ui
-                    .add_enabled(ready, egui::Button::new(&command.title))
-                    .clicked()
-                {
-                    self.run(ctx, repository.clone(), package.clone(), command.clone());
-                }
-                muted(ui, command_data(command));
-            });
+            let response = primary(ui, ready, &command.title).on_hover_text(command_data(command));
+            if ready && command.input != InputKind::None && std::mem::take(&mut self.focus_command)
+            {
+                response.request_focus();
+            }
+            if response.has_focus() {
+                self.command_button = Some(response.id);
+            }
+            if response.clicked() {
+                self.run(ctx, repository.clone(), package.clone(), command.clone());
+            }
         }
         false
     }
 
-    fn show_tool(
+    pub(in crate::ui) fn dock(
         &mut self,
-        ctx: &egui::Context,
-        repository: &Repository,
+        parent: &mut egui::Ui,
         data: &std::path::Path,
         can_select: bool,
+        history: crabpdf_application::profile::ReadingTotals,
     ) -> bool {
-        if self.selecting {
+        self.command_button = None;
+        if self.selecting || self.open {
             return false;
         }
         let Some(package) = self
             .inventory
             .packages
             .iter()
-            .find(|p| p.enabled && self.panels.active.as_ref() == Some(&p.manifest.id))
+            .find(|package| {
+                package.enabled && self.panels.active.as_ref() == Some(&package.manifest.id)
+            })
             .cloned()
         else {
             return false;
         };
-        let manifest: &Manifest = &package.manifest;
-        let width = if manifest.timer.is_some() {
-            238.0
-        } else {
-            386.0
-        };
-        let viewport = ctx.content_rect();
-        let mut open = true;
+        let manifest = &package.manifest;
+        let colors = palette(parent);
+        let maximum = (parent.available_width() * 0.49).clamp(148.0, 420.0);
         let mut arm = false;
-        egui::Window::new(&manifest.name)
-            .id(egui::Id::new(("extension-tool", &manifest.id)))
-            .collapsible(false)
-            .default_width(width)
-            .default_pos(viewport.right_top() + egui::vec2(-width - 24.0, 95.0))
-            .open(&mut open)
-            .show(ctx, |ui| {
-                if manifest.timer.is_some() {
-                    surface(ui, |ui| self.panels.timer(ui, &manifest.id));
-                } else {
-                    surface(ui, |ui| {
-                        arm = self.show_commands(ui, ctx, repository, &package, can_select);
+        let mut close = false;
+        let mut switch = None;
+        egui::Panel::right("extension-dock")
+            .default_size(288.0_f32.min(maximum))
+            .size_range(148.0..=maximum)
+            .resizable(true)
+            .frame(egui::Frame::NONE.fill(colors.surface).inner_margin(12))
+            .show(parent, |ui| {
+                ui.horizontal(|ui| {
+                    let close_width = 46.0;
+                    let width =
+                        (ui.available_width() - close_width - ui.spacing().item_spacing.x - 20.0)
+                            .max(58.0);
+                    egui::ComboBox::from_id_salt("extension-dock-tool")
+                        .width(width)
+                        .selected_text(&manifest.name)
+                        .show_ui(ui, |ui| {
+                            for other in self.inventory.packages.iter().filter(|p| p.enabled) {
+                                if ui
+                                    .selectable_label(
+                                        other.manifest.id == manifest.id,
+                                        &other.manifest.name,
+                                    )
+                                    .clicked()
+                                {
+                                    switch = Some(other.clone());
+                                    ui.close();
+                                }
+                            }
+                        });
+                    close = ui
+                        .add_sized(
+                            [close_width, 24.0],
+                            egui::Button::new("Cerrar").frame(false),
+                        )
+                        .on_hover_text("Cerrar el panel de extensión")
+                        .clicked();
+                });
+                ui.separator();
+                egui::ScrollArea::vertical()
+                    .id_salt(("extension-tool", &manifest.id))
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        if manifest.timer.is_some() {
+                            self.panels.timer(ui, &manifest.id);
+                        } else if manifest.panel == Some(HostPanel::ReadingStatistics) {
+                            self.statistics.show(ui, history);
+                        } else if manifest.panel == Some(HostPanel::ReadingGuide) {
+                            self.guide.show(ui);
+                        } else {
+                            let repository = Repository::new(data);
+                            let ctx = ui.ctx().clone();
+                            arm = self.show_commands(ui, &ctx, &repository, &package, can_select);
+                            self.show_run_status(ui, &ctx, &package_key(&package));
+                        }
+                        ui.separator();
+                        self.panels.shortcuts(ui, &manifest.id, data);
                     });
-                    self.show_run_status(ui, ctx, &package_key(&package));
-                }
-                self.panels.shortcuts(ui, &manifest.id, data);
             });
-        if !open {
+        if close {
             self.panels.close();
+        } else if let Some(package) = switch {
+            self.panels.open(&package);
         }
         arm
     }

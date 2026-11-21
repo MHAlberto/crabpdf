@@ -306,6 +306,7 @@ mod tests {
     #[test]
     fn preferences_roundtrip_and_defaults() {
         let p = Preferences {
+            reading_totals: Default::default(),
             markup_color: [255, 230, 50],
             theme: Theme::Dark,
             sidebar_open: true,

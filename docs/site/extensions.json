@@ -163,6 +163,98 @@
           "release_tag": "crabpdf-extension-packages-0.8"
         }
       ]
+    },
+    {
+      "code": "100005",
+      "id": "org.crabpdf.reading-stats",
+      "name": "Estadísticas de lectura",
+      "description": "Consulta tu tiempo de lectura, visitas a páginas y sesiones de enfoque completadas.",
+      "version": "0.1.0",
+      "api_version": 1,
+      "host_version": ">=0.8.1, <0.9.0",
+      "assets": [
+        {
+          "target": "aarch64-apple-darwin",
+          "file": "crabpdf-ext-100005-0.1.0-aarch64-apple-darwin.zip",
+          "bytes": 1089,
+          "sha256": "528c2c1cba3cc7c0a0c651cad245206a743b98e963ab37f33feadfb959e2e307",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "i686-pc-windows-msvc",
+          "file": "crabpdf-ext-100005-0.1.0-i686-pc-windows-msvc.zip",
+          "bytes": 1091,
+          "sha256": "23d436c14690f12fafb332c89a0c0c06e53eef06bdba512986ca0bf32e3c8ab6",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-apple-darwin",
+          "file": "crabpdf-ext-100005-0.1.0-x86_64-apple-darwin.zip",
+          "bytes": 1089,
+          "sha256": "b7f16c206c4d58df1ee99fc7245d7d3f048c4bb5b3f3a315f1e3832bfda4d58c",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100005-0.1.0-x86_64-pc-windows-msvc.zip",
+          "bytes": 1094,
+          "sha256": "8e087be93e99c79b520be8f766ec7e85bb33dea008823b1f0a22f4e9c9425207",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100005-0.1.0-x86_64-unknown-linux-gnu.zip",
+          "bytes": 1094,
+          "sha256": "6c59f4fab4752d648a6701d293dd9e883787624f29ba2182085a46acc5d76ec7",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        }
+      ]
+    },
+    {
+      "code": "100006",
+      "id": "org.crabpdf.reading-guide",
+      "name": "Guía de lectura",
+      "description": "Marca una franja ajustable para seguir líneas en el visor.",
+      "version": "0.1.0",
+      "api_version": 1,
+      "host_version": ">=0.8.1, <0.9.0",
+      "assets": [
+        {
+          "target": "aarch64-apple-darwin",
+          "file": "crabpdf-ext-100006-0.1.0-aarch64-apple-darwin.zip",
+          "bytes": 1066,
+          "sha256": "3d5c37ef2ad138a757a3384e5866dfdd083cc5cdefdbde93625a8912b4fc1b92",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "i686-pc-windows-msvc",
+          "file": "crabpdf-ext-100006-0.1.0-i686-pc-windows-msvc.zip",
+          "bytes": 1069,
+          "sha256": "9b985482fb1edf2902c7580f31efa517078da7a20aa64997a98c82c5b57814a6",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-apple-darwin",
+          "file": "crabpdf-ext-100006-0.1.0-x86_64-apple-darwin.zip",
+          "bytes": 1066,
+          "sha256": "f0361575a6735b5bae962b8a6707b2772ff171b42e1af1ce9731bfb462b8de6b",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-pc-windows-msvc",
+          "file": "crabpdf-ext-100006-0.1.0-x86_64-pc-windows-msvc.zip",
+          "bytes": 1072,
+          "sha256": "62804c4d15b877b467785bf694f35682377753a64fee17a97434282668515930",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        },
+        {
+          "target": "x86_64-unknown-linux-gnu",
+          "file": "crabpdf-ext-100006-0.1.0-x86_64-unknown-linux-gnu.zip",
+          "bytes": 1071,
+          "sha256": "a55d012c28aff91cecdce47fc2e05ccdc8ab2b16b947df4b1d4ff7a2a145220b",
+          "release_tag": "crabpdf-extension-packages-0.8.1"
+        }
+      ]
     }
   ]
 }

@@ -2,6 +2,12 @@
 
 Este documento orienta sobre la evidencia vigente. Los comandos reproducibles están en [Desarrollo](DEVELOPMENT.md); los resultados históricos se conservan por separado.
 
+## Entrega 0.8.1
+
+La [CI](https://github.com/MHAlberto/crabpdf/actions/runs/44921345851) aprobó Windows x64 y x86, Ubuntu x64 y macOS Intel y Apple Silicon. En Windows verificó instalación, actualización desde 0.8.0 y desinstalación. La [matriz de empaquetado](https://github.com/MHAlberto/crabpdf/actions/runs/44921408638) abrió PDF, EPUB, DjVu y CBZ en los paquetes de Linux y macOS.
+
+En el recorrido gráfico de Windows x64, un recorte se ejecutó con Enter desde el panel lateral. Se verificaron el reloj, las estadísticas guardadas tras cerrar y la franja sobre el PDF. El [registro de publicación](releases/v0.8.1-publication.json) conserva los hashes de los 16 archivos públicos.
+
 ## Entrega 0.8.0
 
 En Windows x64 pasaron las pruebas del workspace, Clippy con AccessKit habilitado y las 15 pruebas del motor PDFium. El recorrido gráfico guardó una cita con su región mediante el atajo del cuaderno y comprobó que la nota seguía asociada al PDF después de renombrarlo. El catálogo público instaló el paquete 100001 en un perfil de prueba y lo dejó desactivado. La prueba de preparación para impresión conservó las anotaciones, verificó el rango y confirmó que el PDF original conservó sus bytes.

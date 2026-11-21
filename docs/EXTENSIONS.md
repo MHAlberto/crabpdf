@@ -36,8 +36,8 @@ Las extensiones activas aparecen en **Herramientas** en la barra de lectura. Eli
 
 - **Pomodoro** muestra el tiempo restante en la barra. Abre el panel para iniciar, pausar, continuar o reiniciar la fase. El reloj sigue al cerrar el panel y el aviso se muestra en el lector al terminar.
 - **OCR** comparte el panel lateral. El panel se oculta al seleccionar un área, reaparece con el recorte listo y permite copiar o guardar el resultado en el cuaderno.
-- **Estadísticas de lectura** muestra el documento actual, la sesión y los totales históricos. Cuenta visitas al abrir o cambiar de página y mide el tiempo con el documento en primer plano. También registra los enfoques completados con Pomodoro cuando ambas extensiones están activas. Los totales se guardan en el perfil local. El detalle por documento corresponde a su pestaña durante la sesión.
-- **Guía de lectura** pinta una franja que permanece a la misma altura del visor al desplazar el PDF. Puedes ajustar posición y altura en el panel. Cerrar el panel conserva la franja y desactivar el paquete la retira.
+- **Estadísticas de lectura** se instala con el código **100005** y muestra el documento actual, la sesión y los totales históricos. Cuenta visitas al abrir o cambiar de página y mide el tiempo con el documento en primer plano. También registra los enfoques completados con Pomodoro cuando ambas extensiones están activas. Los totales se guardan en el perfil local. El detalle por documento corresponde a su pestaña durante la sesión.
+- **Guía de lectura** se instala con el código **100006** y pinta una franja que permanece a la misma altura del visor al desplazar el PDF. Puedes ajustar posición y altura en el panel. Cerrar el panel conserva la franja y desactivar el paquete la retira.
 
 Los paquetes locales se preparan con `scripts/Build-ToolExtensions.ps1 -Target x86_64-pc-windows-msvc -Statistics` y `-ReadingGuide`. Los ZIP quedan en `artifacts/site-extensions` y sus carpetas listas para instalar quedan en `artifacts/extension-build`. Para otro sistema usa su target Rust.
 

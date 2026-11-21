@@ -15,7 +15,7 @@ if (release.version !== version) throw new Error("Release metadata does not matc
 const extensions = await buildExtensions(docs, repo, output);
 const reader = "screenshots/0.6.0-reading.png";
 const notebook = "screenshots/0.8.0-notebook.png";
-const manager = "screenshots/0.7.0-extensions.png";
+const manager = "screenshots/0.8.1-extensions.png";
 const imageSize = {};
 for (const [key, filename] of [["reader", reader], ["notebook", notebook], ["manager", manager]]) {
   const png = await readFile(path.join(docs, filename));

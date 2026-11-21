@@ -22,11 +22,11 @@ Desde la 0.5.5, busca **100002** para OCR o **100003** para Pomodoro en **Extens
 - **Recuperación.** En **Instaladas**, los paquetes dañados aparecen con su diagnóstico y se pueden desinstalar antes de volver a descargarlos. Si falla el registro de activación, pulsa **Activar** en la versión que quieras recuperar.
 - **Pomodoro.** Pulsa **Iniciar** en el panel sobre el PDF. Puedes pausar o reiniciar la sesión. Al terminar, el lector muestra un aviso y solicita atención al sistema. El reloj sigue en marcha al cerrar su ventana.
 
-## OCR de texto local en desarrollo 0.8
+## OCR de texto local
 
-El paquete opcional **OCR de texto** se construye con **Build-ExtensionExample.ps1 -TextOcr**. Instálalo desde **artifacts/extensions/text-ocr**. Usa **Usar página actual** o elige un área, ejecuta el reconocimiento en español o inglés y guarda el resultado en el cuaderno para buscarlo después. Requiere Tesseract con el idioma instalado. Si está en otra ubicación, configura **CRABPDF_TESSERACT** con la ruta absoluta a su ejecutable. [Instalación de Tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html).
+Instala y activa **OCR de texto** con el código **100004** en el catálogo. Para compilar el paquete localmente, ejecuta **Build-ExtensionExample.ps1 -TextOcr** e instálalo desde **artifacts/extensions/text-ocr**. Usa **Usar página actual** o elige un área, ejecuta el reconocimiento en español o inglés y guarda el resultado en el cuaderno para buscarlo después. Requiere Tesseract con el idioma instalado. Si está en otra ubicación, configura **CRABPDF_TESSERACT** con la ruta absoluta a su ejecutable. [Instalación de Tesseract](https://tesseract-ocr.github.io/tessdoc/Installation.html).
 
-## Módulos WASI en desarrollo 0.8
+## Módulos WASI
 
 Un manifiesto puede declarar el valor **wasi** en la propiedad **runtime** y un ejecutable **.wasm** compilado para **wasm32-wasip1**. Configura **CRABPDF_WASMTIME** con la ruta absoluta al CLI Wasmtime. El módulo recibe únicamente el directorio temporal de intercambio. El host configura límites de ejecución y memoria y desactiva la red del módulo. Los paquetes nativos siguen requiriendo confianza y el catálogo se mantiene curado. [Opciones WASI de Wasmtime](https://docs.wasmtime.dev/cli-options.html).
 
@@ -43,7 +43,7 @@ La consulta y la descarga usan HTTPS, solo al solicitarlo. El catálogo no recib
 3. Agrega una entrada a [docs/site/extensions.json](site/extensions.json) con un código de seis cifras único y estable. Copia del manifiesto `id`, `version`, `name`, `description`, `api_version` y `host_version`. En `assets` agrega por plataforma `target`, `release_tag`, `file` (el nombre ZIP), `bytes` y `sha256`. Si actualizas un paquete, conserva su código y publica ZIP con nombres nuevos.
 4. GitHub Actions genera las fichas de la web y el endpoint `/extensions/catalog-v1.json` a partir del mismo catálogo. El SDK 0.2.0 expone el esquema en `crabpdf_extension_api::catalog`. El protocolo de ejecución mantiene su versión 1.
 
-El ejemplo oficial se construye dentro del flujo de Pages para las cinco plataformas y se incluye en el sitio. Para una vista previa local con el ZIP de tu plataforma, ejecuta `./scripts/Build-ExtensionExample.ps1 -Archive`. Desde `docs/`, usa `CRABPDF_CATALOG_PREVIEW=1` y `npm run build` con las dependencias de npm ya instaladas.
+Los paquetes del catálogo público se compilan por plataforma y se alojan en GitHub Releases. Pages publica el catálogo y las fichas con enlaces a cada ZIP. Para una vista previa local con el ZIP de tu plataforma, ejecuta `./scripts/Build-ExtensionExample.ps1 -Archive`. Desde `docs/`, usa `CRABPDF_CATALOG_PREVIEW=1` y `npm run build` con las dependencias de npm ya instaladas.
 
 
 ## Paquete independiente

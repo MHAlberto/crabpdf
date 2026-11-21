@@ -14,10 +14,10 @@ const release = JSON.parse(await readFile(path.join(docs, "releases/v" + version
 if (release.version !== version) throw new Error("Release metadata does not match its publication record.");
 const extensions = await buildExtensions(docs, repo, output);
 const reader = "screenshots/0.6.0-reading.png";
-const search = "screenshots/0.6.0-search.png";
+const notebook = "screenshots/0.8.0-notebook.png";
 const manager = "screenshots/0.7.0-extensions.png";
 const imageSize = {};
-for (const [key, filename] of [["reader", reader], ["search", search], ["manager", manager]]) {
+for (const [key, filename] of [["reader", reader], ["notebook", notebook], ["manager", manager]]) {
   const png = await readFile(path.join(docs, filename));
   if (png.length < 24 || png.toString("ascii", 12, 16) !== "IHDR") {
     throw new Error("Invalid screenshot: " + filename);
@@ -43,7 +43,7 @@ const assets = [
   [path.join(repo, "assets/crabpdf-logo.svg"), "site/assets/crabpdf-logo.svg"],
   [path.join(docs, "site/styles/site.css"), "site/assets/site.css"],
   [path.join(docs, reader), "site/assets/reading.png"],
-  [path.join(docs, search), "site/assets/search.png"],
+  [path.join(docs, notebook), "site/assets/notebook.png"],
   [path.join(docs, manager), "site/assets/extension-manager.png"],
 ];
 for (const [source, relative] of assets) {

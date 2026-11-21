@@ -1,5 +1,19 @@
 # Rendimiento y memoria
 
+## CrabPDF 0.8.0 en Windows x64
+
+Se compiló el mismo [instrumento de medición](../examples/workload_probe.rs) sobre 0.7.0 y 0.8.0 con PDFium 7881. El corpus de prueba tenía diez PDF sintéticos de 48 páginas y sumaba 141.651.470 bytes. Cada ejecución abrió todos los documentos y solicitó dos veces el raster de la primera página, la central y la última. Se alternó el orden de las versiones en cinco ejecuciones por versión.
+
+| Mediana por versión | 0.7.0 | 0.8.0 |
+| --- | ---: | ---: |
+| Pico de memoria residente | 53,31 MiB | 52,27 MiB |
+| Primera página preparada | 27,87 ms | 23,75 ms |
+| Latencia p95 al navegar | 25,90 ms | 38,72 ms |
+| CPU acumulada | 1,45 s | 1,50 s |
+| ZIP Windows x64 local | 44,74 MB | 45,00 MB |
+
+La prueba cubre el proceso de medición y el motor PDFium, excluye la GPU y la presentación de la interfaz. La latencia p95 varió entre 23,23 y 134,96 ms en 0.7.0, y entre 24,21 y 80,27 ms en 0.8.0. El resultado de navegación registró latencias mayores en la mediana. Se necesitarían mediciones más controladas para atribuir la diferencia a un cambio del lector.
+
 ## CrabPDF 0.6 en Windows x64
 
 Se compararon 0.5.5 y 0.6.0 en el mismo equipo Windows 10 con la misma biblioteca PDFium. La sesión de prueba tenía diez PDF locales que sumaban 954.412.014 bytes. Ambas ejecuciones recibieron la misma lista y el mismo PDF activo. El perfil y los datos de prueba quedaron aislados.

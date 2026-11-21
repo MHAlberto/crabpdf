@@ -2,9 +2,11 @@
 
 Este documento orienta sobre la evidencia vigente. Los comandos reproducibles están en [Desarrollo](DEVELOPMENT.md); los resultados históricos se conservan por separado.
 
-## Candidata 0.8.0
+## Entrega 0.8.0
 
 En Windows x64 pasaron las pruebas del workspace, Clippy con AccessKit habilitado y las 15 pruebas del motor PDFium. El recorrido gráfico guardó una cita con su región mediante el atajo del cuaderno y comprobó que la nota seguía asociada al PDF después de renombrarlo. El catálogo público instaló el paquete 100001 en un perfil de prueba y lo dejó desactivado. La prueba de preparación para impresión conservó las anotaciones, verificó el rango y confirmó que el PDF original conservó sus bytes.
+
+GitHub Actions aprobó las cinco plataformas de la [CI](https://github.com/MHAlberto/crabpdf/actions/runs/44840990889). Los paquetes de [Linux y macOS](https://github.com/MHAlberto/crabpdf/actions/runs/44841034103) se probaron con PDF, EPUB, DjVu y CBZ. En Windows se verificó la instalación, actualización desde 0.7.0 y desinstalación en x64 y x86. El [registro de publicación](releases/v0.8.0-publication.json) incluye los SHA-256.
 
 El recorrido de impresión termina antes de entregar el trabajo a una impresora. Tampoco acredita la navegación con un lector de pantalla. AccessKit se activa con el feature `accessibility`.
 

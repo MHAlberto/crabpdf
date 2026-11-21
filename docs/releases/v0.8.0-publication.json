@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "version": "0.8.0",
+  "tag": "v0.8.0",
+  "tagged_commit": "33e6221565029d337974b145027fa3858e1c8186",
+  "annotated_tag_object": "b649cbc3ba8b09a23c46a1d5098fc0b3c3cecbb4",
+  "release_url": "https://github.com/MHAlberto/crabpdf/releases/tag/v0.8.0",
+  "published_at_utc": "2026-11-21T00:22:45Z",
+  "public_assets_verified": true,
+  "validated_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889",
+  "cross_platform_packages_ci": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103",
+  "publication_workflow": "https://github.com/MHAlberto/crabpdf/actions/runs/44843282202",
+  "verification": {
+    "public_assets": 16,
+    "windows": [
+      {
+        "recover_interrupted_install": true,
+        "uninstall": true,
+        "upgrade_from": "0.7.0",
+        "installation": true,
+        "upgrade": true,
+        "architecture": "x64"
+      },
+      {
+        "recover_interrupted_install": true,
+        "uninstall": true,
+        "upgrade_from": "0.7.0",
+        "installation": true,
+        "upgrade": true,
+        "architecture": "x86"
+      }
+    ],
+    "linux_gui_formats": [
+      "PDF",
+      "EPUB",
+      "DjVu",
+      "CBZ"
+    ],
+    "macos": [
+      {
+        "architecture": "arm64",
+        "minimum_macos": "15.0",
+        "tested_macos": "15",
+        "signing": "ad-hoc",
+        "notarized": false,
+        "native_gui_formats": [
+          "PDF",
+          "EPUB",
+          "DjVu",
+          "CBZ"
+        ]
+      },
+      {
+        "architecture": "x64",
+        "minimum_macos": "15.0",
+        "tested_macos": "15",
+        "signing": "ad-hoc",
+        "notarized": false,
+        "native_gui_formats": [
+          "PDF",
+          "EPUB",
+          "DjVu",
+          "CBZ"
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Unsigned Windows installers.",
+    "Windows x86 was verified under WOW64.",
+    "Linux GUI was verified with Xvfb/Mesa on Ubuntu 24.04.",
+    "Mac packages are signed ad hoc and are not notarized.",
+    "Print preparation verified with PDFium. Physical print output and human screen-reader testing are pending."
+  ],
+  "assets": [
+    {
+      "name": "crabpdf-0.8.0-format-tools-sources.zip",
+      "bytes": 82338439,
+      "sha256": "756410e9a3880f10304e1f78f9d9fe59adffc7b6d026760d2378947266870e7c",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-format-tools-sources.zip",
+      "origin": "scripts/Pack-FormatSources.ps1 (33e6221565029d337974b145027fa3858e1c8186)"
+    },
+    {
+      "name": "crabpdf-0.8.0-linux-x64.tar.gz",
+      "bytes": 41289529,
+      "sha256": "ebbafbe14cb82792d68132dbe77f9df3e7fbba6f63449487b72bb800c6e58305",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-linux-x64.tar.gz",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-arm64-system-tool-sources.zip",
+      "bytes": 22219877,
+      "sha256": "8d04b5a29bd1c6f4c24b1672ecd258c8a795f9503378e5fc36c1dcee59c4648f",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-arm64-system-tool-sources.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-arm64.dmg",
+      "bytes": 46229609,
+      "sha256": "5e21e2f7beb38171caa83074daf643829d2eb69961a64c1c0d553c52e40409bc",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-arm64.dmg",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-arm64.zip",
+      "bytes": 42937559,
+      "sha256": "b4f57725f9c5fb0cf05b8c25cf9aec14cefc0fbfcd5c9f099aaf0f44f245647a",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-arm64.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-x64-system-tool-sources.zip",
+      "bytes": 21451527,
+      "sha256": "e98b82cbf56f8cd86332dc15fa1abd71b376aaa64750b8a296ba0529258d17b6",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-x64-system-tool-sources.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-x64.dmg",
+      "bytes": 46805416,
+      "sha256": "9c696110580549f445dd194e3104e4e59d0f5ff7d89923a8b3065429d3e3df94",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-x64.dmg",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-mac-x64.zip",
+      "bytes": 44152640,
+      "sha256": "0006c4e9f647a35e2e5a0fea1f6d0a2a49b148881300b655c05bb468e2445f25",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-mac-x64.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-ubuntu24.04-amd64.deb",
+      "bytes": 31101304,
+      "sha256": "60cd5bd4b4351ab4cd50fefd0aab6fd91af615ae8a3ad02b611f8c6d04e78893",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-ubuntu24.04-amd64.deb",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44841034103"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x64-setup.exe",
+      "bytes": 32566610,
+      "sha256": "a4aebe5ffba297bf2311b32d6b89a53cad17bfadb77eb59d7feeac019ea9cd42",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x64-setup.exe",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x64-setup.exe.json",
+      "bytes": 608,
+      "sha256": "04f17b5065f48810a02d137ffe869adcdb29f991ae41f6aa1187748e2a13bdfd",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x64-setup.exe.json",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x64.zip",
+      "bytes": 44999379,
+      "sha256": "27c78a6faa030e85f14f1e65a9e8ededba1f2dea88ec31ba0bf2e861eadf8f5c",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x64.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x86-setup.exe",
+      "bytes": 32292245,
+      "sha256": "35133139fa779af95110f0bfb12f8032a93bc47c7566efda7628d399363b3c0a",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x86-setup.exe",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x86-setup.exe.json",
+      "bytes": 606,
+      "sha256": "8d4c15296e481d1e02871d8caad6ce42001c439c3e010bc75ec581e309a9f32d",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x86-setup.exe.json",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "crabpdf-0.8.0-win-x86.zip",
+      "bytes": 44515195,
+      "sha256": "97659877599c5d3327a54fc9ce84ef6b2dd2fb98566182d6439be87e5da20c2e",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/crabpdf-0.8.0-win-x86.zip",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44840990889"
+    },
+    {
+      "name": "SHA256SUMS-v0.8.0.txt",
+      "bytes": 1488,
+      "sha256": "7464dbbeb8d568c1a94e9802f37fc25b09bdb4cd0de1986295268b082d0ee58c",
+      "url": "https://github.com/MHAlberto/crabpdf/releases/download/v0.8.0/SHA256SUMS-v0.8.0.txt",
+      "origin": "https://github.com/MHAlberto/crabpdf/actions/runs/44843282202"
+    }
+  ]
+}
